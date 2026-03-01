@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Selu383.SP26.Mobile",
-    "slug": "Selu383.SP26.Mobile",
+    "name": "Selu383-SP26-P03-Mobile-g03",
+    "slug": "Selu383-SP26-P03-Mobile-g03",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.selu383.sp26.p03.g03"
     },
     "web": {
       "output": "static",
@@ -43,6 +44,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9922b588-2a19-4259-85da-fc4febb6fe5f"
+      }
+    },
+    "owner": "phase3"
   }
 }
