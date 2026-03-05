@@ -71,6 +71,10 @@ public static class SeedHelper
 
     private static async Task AddLocations(DataContext dataContext)
     {
+        if (await dataContext.Set<Location>().AnyAsync())
+        {
+            return;
+        }
         dataContext.Set<Location>().AddRange(
             new Location { Name = "Location 1", Address = "123 Main St", TableCount = 10 },
             new Location { Name = "Location 2", Address = "456 Oak Ave", TableCount = 20 },
