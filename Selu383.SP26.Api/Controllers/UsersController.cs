@@ -18,41 +18,52 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = RoleNames.Admin)]
-    public async Task<ActionResult<UserDto>> Create(CreateUserDto dto)
+[Authorize(Roles = RoleNames.Admin)]
+public async Task<ActionResult<UserDto>> Create(CreateUserDto dto)
+{
+    using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+
+    var newUser = new User
     {
-        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        UserName = dto.UserName,
+        FirstName = dto.FirstName,
+        LastName = dto.LastName,
+        DisplayName = dto.DisplayName,
+        Email = dto.Email,
+        PhoneNumber = dto.PhoneNumber
+    };
 
-        var newUser = new User
-        {
-            UserName = dto.UserName,
-        };
-        var createResult = await userManager.CreateAsync(newUser, dto.Password);
-        if (!createResult.Succeeded)
-        {
-            return BadRequest();
-        }
-
-        try
-        {
-            var roleResult = await userManager.AddToRolesAsync(newUser, dto.Roles);
-            if (!roleResult.Succeeded)
-            {
-                return BadRequest();
-            }
-        }
-        catch (InvalidOperationException e) when(e.Message.StartsWith("Role") && e.Message.EndsWith("does not exist."))
-        {
-            return BadRequest();
-        }
-
-        transaction.Complete();
-
-        return Ok(new UserDto
-        {
-            Id = newUser.Id,
-            Roles = dto.Roles,
-            UserName = newUser.UserName,
-        });
+    var createResult = await userManager.CreateAsync(newUser, dto.Password);
+    if (!createResult.Succeeded)
+    {
+        return BadRequest();
     }
+
+    try
+    {
+        var roleResult = await userManager.AddToRolesAsync(newUser, dto.Roles);
+        if (!roleResult.Succeeded)
+        {
+            return BadRequest();
+        }
+    }
+    catch (InvalidOperationException e) when (e.Message.StartsWith("Role") && e.Message.EndsWith("does not exist."))
+    {
+        return BadRequest();
+    }
+
+    transaction.Complete();
+
+    return Ok(new UserDto
+    {
+        Id = newUser.Id,
+        UserName = newUser.UserName!,
+        FirstName = newUser.FirstName,
+        LastName = newUser.LastName,
+        DisplayName = newUser.DisplayName,
+        Email = newUser.Email,
+        PhoneNumber = newUser.PhoneNumber,
+        Roles = dto.Roles
+    });
+}   
 }
