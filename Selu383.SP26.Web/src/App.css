@@ -1,42 +1,93 @@
 #root {
-  max-width: 1280px;
+  width: 100%;
+  height: 100%;
+  min-height: 100vh;
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
+  color: #65a30d;
+  background-color: #1d1715;
+  background-image: url('./assets/WoodgrainAIBackground.jpg');
+  background-size: 100% 100%;
+  background-attachment: fixed;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+.navbar {
+  background-color: #65a30d;
+  color: #1d1715;
+  padding: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.nav-links {
+  display: flex;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+.nav-link {
+  color: #1d1715;
+  margin: 0 10px;
+  text-decoration: none;
 }
 
-.card {
-  padding: 2em;
+.account-dropdown {
+  position: relative;
 }
 
-.read-the-docs {
-  color: #888;
+.account-button {
+  background: none;
+  border: none;
+  color: #1d1715;
+  cursor: pointer;
 }
+
+.dropdown-menu {
+  position: absolute;
+  right: 0;
+  background-color: #65a30d;
+  border: 1px solid #1d1715;
+  z-index: 1;
+}
+
+.dropdown-item {
+  display: block;
+  background: none;
+  border: none;
+  color: #1d1715;
+  padding: 5px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+}
+
+.signin-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.signin-modal {
+  background-color: white;
+  padding: 20px;
+  border-radius: 5px;
+  width: 300px;
+}
+
+.signin-input {
+  display: block;
+  margin: 10px 0;
+  width: 100%;
+}
+
+.signin-button {
+  margin-right: 10px;
+}
+
