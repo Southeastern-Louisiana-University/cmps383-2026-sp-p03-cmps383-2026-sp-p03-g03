@@ -4,16 +4,59 @@
   min-height: 100vh;
   margin: 0 auto;
   text-align: center;
-  color: #65a30d;
-  background-color: #1d1715;
-  background-image: url('./assets/WoodgrainAIBackground.jpg');
+  color: var(--brand-color);
+  background-color: var(--primary-text-color);
+  background-image: url('./assets/LightWoodgrainAIBackground.jpg');
   background-size: 100% 100%;
   background-attachment: fixed;
+  --brand-color: #65a30d;
+  --primary-text-color: #1d1715;
+}
+
+.card-cloth {
+  background-color: white;
+  background-image: url('./assets/ClothAICardBackground.jpg');
+  background-size: cover;
+  aspect-ratio: 1/1;
+  color: var(--primary-text-color);
+}
+
+.card-leaf {
+  background-color: white;
+  background-image: url('./assets/LeafAICardBackground.jpg');
+  background-size: cover;
+  aspect-ratio: 1/1;
+  color: var(--primary-text-color);
+}
+
+.card-paper {
+  background-color: white;
+  background-image: url('./assets/PaperAICardBackground.jpg');
+  background-size: cover;
+  aspect-ratio: 1/1;
+  color: var(--primary-text-color);
+}
+
+.card-wood {
+  background-color: white;
+  background-image: url('./assets/WoodAICardBackground.jpg');
+  background-size: cover;
+  aspect-ratio: 1/1;
+  color: var(--primary-text-color);
+}
+
+.location-grid {
+  display: grid;
+  max-width: 100dvw;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 7dvw;
+  padding: 7dvw;
+  place-content: center;
 }
 
 .navbar {
-  background-color: #65a30d;
-  color: #1d1715;
+  background-color: var(--brand-color);
+  color: var(--primary-text-color);
   padding: 10px;
   display: flex;
   justify-content: space-between;
@@ -25,7 +68,7 @@
 }
 
 .nav-link {
-  color: #1d1715;
+  color: var(--primary-text-color);
   margin: 0 10px;
   text-decoration: none;
 }
@@ -37,15 +80,15 @@
 .account-button {
   background: none;
   border: none;
-  color: #1d1715;
+  color: var(--primary-text-color);
   cursor: pointer;
 }
 
 .dropdown-menu {
   position: absolute;
   right: 0;
-  background-color: #65a30d;
-  border: 1px solid #1d1715;
+  background-color: var(--brand-color);
+  border: 1px solid var(--primary-text-color);
   z-index: 1;
 }
 
@@ -53,7 +96,7 @@
   display: block;
   background: none;
   border: none;
-  color: #1d1715;
+  color: var(--primary-text-color);
   padding: 5px;
   cursor: pointer;
   width: 100%;
