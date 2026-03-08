@@ -299,7 +299,7 @@ namespace Selu383.SP26.Api.Migrations
 
                     b.HasIndex("ManagerId");
 
-                    b.ToTable("Locations");
+                    b.ToTable("Locations", (string)null);
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuCategory", b =>
