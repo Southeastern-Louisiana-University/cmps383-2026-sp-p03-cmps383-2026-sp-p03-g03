@@ -12,8 +12,8 @@ using Selu383.SP26.Api.Data;
 namespace Selu383.SP26.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260308014020_AddReservationsAndTableBarSeat")]
-    partial class AddReservationsAndTableBarSeat
+    [Migration("20260308044949_AddLocationExtendedFields")]
+    partial class AddLocationExtendedFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
