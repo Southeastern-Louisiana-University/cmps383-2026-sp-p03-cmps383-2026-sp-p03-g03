@@ -77,6 +77,7 @@ function App() {
         <NavBar user={user} onSignIn={openSignInModal} onLogout={handleLogout} />
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/order" element={<Order />} />
           <Route path="/locations" element={<Locations />} />
