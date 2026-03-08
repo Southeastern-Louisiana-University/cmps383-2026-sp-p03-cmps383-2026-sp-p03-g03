@@ -23,7 +23,7 @@ public class MenuController : ControllerBase
             .Select(c => new MenuCategoryDto
             {
                 Id = c.Id,
-                LocationId = c.LocationId,
+                LocationIds = c.LocationIds,
                 Name = c.Name,
                 IsSeasonal = c.IsSeasonal,
                 IsActive = c.IsActive
@@ -59,14 +59,14 @@ public class MenuController : ControllerBase
             return NotFound("Location not found.");
 
         var categories = await _context.MenuCategories
-            .Where(c => c.LocationId == locationId && c.IsActive)
+            .Where(c => c.LocationIds.Contains(locationId) && c.IsActive)
             .Include(c => c.MenuItems)
             .OrderByDescending(c => c.IsSeasonal)
             .ThenBy(c => c.Name)
             .Select(c => new
             {
                 c.Id,
-                c.LocationId,
+                c.LocationIds,
                 c.Name,
                 c.IsSeasonal,
                 c.IsActive,
@@ -92,13 +92,13 @@ public class MenuController : ControllerBase
     [HttpPost("categories")]
     public async Task<ActionResult<MenuCategoryDto>> CreateCategory(CreateMenuCategoryDto dto)
     {
-        var locationExists = await _context.Locations.AnyAsync(l => l.Id == dto.LocationId);
+        var locationExists = await _context.Locations.AnyAsync(l => dto.LocationIds.Contains(l.Id));
         if (!locationExists)
             return BadRequest("Invalid location.");
 
         var category = new MenuCategory
         {
-            LocationId = dto.LocationId,
+            LocationIds = dto.LocationIds,
             Name = dto.Name,
             IsSeasonal = dto.IsSeasonal,
             IsActive = dto.IsActive
@@ -110,7 +110,7 @@ public class MenuController : ControllerBase
         var result = new MenuCategoryDto
         {
             Id = category.Id,
-            LocationId = category.LocationId,
+            LocationIds = category.LocationIds,
             Name = category.Name,
             IsSeasonal = category.IsSeasonal,
             IsActive = category.IsActive

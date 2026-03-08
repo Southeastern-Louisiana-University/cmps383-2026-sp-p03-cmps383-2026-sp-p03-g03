@@ -1,35 +1,97 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+import NavBar from "./components/NavBar";
+import Home from "./components/Home";
+import Menu from "./components/Menu";
+import Order from "./components/Order";
+import Locations from "./components/Locations";
+import Account from "./components/Account";
+import SignInModal from "./components/SignInModal";
+import type { UserInterface } from "./Interfaces";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [user, setUser] = useState<UserInterface | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/authentication/me", {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const userData = await response.json();
+          setUser(userData);
+          localStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          setUser(null);
+          localStorage.removeItem("user");
+        }
+      } catch {
+        setUser(null);
+        localStorage.removeItem("user");
+      }
+    };
+    checkAuth();
+  }, []);
+
+  const handleLogin = async (username: string, password: string) => {
+    const response = await fetch("/api/authentication/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ userName: username, password: password }),
+    });
+    if (response.ok) {
+      const userData = await response.json();
+      setUser(userData);
+      localStorage.setItem("user", JSON.stringify(userData));
+    }
+  };
+
+  const handleLogout = async () => {
+    const response = await fetch("/api/authentication/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+    if (response.ok) {
+      setUser(null);
+      localStorage.removeItem("user");
+    }
+  };
+
+  const openSignInModal = () => {
+    setModalOpen(true);
+  };
+
+  const closeSignInModal = () => {
+    setModalOpen(false);
+  };
 
   return (
-    <>
+    <Router>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+        <NavBar
+          user={user}
+          onSignIn={openSignInModal}
+          onLogout={handleLogout}
+        />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Home />} />
+          <Route path="/menu" element={<Menu />} />
+          <Route path="/order" element={<Order />} />
+          <Route path="/locations" element={<Locations />} />
+          <Route path="/account" element={<Account />} />
+        </Routes>
+        {modalOpen && (
+          <SignInModal onClose={closeSignInModal} onLogin={handleLogin} />
+        )}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </Router>
+  );
 }
 
-export default App
+export default App;
