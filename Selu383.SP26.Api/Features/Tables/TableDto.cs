@@ -14,5 +14,7 @@ public class TableDto
 
     public int Seats { get; set; }
 
+    public bool IsBarSeat { get; set; }
+
     public bool IsActive { get; set; }
 }

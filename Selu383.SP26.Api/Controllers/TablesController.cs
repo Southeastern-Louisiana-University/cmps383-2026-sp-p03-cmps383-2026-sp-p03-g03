@@ -28,6 +28,7 @@ public class TablesController : ControllerBase
                 LocationId = x.LocationId,
                 TableNumber = x.TableNumber,
                 Seats = x.Seats,
+                IsBarSeat = x.IsBarSeat,
                 IsActive = x.IsActive
             })
             .ToListAsync();
@@ -49,6 +50,7 @@ public class TablesController : ControllerBase
             LocationId = table.LocationId,
             TableNumber = table.TableNumber,
             Seats = table.Seats,
+            IsBarSeat = table.IsBarSeat,
             IsActive = table.IsActive
         });
     }
@@ -68,6 +70,7 @@ public class TablesController : ControllerBase
                 LocationId = x.LocationId,
                 TableNumber = x.TableNumber,
                 Seats = x.Seats,
+                IsBarSeat = x.IsBarSeat,
                 IsActive = x.IsActive
             })
             .ToListAsync();
@@ -86,18 +89,19 @@ public class TablesController : ControllerBase
         if (!locationExists)
             return BadRequest("Invalid location.");
 
-       var duplicateTable = await _context.Tables.AnyAsync(x =>
-        x.LocationId == dto.LocationId &&
-        x.TableNumber == dto.TableNumber);
+        var duplicateTable = await _context.Tables.AnyAsync(x =>
+            x.LocationId == dto.LocationId &&
+            x.TableNumber == dto.TableNumber);
 
         if (duplicateTable)
-        return BadRequest("Table number already exists for this location.");
+            return BadRequest("Table number already exists for this location.");
 
         var table = new Table
         {
             LocationId = dto.LocationId,
             TableNumber = dto.TableNumber,
             Seats = dto.Seats,
+            IsBarSeat = dto.IsBarSeat,
             IsActive = dto.IsActive
         };
 
@@ -135,6 +139,7 @@ public class TablesController : ControllerBase
         table.LocationId = dto.LocationId;
         table.TableNumber = dto.TableNumber;
         table.Seats = dto.Seats;
+        table.IsBarSeat = dto.IsBarSeat;
         table.IsActive = dto.IsActive;
 
         await _context.SaveChangesAsync();

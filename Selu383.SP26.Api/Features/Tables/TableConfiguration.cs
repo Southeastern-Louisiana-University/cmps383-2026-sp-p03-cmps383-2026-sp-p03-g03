@@ -18,6 +18,9 @@ public class TableConfiguration : IEntityTypeConfiguration<Table>
         builder.Property(x => x.Seats)
             .IsRequired();
 
+        builder.Property(x => x.IsBarSeat)
+            .HasDefaultValue(false);
+
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
     }

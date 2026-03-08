@@ -10,5 +10,7 @@ public class Table
 
     public int Seats { get; set; }
 
+    public bool IsBarSeat { get; set; } = false;
+
     public bool IsActive { get; set; } = true;
 }
