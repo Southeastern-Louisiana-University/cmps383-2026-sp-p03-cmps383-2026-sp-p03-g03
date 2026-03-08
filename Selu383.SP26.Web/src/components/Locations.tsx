@@ -15,7 +15,7 @@ function Locations() {
       <h1>Locations</h1>
       <div className='location-grid'>
       {locations.map(loc => (
-        <div key={loc.id} className='card-paper'>
+        <div key={loc.id} className='card'>
           <h2>{loc.name}</h2>
           <p>{loc.address}</p>
           <p>Tables: {loc.tableCount}</p>
