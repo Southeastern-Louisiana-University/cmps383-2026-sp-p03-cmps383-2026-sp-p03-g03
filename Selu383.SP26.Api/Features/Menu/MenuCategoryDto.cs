@@ -6,7 +6,7 @@ public class MenuCategoryDto
 {
     public int Id { get; set; }
 
-    public int LocationId { get; set; }
+    public int[]? LocationIds { get; set; }
 
     [Required]
     [MaxLength(120)]

@@ -1,15 +1,35 @@
-import type { UserInterface } from '../Interfaces';
+import { useEffect, useState } from "react";
+import type { UserInterface } from "../Interfaces";
 
-interface AccountProps {
-  user: UserInterface | null;
-}
+function Account() {
+  const [accountInfo, setAccountInfo] = useState<UserInterface | null>(null);
 
-function Account({ user }: AccountProps) {
+  useEffect(() => {
+    fetch("/api/authentication/me", {
+      credentials: "include",
+    })
+      .then((response) => response.json() as Promise<UserInterface>)
+      .then((data) => setAccountInfo(data));
+  }, []);
 
   return (
     <div>
       <h1>Account Info</h1>
-      {user ? (<div><p>You are logged in as {user.userName}.</p></div>) : (<p>Please sign in to view your account details.</p>)}
+      {accountInfo ? (
+        <div>
+          <p>You are logged in as {accountInfo.userName}.</p>
+          <p>
+            Name: {accountInfo.firstName} {accountInfo.lastName}
+          </p>
+          <p>Display Name: {accountInfo.displayName}</p>
+          <p>Phone Number: {accountInfo.phoneNumber}</p>
+          <p>Email: {accountInfo.email}</p>
+          <p>Role(s): {accountInfo.roles}</p>
+          <p></p>
+        </div>
+      ) : (
+        <p>Please sign in to view your account details.</p>
+      )}
     </div>
   );
 }

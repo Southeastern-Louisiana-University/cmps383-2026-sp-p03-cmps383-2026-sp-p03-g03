@@ -2,17 +2,17 @@ export interface LocationInterface {
   id: number;
   name: string;
   type: string;
-  phoneNumber?: string;
+  phone?: string;
   address: string;
   city?: string;
   state?: string;
-  zipCode?: string;
+  zip?: string;
   openingTime?: string;
   closingTime?: string;
-  layout?: string;
+  layoutJson?: string;
   isActive: boolean;
   tableCount: number;
-  managerId?: string;
+  managerId?: number;
   manager?: UserInterface;
 }
 
@@ -30,4 +30,23 @@ export interface UserInterface {
 export interface RoleInterface {
   id: number;
   name: string;
+}
+
+export interface MenuItemInterface {
+  id: number;
+  categoryId: number;
+  category?: MenuCategoryInterface;
+  name: string;
+  description?: string;
+  basePrice: number;
+  isAvailable: boolean;
+}
+
+export interface MenuCategoryInterface {
+  id: number;
+  locationId: number;
+  name: string;
+  isSeasonal: boolean;
+  isActive: boolean;
+  menuItems?: MenuItemInterface[];
 }

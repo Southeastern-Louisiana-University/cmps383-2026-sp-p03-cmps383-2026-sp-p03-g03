@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import type { UserInterface } from "../Interfaces";
 
@@ -10,6 +10,15 @@ interface NavBarProps {
 
 function NavBar({ user, onSignIn, onLogout }: NavBarProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [userInitials, setUserInitials] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setUserInitials(
+        `${user.firstName?.charAt(0) || "?"}${user.lastName?.charAt(0) || "?"}`,
+      );
+    }
+  }, [setUserInitials, user]);
 
   return (
     <nav className="navbar">
@@ -39,8 +48,7 @@ function NavBar({ user, onSignIn, onLogout }: NavBarProps) {
             className="account-initials"
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
-            {user.firstName?.charAt(0) || "?"}
-            {user.lastName?.charAt(0) || "?"}
+            {userInitials}
           </button>
         ) : (
           <button

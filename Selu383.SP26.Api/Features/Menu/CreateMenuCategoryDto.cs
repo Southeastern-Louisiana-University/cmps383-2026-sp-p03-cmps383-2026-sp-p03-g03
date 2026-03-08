@@ -4,8 +4,7 @@ namespace Selu383.SP26.Api.Features.Menu;
 
 public class CreateMenuCategoryDto
 {
-    [Required]
-    public int LocationId { get; set; }
+    public int[]? LocationIds { get; set; }
 
     [Required]
     [MaxLength(120)]

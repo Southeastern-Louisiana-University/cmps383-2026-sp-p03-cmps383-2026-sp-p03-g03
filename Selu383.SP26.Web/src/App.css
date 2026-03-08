@@ -68,17 +68,47 @@ body {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   color: var(--primary-text-color);
   border-radius: 8px;
   border: 1rem double var(--brand-color);
   outline: 0.5rem solid var(--brand-color);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  gap: 0.25rem;
+}
+
+.card h2,
+.card p {
+  margin: 0;
 }
 
 .card h2 {
-  text-decoration: underline;
-  text-decoration-color: var(--brand-color);
+  margin-bottom: 0.4rem;
+  width: 100%;
+  text-align: left;
+}
+
+.copy-button {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  outline: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-self: flex-end;
+  color: var(--primary-text-color);
+  transition: color var(--transition-speed);
+}
+
+.copy-button:hover {
+  color: var(--brand-color);
+  transform: scale(1.1);
+}
+
+.copy-button svg {
+  display: block;
 }
 
 .dropdown-menu {
@@ -110,6 +140,17 @@ body {
   background-color: rgba(101, 163, 13, 0.1);
 }
 
+.location-card-container {
+  display: flex;
+  align-items: center;
+  text-align: left;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .location-grid {
   display: grid;
   width: 90%;
@@ -118,6 +159,29 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 3rem;
   padding: 2rem;
+}
+
+.menu-category {
+  max-width: 80%;
+  margin: 2rem auto;
+  background-color: var(--brand-color);
+  text-align: center;
+}
+
+.menu-items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(300px, 1fr));
+  gap: 1rem;
+  place-content: center;
+  width: 90%;
+  margin: 1rem auto;
+}
+
+.menu-item {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .navbar {
