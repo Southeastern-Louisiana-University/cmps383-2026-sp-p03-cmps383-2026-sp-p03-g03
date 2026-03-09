@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Receipts;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,8 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ReceiptPdfService>();
+builder.Services.AddScoped<BlobStorageService>();
 
 var app = builder.Build();
 

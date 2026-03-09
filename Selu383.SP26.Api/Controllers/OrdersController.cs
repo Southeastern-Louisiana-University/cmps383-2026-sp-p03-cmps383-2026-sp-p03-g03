@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
+using Selu383.SP26.Api.Features.Receipts;
 
 namespace Selu383.SP26.Api.Controllers;
 
@@ -10,10 +11,17 @@ namespace Selu383.SP26.Api.Controllers;
 public class OrdersController : ControllerBase
 {
     private readonly DataContext _context;
+    private readonly ReceiptPdfService _receiptPdfService;
+    private readonly BlobStorageService _blobStorageService;
 
-    public OrdersController(DataContext context)
+    public OrdersController(
+        DataContext context,
+        ReceiptPdfService receiptPdfService,
+        BlobStorageService blobStorageService)
     {
         _context = context;
+        _receiptPdfService = receiptPdfService;
+        _blobStorageService = blobStorageService;
     }
 
     [HttpGet("{id:int}")]
@@ -135,5 +143,44 @@ public class OrdersController : ControllerBase
         };
 
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, result);
+    }
+
+    [HttpGet("{id:int}/receipt-pdf")]
+    public async Task<IActionResult> GetReceiptPdf(int id)
+    {
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.MenuItem)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order == null)
+            return NotFound();
+
+        var pdfBytes = _receiptPdfService.GenerateReceipt(order);
+
+        return File(pdfBytes, "application/pdf", $"order-{order.Id}-receipt.pdf");
+    }
+
+    [HttpPost("{id:int}/archive-receipt")]
+    public async Task<ActionResult<object>> ArchiveReceipt(int id)
+    {
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .ThenInclude(oi => oi.MenuItem)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order == null)
+            return NotFound();
+
+        var pdfBytes = _receiptPdfService.GenerateReceipt(order);
+
+        var fileName = $"receipts/order-{order.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+        var blobUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
+
+        return Ok(new
+        {
+            orderId = order.Id,
+            receiptUrl = blobUrl
+        });
     }
 }
