@@ -28,9 +28,15 @@ public class DataContextTests
     public void DataContext_IsOneDeclared()
     {
         var type = typeof(Program).Assembly.GetTypes().Where(x => x.IsSubclassOf(typeof(DbContext))).ToList();
+#pragma warning disable MSTEST0037 // Use proper 'Assert' methods
         Assert.IsTrue(type.Count > 0, "You don't have a DbContext declared yet");
+#pragma warning restore MSTEST0037 // Use proper 'Assert' methods
+#pragma warning disable MSTEST0037 // Use proper 'Assert' methods
         Assert.IsFalse(type.Count > 1, "You have more than one data context created");
+#pragma warning restore MSTEST0037 // Use proper 'Assert' methods
+#pragma warning disable MSTEST0037 // Use proper 'Assert' methods
         Assert.IsTrue(type[0].Name == "DataContext", "You need to call your DbContext class 'DataContext' not " + type[0].Name);
+#pragma warning restore MSTEST0037 // Use proper 'Assert' methods
     }
 
     [TestMethod]
