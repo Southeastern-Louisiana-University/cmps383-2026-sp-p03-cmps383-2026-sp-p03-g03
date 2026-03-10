@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Receipts;
+using Selu383.SP26.Api.Features.Payments;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +35,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReceiptPdfService>();
 builder.Services.AddScoped<BlobStorageService>();
+builder.Services.AddScoped<StripePaymentService>();
 
 var app = builder.Build();
 
