@@ -5,6 +5,7 @@ using Stripe.Checkout;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
+using Selu383.SP26.Api.Features.Loyalty;
 
 namespace Selu383.SP26.Api.Controllers;
 
@@ -78,6 +79,22 @@ public class StripeWebhookController : ControllerBase
                 order.PaymentStatus = "Paid";
                 order.Status = "Confirmed";
 
+                int pointsEarned = (int)Math.Round(order.Total * 10);
+
+                if (order.CreatedByUser != null)
+                {
+                    _context.Set<LoyaltyLedger>().Add(new LoyaltyLedger
+                    {
+                        UserId = order.CreatedByUser.Id,
+                        OrderId = order.Id,
+                        PointsEarned = pointsEarned,
+                        PointsRedeemed = 0,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    order.CreatedByUser.LoyaltyPoints += pointsEarned;
+                }
+
                 if (order.Receipt == null)
                 {
                     var pdfBytes = _receiptPdfService.GenerateReceipt(order);
@@ -97,15 +114,15 @@ public class StripeWebhookController : ControllerBase
 
             return Ok();
         }
-     catch (StripeException ex)
-{
-    Console.WriteLine($"Stripe webhook error: {ex.Message}");
-    return BadRequest($"Stripe webhook error: {ex.Message}");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Webhook error: {ex.Message}");
-    return BadRequest($"Webhook error: {ex.Message}");
-}
+        catch (StripeException ex)
+        {
+            Console.WriteLine($"Stripe webhook error: {ex.Message}");
+            return BadRequest($"Stripe webhook error: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Webhook error: {ex.Message}");
+            return BadRequest($"Webhook error: {ex.Message}");
+        }
     }
 }
