@@ -41,7 +41,7 @@ builder.Services.AddScoped<StripePaymentService>();
 var app = builder.Build();
 
 // configure stripe with the secret key from appsettings
-StripeConfiguration.ApiKey = builder.Configuration["STRIPE_SECRET_KEY"];
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 using (var scope = app.Services.CreateScope())
 {
