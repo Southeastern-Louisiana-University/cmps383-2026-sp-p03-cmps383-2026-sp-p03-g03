@@ -37,12 +37,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   text: {
-    color: 'white',
+    color: 'color="#65a30d"',
     fontSize: 42,
     lineHeight: 84,
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: '#000000c0',
+    backgroundColor: '#65a30d',
   },
 });
 
