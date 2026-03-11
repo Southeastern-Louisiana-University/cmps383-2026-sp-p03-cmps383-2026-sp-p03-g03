@@ -87,11 +87,18 @@ public class ReservationsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<ReservationDto>> Create(ReservationDto dto)
     {
-        if (dto.PartySize < 1)
-            return BadRequest("Party size must be at least 1.");
+        //enforce party size limits
+        if (dto.PartySize < 2 || dto.PartySize > 6)
+            return BadRequest("Party size must be between 2 and 6 guests.");
 
+        //enforce 2 hour advance notice
         if (dto.ReservedFor < DateTime.UtcNow.AddHours(2))
             return BadRequest("Reservations must be made at least 2 hours in advance.");
+
+        //enforce business hourss
+        var timeOfDay = dto.ReservedFor.TimeOfDay;
+        if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
+            return BadRequest("Reservations can only be made between 6:00 AM and 6:00 PM.");
 
         var locationExists = await _context.Locations.AnyAsync(x => x.Id == dto.LocationId);
         if (!locationExists)
@@ -110,6 +117,14 @@ public class ReservationsController : ControllerBase
 
         if (!table.IsActive)
             return BadRequest("Table is not active.");
+
+        //prevent booking of individual bar seats
+        if (table.IsBarSeat)
+            return BadRequest("Individual bar seats cannot be reserved.");
+
+        //ensure table can fit the party size
+        if (dto.PartySize > table.Seats)
+            return BadRequest($"Party size exceeds the table's capacity of {table.Seats}.");
 
         var conflictingReservation = await _context.Reservations.AnyAsync(x =>
             x.TableId == dto.TableId &&
@@ -142,11 +157,18 @@ public class ReservationsController : ControllerBase
     [Authorize(Roles = RoleNames.Admin)]
     public async Task<ActionResult<ReservationDto>> Update(int id, ReservationDto dto)
     {
-        if (dto.PartySize < 1)
-            return BadRequest("Party size must be at least 1.");
+        //enforce party size limit (2 to 6 guests)
+        if (dto.PartySize < 2 || dto.PartySize > 6)
+            return BadRequest("Party size must be between 2 and 6 guests.");
 
+        // enforces 2 hour advance notice
         if (dto.ReservedFor < DateTime.UtcNow.AddHours(2))
             return BadRequest("Reservations must be made at least 2 hours in advance.");
+
+        //enforces business hours(6am to 6pm)
+        var timeOfDay = dto.ReservedFor.TimeOfDay;
+        if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
+            return BadRequest("Reservations can only be made between 6:00 AM and 6:00 PM.");
 
         var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
         if (reservation == null)
@@ -166,6 +188,14 @@ public class ReservationsController : ControllerBase
 
         if (table.LocationId != dto.LocationId)
             return BadRequest("Table does not belong to this location.");
+
+        //prevent booking of individual bar seats
+        if (table.IsBarSeat)
+            return BadRequest("Individual bar seats cannot be reserved.");
+
+        //ensure table can fit the party size
+        if (dto.PartySize > table.Seats)
+            return BadRequest($"Party size exceeds the table's capacity of {table.Seats}.");
 
         var conflictingReservation = await _context.Reservations.AnyAsync(x =>
             x.Id != id &&

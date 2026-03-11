@@ -17,6 +17,7 @@
     </PackageReference>
     <PackageReference Include="QuestPDF" Version="2026.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="7.0.0" />
+    <PackageReference Include="Stripe.net" Version="43.15.0" />
   </ItemGroup>
 
   <ItemGroup>
