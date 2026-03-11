@@ -12,8 +12,8 @@ using Selu383.SP26.Api.Data;
 namespace Selu383.SP26.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20260311102017_MigrationMadness")]
-    partial class MigrationMadness
+    [Migration("20260311110842_TrueMergeFix")]
+    partial class TrueMergeFix
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
