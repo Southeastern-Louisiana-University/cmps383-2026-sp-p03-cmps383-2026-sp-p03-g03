@@ -38,7 +38,7 @@ builder.Services.AddScoped<BlobStorageService>();
 var app = builder.Build();
 
 // configure stripe with the secret key from appsettings
-StripeConfiguration.ApiKey = builder.Configuration["sk_test_51T97kCIVuPfC2W5dzLKHIluA9oxjQvvaZDV7WaK6uQpjWVOxDETuXtyArKwOlt1FBUXPcDkydVDHMA3kBvB4VwNC00gZI65sYu"];
+StripeConfiguration.ApiKey = builder.Configuration["STRIPE_SECRET_KEY"];
 
 using (var scope = app.Services.CreateScope())
 {
