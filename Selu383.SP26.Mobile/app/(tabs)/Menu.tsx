@@ -1,7 +1,5 @@
 import React from 'react';
-import { View } from 'react-native';
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import {Text, ImageBackground, View, Image, ScrollView, TextInput, Button, FlatList, StyleSheet, SectionList} from 'react-native';
 
 import { Collapsible } from '@/components/ui/collapsible';
 import { ExternalLink } from '@/components/external-link';
@@ -36,6 +34,9 @@ const MenuItem = (props:MenuProps) => {
 const Menu = () => {
 		return (	
 			<View>
+			  <ImageBackground source={require('./roofie.png')} resizeMode="cover" style={styles.image}>
+				<Text style={styles.text}>ORDER COMPLETED</Text>
+			  </ImageBackground>
 				<h1>We sell coffee here sir!</h1>
 				
 				<MenuItem name="Expresso" price="31.2" />
@@ -50,4 +51,22 @@ const Menu = () => {
 
 };
 
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  image: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  text: {
+    color: 'color="#65a30d"',
+    fontSize: 42,
+    lineHeight: 84,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor: '#65a30d',
+  },
+});
 export default Menu;

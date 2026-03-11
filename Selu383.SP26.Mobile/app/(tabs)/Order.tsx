@@ -11,7 +11,7 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
 
 
-
+import { offset } from '@expo/ui/jetpack-compose/modifiers';
 
 type Cat2Props = {
 	name: string;
@@ -26,6 +26,7 @@ const Cat2 = (props: Cat2Props) => {
 				I am {props.name}, am I am {isHungry ? 'hungry' : 'full'}!
 			</Text>
 			<Button
+				color="#ffffff"
 				onPress={() => {
 						setIsHungry(false);
 				}}
@@ -67,11 +68,21 @@ type MenuProps = {
 };
 
 const MenuItem = (props:MenuProps) => {
+	
+	const [isOrdered, setIsOrdered] = useState(true);
 	return (
 		<View>
 			<h2 style={{fontSize: 32}}>{props.name}!</h2>
 			<h3 style={{fontSize: 20}}>Price: ${props.price}!</h3>
-			
+			<Button 
+				color="#65a30d"
+				
+				onPress={() => {
+						setIsOrdered(false);
+				}}
+				disabled={!isOrdered}
+				title={isOrdered ? 'Order Item?' : 'Item Ordered'}
+			/>
 			
 		
 		</View>
@@ -83,20 +94,20 @@ const MenuItem = (props:MenuProps) => {
 
 const Cafe1 = () => {
 	return (
-		<>
+		<SafeAreaProvider style={{backgroundColor: '#65a30d' }}>
 		<h1>We sell coffee here sir!</h1>
 				
 				<MenuItem name="Expresso" price="31.2" />
 				<MenuItem name="Coffee" price="3.12" />
 				<MenuItem name="Baguette" price=".312" />
 				
-				<ExternalLink href="http://localhost:8081/CheckOut">
+				<ExternalLink href="http://localhost:8081/PaymentConfirmation">
 				  <ThemedText type="link">Move to Checkout!</ThemedText>
 				</ExternalLink>	
 		
 			<Cat2 name="Lucy"/>
 			<Cat2 name="Piep"/>
-		</>
+		</SafeAreaProvider>
 	)
 }
 
@@ -114,7 +125,7 @@ const styles = StyleSheet.create({
     lineHeight: 84,
     fontWeight: 'bold',
     textAlign: 'center',
-    backgroundColor: '#000000c0',
+    backgroundColor: '#65a30d',
   },
 });
 
