@@ -35,7 +35,7 @@ export default function HomeScreen() {
 			  <ThemedText type="link">Move to Checkout!</ThemedText>
 	  </ExternalLink>	
 	  
-      <ThemedView style={styles.titleContainer}>
+      {/*<ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
@@ -91,7 +91,7 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
-      </ThemedView>
+      </ThemedView>*/}
     </ParallaxScrollView>
   );
 }
