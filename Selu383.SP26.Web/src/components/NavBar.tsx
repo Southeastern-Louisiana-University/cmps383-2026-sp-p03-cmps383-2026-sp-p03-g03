@@ -23,11 +23,7 @@ function NavBar({ user, onSignIn, onLogout }: NavBarProps) {
   return (
     <nav className="navbar">
       <div className="nav-links">
-        <Link to="/" className="nav-link">
-          <img
-            src="/src/assets/ConceptLogo1.svg"
-            alt="Caffeinated Lions Logo"
-          />
+        <Link to="/" className="nav-link" id="logo-link">
         </Link>
         <Link to="/" className="nav-link">
           Home
@@ -45,14 +41,14 @@ function NavBar({ user, onSignIn, onLogout }: NavBarProps) {
       <div>
         {user ? (
           <button
-            className="account-initials"
+            className="account-initials nav-link"
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
             {userInitials}
           </button>
         ) : (
           <button
-            className="account-button"
+            className="account-button nav-link"
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >
             Account
@@ -60,7 +56,6 @@ function NavBar({ user, onSignIn, onLogout }: NavBarProps) {
         )}
         {dropdownOpen && (
           <>
-            {/* Backdrop */}
             <div
               className="menu-backdrop"
               onClick={() => setDropdownOpen(false)}
@@ -74,7 +69,6 @@ function NavBar({ user, onSignIn, onLogout }: NavBarProps) {
               }}
             />
 
-            {/* Menu */}
             <div className="dropdown-menu card" style={{ zIndex: 11 }}>
               {user ? (
                 <>
