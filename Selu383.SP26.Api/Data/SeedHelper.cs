@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Locations;
+using Selu383.SP26.Api.Features.Menu;
 
 namespace Selu383.SP26.Api.Data;
 
@@ -16,6 +17,8 @@ public static class SeedHelper
         await AddRoles(serviceProvider);
         await AddUsers(serviceProvider);
         await AddLocations(dataContext);
+        await AddMenuCategories(dataContext);
+        await AddMenuItems(dataContext);
     }
 
     private static async Task AddUsers(IServiceProvider serviceProvider)
@@ -139,17 +142,50 @@ public static class SeedHelper
     }
 
     private static async Task AddMenuItems(DataContext dataContext)
+{
+    if (await dataContext.MenuItems.AnyAsync())
     {
-        if (await dataContext.MenuItems.AnyAsync())
-        {
-            return;
-        }
-        dataContext.Set<Location>().AddRange(
-            new Location { Name = "Location 1", Address = "123 Main St", TableCount = 10 },
-            new Location { Name = "Location 2", Address = "456 Oak Ave", TableCount = 20 },
-            new Location { Name = "Location 3", Address = "789 Pine Ln", TableCount = 15 }
-        );
-
-        await dataContext.SaveChangesAsync();
+        return;
     }
+
+    dataContext.MenuItems.AddRange(
+        new MenuItem
+        {
+            Name = "Latte",
+            Description = "Fresh brewed latte",
+            BasePrice = 4.50m,
+            CategoryId = 1
+        },
+        new MenuItem
+        {
+            Name = "Cappuccino",
+            Description = "Classic cappuccino",
+            BasePrice = 4.25m,
+            CategoryId = 1
+        },
+        new MenuItem
+        {
+            Name = "Espresso",
+            Description = "Strong espresso shot",
+            BasePrice = 3.00m,
+            CategoryId = 1
+        },
+        new MenuItem
+        {
+            Name = "Green Tea",
+            Description = "Organic green tea",
+            BasePrice = 3.50m,
+            CategoryId = 2
+        },
+        new MenuItem
+        {
+            Name = "Croissant",
+            Description = "Buttery croissant",
+            BasePrice = 3.00m,
+            CategoryId = 3
+        }
+    );
+
+    await dataContext.SaveChangesAsync();
+}
 }
