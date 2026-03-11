@@ -4,10 +4,11 @@ using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Payments;
 
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// add services to the container.
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext")));
 
@@ -30,7 +31,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReceiptPdfService>();
@@ -39,12 +40,15 @@ builder.Services.AddScoped<StripePaymentService>();
 
 var app = builder.Build();
 
+// configure stripe with the secret key from appsettings
+StripeConfiguration.ApiKey = builder.Configuration["STRIPE_SECRET_KEY"];
+
 using (var scope = app.Services.CreateScope())
 {
     await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
 }
 
-// Configure the HTTP request pipeline.
+// configure the http request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -78,6 +82,4 @@ else
 
 app.Run();
 
-//see: https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-8.0
-// Hi 383 - this is added so we can test our web project automatically
 public partial class Program { }

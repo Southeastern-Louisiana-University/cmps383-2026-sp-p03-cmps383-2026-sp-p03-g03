@@ -13,4 +13,7 @@ public class UserDto
     public string? PhoneNumber { get; set; }
 
     public string[] Roles { get; set; } = Array.Empty<string>();
+    
+    //property to show loyalty points to react (thought might be helpful for frontend devss)
+    public int LoyaltyPoints { get; set; }
 }
