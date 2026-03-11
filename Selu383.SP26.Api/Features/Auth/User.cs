@@ -14,5 +14,6 @@ public class User : IdentityUser<int>
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
+    public int LoyaltyPoints { get; set; } = 0;
     public virtual ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
 }

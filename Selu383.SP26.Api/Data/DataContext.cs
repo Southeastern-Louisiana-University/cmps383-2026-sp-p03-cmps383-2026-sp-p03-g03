@@ -7,6 +7,8 @@ using Selu383.SP26.Api.Features.Menu;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Tables;
 using Selu383.SP26.Api.Features.Reservations;
+using Selu383.SP26.Api.Features.Payments;
+using Selu383.SP26.Api.Features.Loyalty;
 
 namespace Selu383.SP26.Api.Data;
 
@@ -24,6 +26,8 @@ public class DataContext : IdentityDbContext<User, Role, int, IdentityUserClaim<
         public DbSet<Receipt> Receipts { get; set; }
         public DbSet<Table> Tables => Set<Table>();
         public DbSet<Reservation> Reservations { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<LoyaltyLedger> LoyaltyLedgers { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
