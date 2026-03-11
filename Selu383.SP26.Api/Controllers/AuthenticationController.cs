@@ -70,7 +70,9 @@ public class AuthenticationController : ControllerBase
         DisplayName = x.DisplayName,
         Email = x.Email,
         PhoneNumber = x.PhoneNumber,
-        Roles = x.UserRoles.Select(y => y.Role!.Name!).ToArray()
+        Roles = x.UserRoles.Select(y => y.Role!.Name!).ToArray(),
+            //map the database value directly to the returned dto
+            LoyaltyPoints = x.LoyaltyPoints
     });
 }
 }

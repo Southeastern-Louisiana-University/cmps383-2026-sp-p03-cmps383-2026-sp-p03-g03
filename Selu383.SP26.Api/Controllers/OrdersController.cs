@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
+using Selu383.SP26.Api.Extensions; // Added for GetUserId()
 
 namespace Selu383.SP26.Api.Controllers;
 
@@ -71,8 +72,7 @@ public class OrdersController : ControllerBase
         if (!locationExists)
             return BadRequest("Invalid location.");
 
-        // temp until auth/user flow is fully wired
-        var createdByUserId = 1;
+        var createdByUserId = User.GetCurrentUserId() ?? 1; 
 
         var menuItemIds = dto.Items.Select(i => i.MenuItemId).Distinct().ToList();
 
@@ -87,7 +87,7 @@ public class OrdersController : ControllerBase
         {
             LocationId = dto.LocationId,
             CreatedByUserId = createdByUserId,
-            OrderCode = $"ORD-{DateTime.UtcNow:yyyyMMddHHmmss}",
+            OrderCode = $"ORD{DateTime.UtcNow:yyyyMMddHHmmss}",
             OrderType = dto.OrderType,
             Status = "Placed",
             PaymentStatus = "Unpaid",
@@ -145,7 +145,7 @@ public class OrdersController : ControllerBase
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, result);
     }
 
-    [HttpGet("{id:int}/receipt-pdf")]
+    [HttpGet("{id:int}/receiptpdf")]
     public async Task<IActionResult> GetReceiptPdf(int id)
     {
         var order = await _context.Orders
@@ -158,10 +158,10 @@ public class OrdersController : ControllerBase
 
         var pdfBytes = _receiptPdfService.GenerateReceipt(order);
 
-        return File(pdfBytes, "application/pdf", $"order-{order.Id}-receipt.pdf");
+        return File(pdfBytes, "application/pdf", $"order{order.Id}receipt.pdf");
     }
 
-    [HttpPost("{id:int}/archive-receipt")]
+    [HttpPost("{id:int}/archivereceipt")]
     public async Task<ActionResult<object>> ArchiveReceipt(int id)
     {
         var order = await _context.Orders
@@ -174,7 +174,7 @@ public class OrdersController : ControllerBase
 
         var pdfBytes = _receiptPdfService.GenerateReceipt(order);
 
-        var fileName = $"receipts/order-{order.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+        var fileName = $"receipts/order{order.Id}{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
         var blobUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
 
         return Ok(new
