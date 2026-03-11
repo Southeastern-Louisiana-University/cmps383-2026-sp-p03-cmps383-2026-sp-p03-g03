@@ -7,17 +7,35 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Link } from 'expo-router';
 
+import { ExternalLink } from '@/components/external-link';
+
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#65a30d', dark: '#65a30d' }}
       headerImage={
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
+          source={require('./roofie2.png')}
           style={styles.reactLogo}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
+	  <ExternalLink href="http://localhost:8081/Locations">
+			  <ThemedText type="link">Locations!!</ThemedText>
+	  </ExternalLink>	
+	  <ExternalLink href="http://localhost:8081/Menu">
+			  <ThemedText type="link">Menu!!</ThemedText>
+	  </ExternalLink>	
+	  <ExternalLink href="http://localhost:8081/Order">
+			  <ThemedText type="link">Order!!</ThemedText>
+	  </ExternalLink>	
+	  <ExternalLink href="http://localhost:8081/PaymentConfirmation">
+			  <ThemedText type="link">Move to Checkout!</ThemedText>
+	  </ExternalLink>	
+	  <ExternalLink href="http://localhost:8081/PaymentConfirmation">
+			  <ThemedText type="link">Move to Checkout!</ThemedText>
+	  </ExternalLink>	
+	  
+      {/*<ThemedView style={styles.titleContainer}>
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
@@ -73,7 +91,7 @@ export default function HomeScreen() {
           <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
           <ThemedText type="defaultSemiBold">app-example</ThemedText>.
         </ThemedText>
-      </ThemedView>
+      </ThemedView>*/}
     </ParallaxScrollView>
   );
 }
