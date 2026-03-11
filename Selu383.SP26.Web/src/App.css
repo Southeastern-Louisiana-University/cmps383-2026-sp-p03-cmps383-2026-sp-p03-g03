@@ -6,6 +6,7 @@
   --transition-speed: 0.2s ease-in-out;
   --font-heading: "Oregano", cursive;
   --font-body: "Corben", serif;
+  font-size: 150%;
 }
 
 #root {
@@ -27,8 +28,9 @@ h3,
 body {
   margin: 0;
   padding: 0;
-  background: white url("./assets/LightWoodgrainAIBackground.jpg") no-repeat
-    center fixed;
+  background: white
+    url("./assets/hand-drawn-coffee-concept-background-free-vector.jpg")
+    no-repeat center fixed;
   background-size: cover;
   text-align: center;
   color: var(--primary-text-color);
@@ -40,11 +42,17 @@ body {
   cursor: pointer;
   font-size: 1rem;
   padding: 0.5rem 1rem;
+  border-radius: 5px;
+  border: 0.075rem solid var(--brand-color);
+  outline: 0.075rem solid var(--brand-color);
+  display: inline-block;
+  height: 3.8rem;
+  box-sizing: border-box;
+  font-family: var(--font-heading);
+  background-color: white;
 }
 
 .account-initials {
-  width: 2.5rem;
-  height: 2.5rem;
   cursor: pointer;
   border-radius: 5px;
   border: 0.075rem solid var(--brand-color);
@@ -56,6 +64,7 @@ body {
   vertical-align: middle;
   font-weight: bold;
   transition: transform var(--transition-speed);
+  aspect-ratio: 1/1;
 }
 
 .account-initials:hover {
@@ -140,6 +149,15 @@ body {
   background-color: rgba(101, 163, 13, 0.1);
 }
 
+.green-hover-effect {
+  background-color: rgb(228, 255, 190);
+  transition: background-color var(--transition-speed);
+}
+
+.green-hover-effect:hover {
+  background-color: #9ad04f;
+}
+
 .location-card-container {
   display: flex;
   align-items: center;
@@ -159,6 +177,13 @@ body {
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 3rem;
   padding: 2rem;
+}
+
+#logo-link {
+  background-image: url("./assets/ConceptLogo2.png");
+  background-size: cover;
+  background-position: center;
+  aspect-ratio: 1/1;
 }
 
 .menu-category {
@@ -185,7 +210,7 @@ body {
 }
 
 .navbar {
-  background-color: white;
+  background-color: rgba(255, 255, 255, 0.75);
   color: var(--primary-text-color);
   padding: 0.5rem 1rem;
   display: flex;
@@ -204,28 +229,40 @@ body {
 
 .nav-link {
   color: var(--primary-text-color);
-  margin: 0 0.75rem;
+  margin: 0 0.65rem;
   text-decoration: none;
   font-weight: 500;
-  padding: 0.4rem 0.8rem;
-  border: 0.075rem solid var(--brand-color);
-  outline: 0.075rem solid var(--brand-color);
+  padding: 0.85rem 0.8rem;
+  border: 0.2rem solid var(--brand-color);
+  outline: 0.1rem solid var(--brand-color);
   border-radius: 5px;
   transition: all var(--transition-speed);
   display: inline-block;
+  height: 3.8rem;
+  box-sizing: border-box;
+  background-color: white;
+  font-weight: bold;
 }
 
 .nav-link > img {
-  width: 3dvw;
-  min-width: 2.5rem;
+  color: var(--primary-text-color);
+  margin: 0 0auto;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.85rem 0.8rem;
+  border: 0.2rem solid var(--brand-color);
+  outline: 0.1rem solid var(--brand-color);
   border-radius: 5px;
-  border: 0.075rem solid var(--brand-color);
-  outline: 0.075rem solid var(--brand-color);
-  vertical-align: middle;
+  transition: all var(--transition-speed);
+  display: inline-block;
+  width: 3.8rem;
+  height: 3.8rem;
+  box-sizing: border-box;
+  background-color: white;
 }
 
 .nav-link:hover {
-  background-color: rgba(101, 163, 13, 0.1);
+  background-color: rgb(228, 255, 190);
   transform: translateY(-0.5px);
 }
 
@@ -233,6 +270,13 @@ body {
   border: none;
   outline: none;
   padding: 0;
+}
+
+.signin-modal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .signin-modal-overlay {
