@@ -59,18 +59,18 @@ public class AuthenticationController : ControllerBase
         return Ok();
     }
 
-    private static IQueryable<UserDto> GetUserDto(IQueryable<User> users)
+   private static IQueryable<UserDto> GetUserDto(IQueryable<User> users)
+{
+    return users.Select(x => new UserDto
     {
-        return users.Select(x => new UserDto
-        {
-            Id = x.Id,
-            UserName = x.UserName!,
-            FirstName = x.FirstName,
-            LastName = x.LastName,
-            DisplayName = x.DisplayName,
-            Email = x.Email,
-            PhoneNumber = x.PhoneNumber,
-            Roles = x.UserRoles.Select(y => y.Role!.Name).ToArray()!
-        });
-    }
+        Id = x.Id,
+        UserName = x.UserName!,
+        FirstName = x.FirstName,
+        LastName = x.LastName,
+        DisplayName = x.DisplayName,
+        Email = x.Email,
+        PhoneNumber = x.PhoneNumber,
+        Roles = x.UserRoles.Select(y => y.Role!.Name!).ToArray()
+    });
+}
 }
