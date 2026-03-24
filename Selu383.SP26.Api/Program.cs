@@ -49,6 +49,7 @@ builder.Services.AddCors(options =>
                 "https://cg6xt47n-7116.use2.devtunnels.ms",
                 "http://localhost:3000",
                 "http://localhost:5173",
+                "http://localhost:7116",
                 "http://localhost:8081",
                 "http://localhost:8082",
                 "http://localhost:8085")
