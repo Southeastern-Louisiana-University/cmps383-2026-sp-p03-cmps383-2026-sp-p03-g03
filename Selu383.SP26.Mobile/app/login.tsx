@@ -84,7 +84,7 @@ export default function LoginScreen() {
           <ThemedView style={styles.container}>
             {/* Logo */}
             <Image
-              source={require('@/assets/images/ConceptLogo2.png')}
+              source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -94,7 +94,7 @@ export default function LoginScreen() {
               Caffeinated Lions
             </ThemedText>
 
-            <ThemedText style={[styles.subtitle, { color: '#27AE60' }]}>
+            <ThemedText style={[styles.subtitle, { color: Colors.brandGreen }]}>
               🍵 Pouring pride into every cup. 🍵
             </ThemedText>
 
@@ -165,7 +165,7 @@ export default function LoginScreen() {
               style={[
                 styles.loginButton,
                 {
-                  backgroundColor: '#27AE60', 
+                  backgroundColor: Colors.brandGreen,
                   opacity: isLoading ? 0.6 : 1,
                 },
               ]}
@@ -205,27 +205,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     paddingVertical: 20,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   container: {
     alignItems: 'center',
     width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 150,
+    height: 150,
     marginBottom: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: 'Oregano_400Regular',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 20,
     marginBottom: 30,
     textAlign: 'center',
     opacity: 0.7,
+    fontFamily: 'Corben_400Regular',
   },
   errorContainer: {
     width: '100%',
@@ -238,23 +245,26 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#c62828',
     fontWeight: '600',
+    fontFamily: 'Corben_700Bold',
   },
   inputContainer: {
     width: '100%',
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
+    fontFamily: 'Corben_700Bold',
   },
   input: {
     borderWidth: 1.5,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: 20,
     minHeight: 48,
+    fontFamily: 'Corben_400Regular',
   },
   loginButton: {
     width: '100%',
@@ -267,13 +277,15 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'Corben_700Bold',
   },
   infoText: {
     marginTop: 20,
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     opacity: 0.6,
+    fontFamily: 'Corben_400Regular',
   },
 });
