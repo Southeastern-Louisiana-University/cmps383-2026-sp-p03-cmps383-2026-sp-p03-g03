@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
@@ -23,6 +24,46 @@ public class OrdersController : ControllerBase
         _context = context;
         _receiptPdfService = receiptPdfService;
         _blobStorageService = blobStorageService;
+    }
+
+    [HttpGet("my-orders")]
+    [Authorize]
+    public async Task<ActionResult<List<OrderDto>>> GetMyOrders()
+    {
+        var userId = User.GetCurrentUserId();
+        if (!userId.HasValue)
+            return Unauthorized();
+
+        var orders = await _context.Orders
+            .Where(o => o.CreatedByUserId == userId)
+            .Include(o => o.OrderItems)
+            .OrderByDescending(o => o.OrderTime)
+            .Select(o => new OrderDto
+            {
+                Id = o.Id,
+                LocationId = o.LocationId,
+                CreatedByUserId = o.CreatedByUserId,
+                OrderCode = o.OrderCode,
+                OrderType = o.OrderType,
+                Status = o.Status,
+                PaymentStatus = o.PaymentStatus,
+                OrderTime = o.OrderTime,
+                Total = o.Total,
+                Note = o.Note,
+                PickupName = o.PickupName,
+                Items = o.OrderItems.Select(oi => new OrderItemDto
+                {
+                    Id = oi.Id,
+                    MenuItemId = oi.MenuItemId,
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    LineTotal = oi.LineTotal,
+                    ItemNote = oi.ItemNote
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return Ok(orders);
     }
 
     [HttpGet("{id:int}")]
