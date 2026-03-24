@@ -208,6 +208,10 @@ export const getMyOrders = async (): Promise<OrderDto[]> => {
   }
 };
 
+export const getReceiptPdfUrl = (orderId: number): string => {
+  return `${API_BASE_URL}/api/orders/${orderId}/receiptpdf`;
+};
+
 export const getLocations = async (): Promise<LocationDto[]> => {
   try {
     console.log('API: Fetching locations from:', `${API_BASE_URL}/api/locations`);
@@ -246,7 +250,27 @@ export const createStripeCheckoutSession = async (orderId: number): Promise<stri
   }
 };
 
-export const getReservations = async (): Promise<any[]> => {
+export interface ReservationDto {
+  id: number;
+  locationId: number;
+  userId: number;
+  tableId: number;
+  reservedFor: string;
+  partySize: number;
+  status: string;
+  specialRequests?: string;
+}
+
+export interface TableDto {
+  id: number;
+  locationId: number;
+  tableNumber: number;
+  seats: number;
+  isBarSeat: boolean;
+  isActive: boolean;
+}
+
+export const getReservations = async (): Promise<ReservationDto[]> => {
   try {
     console.log('API: Fetching reservations from:', `${API_BASE_URL}/api/reservations`);
     const response = await apiCall('/api/reservations', 'GET');
@@ -258,7 +282,7 @@ export const getReservations = async (): Promise<any[]> => {
   }
 };
 
-export const createReservation = async (reservationData: any): Promise<any> => {
+export const createReservation = async (reservationData: Omit<ReservationDto, 'id' | 'status'>): Promise<ReservationDto> => {
   try {
     console.log('API: Creating reservation:', reservationData);
     const response = await apiCall('/api/reservations', 'POST', reservationData);
@@ -267,6 +291,15 @@ export const createReservation = async (reservationData: any): Promise<any> => {
   } catch (error: any) {
     console.log('API: Failed to create reservation:', error.message);
     throw error;
+  }
+};
+
+export const getTables = async (): Promise<TableDto[]> => {
+  try {
+    const response = await apiCall('/api/tables', 'GET');
+    return response;
+  } catch (error: any) {
+    throw new Error(error.message || 'Failed to fetch tables');
   }
 };
 
@@ -295,5 +328,6 @@ export default {
   getReservations,
   createReservation,
   cancelReservation,
+  getTables,
   apiCall,
 };

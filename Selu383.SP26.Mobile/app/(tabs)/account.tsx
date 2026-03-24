@@ -1,45 +1,45 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Alert, Platform } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { AnimatedButton } from '@/components/animated-button';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CommonStyles, getColors } from '@/constants/styles';
+import { useThemeMode } from '@/contexts/ThemeContext';
+import { PageHeaderActions } from '@/components/page-header-actions';
 
 export default function AccountScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  const { user, logout } = useAuth();
-
-  const handleLogout = async () => {
-    console.error('🔴 LOGOUT BUTTON CLICKED - THIS SHOULD APPEAR IN CONSOLE');
-    console.log('[Account] Logout button pressed - showing confirmation');
-    
-    // Use browser confirm on web, Alert on native
-    const confirmed = confirm('Are you sure you want to logout?');
-    
-    if (confirmed) {
-      try {
-        console.log('[Account] User confirmed logout, calling logout function...');
-        await logout();
-        console.log('[Account] Logout successful - user state should be cleared');
-      } catch (error) {
-        console.log('[Account] Logout error:', error);
-        alert('Failed to logout. Please try again.');
-      }
-    } else {
-      console.log('[Account] User cancelled logout');
-    }
-  };
+  const { user } = useAuth();
+  const { toggleMode } = useThemeMode();
 
   return (
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={CommonStyles.scrollContent}>
         <ThemedView style={CommonStyles.container}>
-          <ThemedText style={CommonStyles.title}>👤 Account</ThemedText>
+          <PageHeaderActions showLogout />
+          <View style={styles.headerRow}>
+            <View style={styles.titleRow}>
+              <Image
+                source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
+                style={styles.titleLogo}
+                resizeMode="contain"
+              />
+              <ThemedText style={CommonStyles.title}>Account</ThemedText>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity
+                style={[styles.iconButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+                onPress={toggleMode}
+                activeOpacity={0.8}
+              >
+                <ThemedText style={styles.icon}>{isDark ? '☀️' : '🌙'}</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
 
           {user && (
             <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
@@ -73,19 +73,6 @@ export default function AccountScreen() {
             </View>
           )}
 
-           {/* Logout Button */}
-            <AnimatedButton
-              style={[
-                CommonStyles.dangerButton,
-                { marginBottom: 16 },
-              ]}
-              onPress={handleLogout}
-            >
-              <ThemedText style={CommonStyles.buttonText}>
-                🚪 Logout
-              </ThemedText>
-            </AnimatedButton>
-
           <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
             <ThemedText style={CommonStyles.cardTitle}>App Info</ThemedText>
             <ThemedText style={styles.description}>
@@ -102,10 +89,41 @@ export default function AccountScreen() {
 }
 
 const styles = StyleSheet.create({
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  titleLogo: {
+    width: 34,
+    height: 34,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  iconButton: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  icon: {
+    fontSize: 20,
+  },
   description: {
     fontSize: 14,
     lineHeight: 20,
     opacity: 0.8,
+    fontFamily: 'Corben_400Regular',
   },
 });
 

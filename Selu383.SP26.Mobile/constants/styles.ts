@@ -1,6 +1,7 @@
 import { StyleSheet, Platform } from 'react-native';
 import { Colors } from './theme';
 
+const FONT_SCALE = 1.5;
 
 export const getColors = (isDark: boolean) => ({
   // Backgrounds
@@ -35,12 +36,17 @@ export const CommonStyles = {
   
   scrollContent: {
     flexGrow: 1,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
     paddingHorizontal: 16,
     paddingVertical: 20,
+    paddingBottom: 110,
   },
   
   container: {
     alignItems: 'stretch',
+    width: '100%',
   },
   
   centerContainer: {
@@ -54,30 +60,51 @@ export const CommonStyles = {
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
+    width: '100%',
   },
   
   cardTitle: {
-    fontSize: 18,
+    fontSize: 18 * FONT_SCALE,
     fontWeight: '600',
     marginBottom: 16,
+    fontFamily: 'Oregano_400Regular',
   },
   
   title: {
-    fontSize: 28,
+    fontSize: 28 * FONT_SCALE,
     fontWeight: 'bold',
     marginBottom: 24,
+    fontFamily: 'Oregano_400Regular',
   },
   
   subtitle: {
-    fontSize: 16,
+    fontSize: 16 * FONT_SCALE,
     opacity: 0.7,
     marginBottom: 16,
+    fontFamily: 'Corben_400Regular',
   },
   
   label: {
-    fontSize: 14,
+    fontSize: 14 * FONT_SCALE,
     fontWeight: '600',
     marginBottom: 8,
+    fontFamily: 'Corben_700Bold',
+  },
+
+  value: {
+    fontSize: 14 * FONT_SCALE,
+    flex: 1,
+    textAlign: 'right',
+    fontFamily: 'Corben_400Regular',
+  },
+
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0,0,0,0.1)',
   },
   
   input: {
@@ -85,7 +112,8 @@ export const CommonStyles = {
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: 16 * FONT_SCALE,
+    fontFamily: 'Corben_400Regular',
   },
   
   primaryButton: {
@@ -103,9 +131,10 @@ export const CommonStyles = {
   },
   
   buttonText: {
-    fontSize: 16,
+    fontSize: 16 * FONT_SCALE,
     fontWeight: '600',
     color: 'white',
+    fontFamily: 'Corben_700Bold',
   },
   
   separator: {
@@ -115,20 +144,23 @@ export const CommonStyles = {
   
   loadingText: {
     marginTop: 12,
-    fontSize: 16,
+    fontSize: 16 * FONT_SCALE,
     fontWeight: '600',
+    fontFamily: 'Corben_700Bold',
   },
   
   errorText: {
-    fontSize: 16,
+    fontSize: 16 * FONT_SCALE,
     fontWeight: '600',
     marginBottom: 12,
+    fontFamily: 'Corben_700Bold',
   },
   
   retryText: {
-    fontSize: 14,
+    fontSize: 14 * FONT_SCALE,
     fontWeight: '600',
     textDecorationLine: 'underline',
+    fontFamily: 'Corben_700Bold',
   },
   
   badge: {
@@ -140,8 +172,9 @@ export const CommonStyles = {
   },
   
   badgeText: {
-    fontSize: 12,
+    fontSize: 12 * FONT_SCALE,
     fontWeight: '600',
+    fontFamily: 'Corben_700Bold',
   },
   
   rounded: {
@@ -177,16 +210,18 @@ export const CommonStyles = {
   },
   
   modalHeader: {
-    fontSize: 20,
+    fontSize: 20 * FONT_SCALE,
     fontWeight: '700',
     marginBottom: 16,
+    fontFamily: 'Oregano_400Regular',
   },
   
   sectionHeader: {
-    fontSize: 16,
+    fontSize: 16 * FONT_SCALE,
     fontWeight: '700',
     marginTop: 20,
     marginBottom: 12,
+    fontFamily: 'Oregano_400Regular',
   },
 } as const;
 
@@ -217,14 +252,14 @@ export const BorderRadius = {
  * Font size constants
  */
 export const FontSizes = {
-  xs: 12,
-  sm: 14,
-  md: 16,
-  lg: 18,
-  xl: 20,
-  xxl: 24,
-  xxxl: 28,
-  huge: 32,
+  xs: 12 * FONT_SCALE,
+  sm: 14 * FONT_SCALE,
+  md: 16 * FONT_SCALE,
+  lg: 18 * FONT_SCALE,
+  xl: 20 * FONT_SCALE,
+  xxl: 24 * FONT_SCALE,
+  xxxl: 28 * FONT_SCALE,
+  huge: 32 * FONT_SCALE,
 };
 
 /**

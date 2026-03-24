@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, StyleSheet, ScrollView, ActivityIndicator, Modal, Pressable, TextInput } from 'react-native';
+import { View, StyleSheet, ScrollView, ActivityIndicator, Modal, Pressable, TextInput, Alert, Platform, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -10,6 +10,7 @@ import { useCart } from '@/hooks/useCart';
 import * as api from '@/services/api';
 import type { MenuItemDto, MenuCategoryDto } from '@/services/api';
 import { CommonStyles, getColors } from '@/constants/styles';
+import { PageHeaderActions } from '@/components/page-header-actions';
 
 export default function MenuScreen() {
   const colorScheme = useColorScheme();
@@ -63,7 +64,16 @@ export default function MenuScreen() {
   const handleConfirmAddToCart = () => {
     if (selectedItem) {
       console.log('[Menu] Confirming add to cart with notes:', customizationNotes);
-      addItem(selectedItem, 1, customizationNotes);
+      addItem(
+        {
+          id: selectedItem.id,
+          name: selectedItem.name,
+          price: selectedItem.basePrice,
+          quantity: 1,
+        },
+        1,
+        customizationNotes
+      );
       alert(`Added ${selectedItem.name} to cart!`);
       setCustomizationModal(false);
       setSelectedItem(null);
@@ -107,7 +117,15 @@ export default function MenuScreen() {
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={CommonStyles.scrollContent}>
         <ThemedView style={CommonStyles.container}>
-          <ThemedText style={CommonStyles.title}>☕ Menu</ThemedText>
+          <PageHeaderActions />
+          <View style={styles.titleRow}>
+            <Image
+              source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
+              style={styles.titleLogo}
+              resizeMode="contain"
+            />
+            <ThemedText style={CommonStyles.title}>Menu</ThemedText>
+          </View>
 
           {/* Category Filter Buttons */}
           {categories.length > 0 && (
@@ -250,6 +268,16 @@ export default function MenuScreen() {
   }
 
 const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  titleLogo: {
+    width: 34,
+    height: 34,
+  },
   categoryContainer: {
     marginBottom: 20,
   },

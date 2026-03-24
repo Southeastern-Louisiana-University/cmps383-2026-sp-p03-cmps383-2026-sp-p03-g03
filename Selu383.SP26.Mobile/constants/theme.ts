@@ -19,12 +19,18 @@ export const Colors = {
   },
   dark: {
     text: '#ECEDEE',
-    background: '#151718',
+    background: '#1d1715',
     tint: tintColorDark,
     icon: '#9BA1A6',
     tabIconDefault: '#9BA1A6',
     tabIconSelected: tintColorDark,
   },
+  // Brand colors
+  brandGreen: '#65a30d',
+  darkCard: '#2a2a2a',
+  error: '#E74C3C',
+  success: '#27AE60',
+  warning: '#F39C12',
 };
 
 export const Fonts = Platform.select({

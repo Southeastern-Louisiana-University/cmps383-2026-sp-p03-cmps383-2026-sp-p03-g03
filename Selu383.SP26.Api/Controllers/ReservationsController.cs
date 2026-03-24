@@ -243,9 +243,12 @@ public class ReservationsController : ControllerBase
         if (reservation.ReservedFor < DateTime.UtcNow)
             return BadRequest("Cannot cancel a reservation for a past date/time.");
 
-        _context.Reservations.Remove(reservation);
+        if (string.Equals(reservation.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("Reservation is already cancelled.");
+
+        reservation.Status = "Cancelled";
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Ok(new { message = "Reservation cancelled." });
     }
 }
