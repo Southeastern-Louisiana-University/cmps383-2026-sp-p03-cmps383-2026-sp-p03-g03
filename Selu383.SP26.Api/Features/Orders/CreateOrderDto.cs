@@ -13,5 +13,7 @@ public class CreateOrderDto
 
     public string? PickupName { get; set; }
 
+    public DateTime? ScheduledPickupTime { get; set; }
+
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }

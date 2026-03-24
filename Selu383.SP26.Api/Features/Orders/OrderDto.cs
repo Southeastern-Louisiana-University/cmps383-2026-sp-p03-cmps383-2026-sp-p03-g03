@@ -18,6 +18,8 @@ public class OrderDto
 
     public DateTime OrderTime { get; set; }
 
+    public DateTime? ScheduledPickupTime { get; set; }
+
     public decimal Total { get; set; }
 
     public string? Note { get; set; }
