@@ -48,6 +48,7 @@ public class OrdersController : ControllerBase
                 Status = o.Status,
                 PaymentStatus = o.PaymentStatus,
                 OrderTime = o.OrderTime,
+                ScheduledPickupTime = o.ScheduledPickupTime,
                 Total = o.Total,
                 Note = o.Note,
                 PickupName = o.PickupName,
@@ -86,6 +87,7 @@ public class OrdersController : ControllerBase
             Status = order.Status,
             PaymentStatus = order.PaymentStatus,
             OrderTime = order.OrderTime,
+            ScheduledPickupTime = order.ScheduledPickupTime,
             Total = order.Total,
             Note = order.Note,
             PickupName = order.PickupName,
@@ -108,6 +110,15 @@ public class OrdersController : ControllerBase
     {
         if (dto.Items == null || dto.Items.Count == 0)
             return BadRequest("Order must contain at least one item.");
+
+        if (dto.ScheduledPickupTime.HasValue)
+        {
+            if (!string.Equals(dto.OrderType, "Pickup", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Scheduled pickup is only available for pickup orders.");
+
+            if (dto.ScheduledPickupTime.Value < DateTime.UtcNow)
+                return BadRequest("Scheduled pickup time must be in the future.");
+        }
 
         var locationExists = await _context.Locations.AnyAsync(l => l.Id == dto.LocationId);
         if (!locationExists)
@@ -133,6 +144,7 @@ public class OrdersController : ControllerBase
             Status = "Placed",
             PaymentStatus = "Unpaid",
             OrderTime = DateTime.UtcNow,
+            ScheduledPickupTime = dto.ScheduledPickupTime,
             Note = dto.Note,
             PickupName = dto.PickupName
         };
@@ -169,6 +181,7 @@ public class OrdersController : ControllerBase
             Status = order.Status,
             PaymentStatus = order.PaymentStatus,
             OrderTime = order.OrderTime,
+            ScheduledPickupTime = order.ScheduledPickupTime,
             Total = order.Total,
             Note = order.Note,
             PickupName = order.PickupName,

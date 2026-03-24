@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View,
   TextInput,
+  TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
   ScrollView,
@@ -15,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { AnimatedButton } from '@/components/animated-button';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
@@ -31,12 +31,13 @@ export default function LoginScreen() {
 
   const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
 
+  
   const handleLogin = async () => {
-    // Reset errors
+    
     setError('');
     setFormError('');
 
-    // Validate inputs
+    
     if (!username.trim()) {
       setFormError('Please enter your username');
       return;
@@ -49,19 +50,18 @@ export default function LoginScreen() {
 
     try {
       console.log('Login attempt with:', username);
-      // Call login from AuthContext
+      
       await login(username, password);
       console.log('Login successful, navigating to home');
 
-      // If successful, navigate to home
-      // (Navigation happens automatically through AuthContext)
+      
       router.replace('/(tabs)');
     } catch (err: any) {
       console.log('Login error:', err);
       const errorMessage = err.message || 'Login failed. Please try again.';
       setError(errorMessage);
 
-      // Show toast notification
+    
       Alert.alert('Login Failed', errorMessage, [
         {
           text: 'OK',
@@ -84,7 +84,7 @@ export default function LoginScreen() {
           <ThemedView style={styles.container}>
             {/* Logo */}
             <Image
-              source={require('@/assets/images/ConceptLogo2.png')}
+              source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
               style={styles.logo}
               resizeMode="contain"
             />
@@ -94,7 +94,7 @@ export default function LoginScreen() {
               Caffeinated Lions
             </ThemedText>
 
-            <ThemedText style={[styles.subtitle, { color: '#27AE60' }]}>
+            <ThemedText style={[styles.subtitle, { color: Colors.brandGreen }]}>
               🍵 Pouring pride into every cup. 🍵
             </ThemedText>
 
@@ -161,16 +161,17 @@ export default function LoginScreen() {
             </View>
 
             {/* Login Button */}
-            <AnimatedButton
+            <TouchableOpacity
               style={[
                 styles.loginButton,
                 {
-                  backgroundColor: '#27AE60',
+                  backgroundColor: Colors.brandGreen,
                   opacity: isLoading ? 0.6 : 1,
                 },
               ]}
               onPress={handleLogin}
               disabled={isLoading}
+              activeOpacity={0.8}
             >
               {isLoading ? (
                 <ActivityIndicator color="white" size="small" />
@@ -179,7 +180,7 @@ export default function LoginScreen() {
                   🍃 Start Order ⚡
                 </ThemedText>
               )}
-            </AnimatedButton>
+            </TouchableOpacity>
 
             {/* Info Text */}
             <ThemedText style={styles.infoText}>
@@ -204,27 +205,34 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: 20,
     paddingVertical: 20,
+    width: '100%',
+    maxWidth: 900,
+    alignSelf: 'center',
   },
   container: {
     alignItems: 'center',
     width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
   },
   logo: {
-    width: 120,
-    height: 120,
+    width: 150,
+    height: 150,
     marginBottom: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
+    fontFamily: 'Oregano_400Regular',
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 20,
     marginBottom: 30,
     textAlign: 'center',
     opacity: 0.7,
+    fontFamily: 'Corben_400Regular',
   },
   errorContainer: {
     width: '100%',
@@ -237,28 +245,31 @@ const styles = StyleSheet.create({
   errorText: {
     color: '#c62828',
     fontWeight: '600',
+    fontFamily: 'Corben_700Bold',
   },
   inputContainer: {
     width: '100%',
     marginBottom: 16,
   },
   label: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
+    fontFamily: 'Corben_700Bold',
   },
   input: {
     borderWidth: 1.5,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 16,
+    fontSize: 20,
     minHeight: 48,
+    fontFamily: 'Corben_400Regular',
   },
   loginButton: {
     width: '100%',
     paddingVertical: 14,
-    borderRadius: 30, // More rounded for pill shape
+    borderRadius: 30, 
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 24,
@@ -266,13 +277,15 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: 'white',
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: 'bold',
+    fontFamily: 'Corben_700Bold',
   },
   infoText: {
     marginTop: 20,
-    fontSize: 12,
+    fontSize: 14,
     textAlign: 'center',
     opacity: 0.6,
+    fontFamily: 'Corben_400Regular',
   },
 });

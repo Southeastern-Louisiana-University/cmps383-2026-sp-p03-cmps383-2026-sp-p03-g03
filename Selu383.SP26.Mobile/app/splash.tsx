@@ -1,24 +1,36 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Image, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 
 export default function SplashScreen() {
   const colorScheme = useColorScheme();
-  const { isLoading } = useAuth();
+  const { isLoading, user } = useAuth();
+  const router = useRouter();
 
-  const backgroundColor = colorScheme === 'dark' 
-    ? Colors.dark.background 
+  const backgroundColor = colorScheme === 'dark'
+    ? Colors.dark.background
     : Colors.light.background;
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        router.replace('/(tabs)');
+      } else {
+        router.replace('/login');
+      }
+    }
+  }, [isLoading, user]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>
       <View style={styles.content}>
         {/* Logo */}
         <Image
-          source={require('@/assets/images/ConceptLogo2.png')}
+          source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
           style={styles.logo}
           resizeMode="contain"
         />
@@ -55,4 +67,3 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
 });
-
