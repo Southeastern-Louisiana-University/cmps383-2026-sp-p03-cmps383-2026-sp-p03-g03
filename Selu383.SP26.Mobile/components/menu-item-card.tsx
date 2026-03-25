@@ -1,38 +1,47 @@
-import React from 'react';
-import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { getColors } from '@/constants/styles';
-import type { MenuItemDto } from '@/services/api';
+import React from "react";
+import { View, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { ThemedText } from "@/components/themed-text";
+import { useColorScheme } from "@/hooks/use-color-scheme";
+import { getColors } from "@/constants/styles";
+import type { MenuItemDto } from "@/services/api";
 
 const MENU_ITEM_IMAGES: Record<string, any> = {
-  'Iced Latte': require('@/assets/images/featured-caramel-latte.jpg'),
-  Supernova: require('@/assets/images/supernova.png'),
-  'Roaring Frappe': require('@/assets/images/roaringfrape.png'),
-  'Black & White Cold Brew': require('@/assets/images/blackwhitecoldbrew.png'),
-  'Strawberry Limeade': require('@/assets/images/strawberry.png'),
-  'Shaken Lemonade': require('@/assets/images/shaken.png'),
-  'Mannino Honey Crepe': require('@/assets/images/mannino honey crape.png'),
-  Downtowner: require('@/assets/images/downtowner.png'),
-  'Funky Monkey': require('@/assets/images/funky monkey.png'),
+  // Current seeded backend items
+  "House Roast": require("@/assets/images/featured-caramel-latte.jpg"),
+  "Earl Grey": require("@/assets/images/featured-iced-matcha.jpg.jpg"),
+  "Caramel Macchiato": require("@/assets/images/featured-caramel-latte.jpg"),
+  "Build Your Own Bagel": require("@/assets/images/breakfest.png"),
+  "Custom Savory Crepe": require("@/assets/images/crepe fromage.png"),
+
+  "Iced Latte": require("@/assets/images/featured-caramel-latte.jpg"),
+  Supernova: require("@/assets/images/supernova.png"),
+  "Roaring Frappe": require("@/assets/images/roaringfrape.png"),
+  "Black & White Cold Brew": require("@/assets/images/blackwhitecoldbrew.png"),
+  "Strawberry Limeade": require("@/assets/images/strawberry.png"),
+  "Shaken Lemonade": require("@/assets/images/shaken.png"),
+  "Mannino Honey Crepe": require("@/assets/images/mannino honey crape.png"),
+  Downtowner: require("@/assets/images/downtowner.png"),
+  "Funky Monkey": require("@/assets/images/funky monkey.png"),
   "Le S'mores": require("@/assets/images/le'smores.png"),
-  'Strawberry Fields': require('@/assets/images/s-fileds.png'),
-  Bonjour: require('@/assets/images/bonjour.png'),
-  'Banana Foster': require('@/assets/images/bannana foster.png'),
-  "Matt's Scrambled Eggs": require('@/assets/images/matts.png'),
-  'Meanie Mushroom': require('@/assets/images/meanie.png'),
-  'Turkey Club': require('@/assets/images/turkeyclub.png'),
-  'Green Machine': require('@/assets/images/freenmachince.png'),
-  'Perfect Pair': require('@/assets/images/perfectpair.png'),
-  'Crepe Fromage': require('@/assets/images/crepe fromage.png'),
-  'Farmers Market Crepe': require('@/assets/images/farmermarket.png'),
-  'Travis Special': require('@/assets/images/travis sp.png'),
-  'Crème Brulage': require('@/assets/images/creme brulage.png'),
-  'Creme Brulage': require('@/assets/images/creme brulage.png'),
-  'The Fancy One': require('@/assets/images/tfo.png'),
-  'Breakfast Bagel': require('@/assets/images/breakfest.png'),
-  'The Classic': require('@/assets/images/classic.png'),
+  "Strawberry Fields": require("@/assets/images/s-fileds.png"),
+  Bonjour: require("@/assets/images/bonjour.png"),
+  "Banana Foster": require("@/assets/images/bannana foster.png"),
+  "Matt's Scrambled Eggs": require("@/assets/images/matts.png"),
+  "Meanie Mushroom": require("@/assets/images/meanie.png"),
+  "Turkey Club": require("@/assets/images/turkeyclub.png"),
+  "Green Machine": require("@/assets/images/freenmachince.png"),
+  "Perfect Pair": require("@/assets/images/perfectpair.png"),
+  "Crepe Fromage": require("@/assets/images/crepe fromage.png"),
+  "Farmers Market Crepe": require("@/assets/images/farmermarket.png"),
+  "Travis Special": require("@/assets/images/travis sp.png"),
+  "Crème Brulage": require("@/assets/images/creme brulage.png"),
+  "Creme Brulage": require("@/assets/images/creme brulage.png"),
+  "The Fancy One": require("@/assets/images/tfo.png"),
+  "Breakfast Bagel": require("@/assets/images/breakfest.png"),
+  "The Classic": require("@/assets/images/classic.png"),
 };
+
+const DEFAULT_MENU_IMAGE = require("@/assets/images/featured-croissant.jpg.jpg");
 
 interface MenuItemCardProps {
   item: MenuItemDto;
@@ -40,23 +49,26 @@ interface MenuItemCardProps {
 }
 
 function getMenuItemImage(name: string) {
-  return MENU_ITEM_IMAGES[name] ?? null;
+  return MENU_ITEM_IMAGES[name] ?? DEFAULT_MENU_IMAGE;
 }
 
 export function MenuItemCard({ item, onPress }: MenuItemCardProps) {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
+  const isDark = colorScheme === "dark";
   const colors = getColors(isDark);
   const itemImage = getMenuItemImage(item.name);
 
   return (
     <TouchableOpacity
-      style={[styles.card, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+      style={[
+        styles.card,
+        { backgroundColor: colors.cardBackground, borderColor: colors.border },
+      ]}
       onPress={() => onPress(item)}
       activeOpacity={0.7}
     >
       <View style={styles.topRow}>
-        {itemImage ? <Image source={itemImage} style={styles.thumbnail} resizeMode="cover" /> : null}
+        <Image source={itemImage} style={styles.thumbnail} resizeMode="cover" />
 
         <View style={styles.content}>
           <View style={styles.header}>
@@ -67,7 +79,9 @@ export function MenuItemCard({ item, onPress }: MenuItemCardProps) {
           </View>
 
           {item.description ? (
-            <ThemedText style={[styles.description, { color: colors.textSecondary }]}>
+            <ThemedText
+              style={[styles.description, { color: colors.textSecondary }]}
+            >
               {item.description}
             </ThemedText>
           ) : null}
@@ -81,7 +95,7 @@ export function MenuItemCard({ item, onPress }: MenuItemCardProps) {
       </View>
 
       <View style={[styles.addButton, { backgroundColor: colors.primary }]}>
-        <ThemedText style={styles.addButtonText}>+ Add to Cart</ThemedText>
+        <ThemedText style={styles.addButtonText}>View Item</ThemedText>
       </View>
     </TouchableOpacity>
   );
@@ -95,8 +109,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   topRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 10,
   },
   thumbnail: {
@@ -109,20 +123,20 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
     marginBottom: 6,
   },
   name: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     flex: 1,
     marginRight: 8,
   },
   price: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: "700",
   },
   description: {
     fontSize: 13,
@@ -131,18 +145,18 @@ const styles = StyleSheet.create({
   },
   unavailable: {
     fontSize: 12,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     marginBottom: 8,
   },
   addButton: {
     borderRadius: 8,
     paddingVertical: 8,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 6,
   },
   addButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+    color: "#fff",
+    fontWeight: "600",
     fontSize: 14,
   },
 });

@@ -1,5 +1,5 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import * as api from '@/services/api';
+import React, { createContext, useState, useEffect, ReactNode } from "react";
+import * as api from "@/services/api";
 
 export interface UserDto {
   id: number;
@@ -22,11 +22,13 @@ export interface AuthContextType {
   checkAuth: () => Promise<void>;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+export const AuthContext = createContext<AuthContextType | undefined>(
+  undefined,
+);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<UserDto | null>(null);
-  const [isLoading, setIsLoading] = useState(true); 
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const checkAuth = async () => {
@@ -37,7 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userData);
     } catch (err: any) {
       setUser(null);
-      console.log('No active session');
+      console.log("No active session");
     } finally {
       setIsLoading(false);
     }
@@ -47,13 +49,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       setError(null);
-
-      
       const userData = await api.login(username, password);
-
       setUser(userData);
     } catch (err: any) {
-      const errorMessage = err.message || 'Login failed';
+      const errorMessage = err.message || "Login failed";
       setError(errorMessage);
       setUser(null);
       throw err;
@@ -62,25 +61,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  
   const logout = async () => {
     try {
       setIsLoading(true);
       setError(null);
-
       await api.logout();
     } catch (err: any) {
-      console.log('Logout error:', err);
+      console.log("Logout error:", err);
     } finally {
       setUser(null);
       setIsLoading(false);
-    } 
+    }
   };
-
 
   useEffect(() => {
     checkAuth();
-  }, []); 
+  }, []);
+  
   const value: AuthContextType = {
     user,
     isLoading,
@@ -90,9 +87,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkAuth,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
