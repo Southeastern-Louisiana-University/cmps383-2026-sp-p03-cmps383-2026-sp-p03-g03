@@ -44,15 +44,27 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowMobileApp", policy =>
     {
         policy
-            .WithOrigins(
-                "https://cg6xt47n-8081.use2.devtunnels.ms",
-                "https://cg6xt47n-7116.use2.devtunnels.ms",
-                "http://localhost:3000",
-                "http://localhost:5173",
-                "http://localhost:7116",
-                "http://localhost:8081",
-                "http://localhost:8082",
-                "http://localhost:8085")
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin))
+                {
+                    return false;
+                }
+
+                if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                return uri.Scheme == Uri.UriSchemeHttps &&
+                       uri.Host.EndsWith(".use2.devtunnels.ms", StringComparison.OrdinalIgnoreCase);
+            })
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials()

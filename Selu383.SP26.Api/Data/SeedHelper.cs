@@ -151,7 +151,17 @@ public static class SeedHelper
 
     private static async Task AddMenuCategories(DataContext dataContext)
     {
-        if (await dataContext.MenuCategories.AnyAsync())
+        var hasExpectedCategories = await dataContext.MenuCategories.AnyAsync(x => x.Name == "Drinks")
+            && await dataContext.MenuCategories.AnyAsync(x => x.Name == "Crepes - Sweet")
+            && await dataContext.MenuCategories.AnyAsync(x => x.Name == "Crepes - Savory")
+            && await dataContext.MenuCategories.AnyAsync(x => x.Name == "Bagels");
+
+        if (!hasExpectedCategories)
+        {
+            dataContext.MenuCategories.RemoveRange(dataContext.MenuCategories);
+            await dataContext.SaveChangesAsync();
+        }
+        else
         {
             return;
         }
@@ -192,10 +202,27 @@ public static class SeedHelper
 
     private static async Task AddMenuItems(DataContext dataContext)
     {
-        if (await dataContext.MenuItems.AnyAsync())
+        var hasExpectedItems = await dataContext.MenuItems.AnyAsync(x => x.Name == "Iced Latte")
+            && await dataContext.MenuItems.AnyAsync(x => x.Name == "Supernova")
+            && await dataContext.MenuItems.AnyAsync(x => x.Name == "The Classic");
+
+        if (!hasExpectedItems)
+        {
+            dataContext.MenuItems.RemoveRange(dataContext.MenuItems);
+            await dataContext.SaveChangesAsync();
+        }
+        else
         {
             return;
         }
+
+        var categoriesByName = await dataContext.MenuCategories
+            .ToDictionaryAsync(x => x.Name, x => x.Id);
+
+        var drinksCategoryId = categoriesByName["Drinks"];
+        var sweetCrepesCategoryId = categoriesByName["Crepes - Sweet"];
+        var savoryCrepesCategoryId = categoriesByName["Crepes - Savory"];
+        var bagelsCategoryId = categoriesByName["Bagels"];
 
         dataContext.MenuItems.AddRange(
 
@@ -204,7 +231,7 @@ public static class SeedHelper
                 Name = "Iced Latte",
                 Description = "Espresso and milk served over ice for a refreshing coffee drink.",
                 BasePrice = 5.50m,
-                CategoryId = 1,
+                CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -212,7 +239,7 @@ public static class SeedHelper
                 Name = "Supernova",
                 Description = "A unique coffee blend with a complex, balanced profile and subtle sweetness. Delicious as espresso or paired with milk.",
                 BasePrice = 7.95m,
-                CategoryId = 1,
+                CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -220,7 +247,7 @@ public static class SeedHelper
                 Name = "Roaring Frappe",
                 Description = "Cold brew, milk, and ice blended together with a signature syrup or flavor, topped with whipped cream.",
                 BasePrice = 6.20m,
-                CategoryId = 1,
+                CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -228,7 +255,7 @@ public static class SeedHelper
                 Name = "Black & White Cold Brew",
                 Description = "Cold brew made with both dark and light roast beans, finished with a drizzle of condensed milk.",
                 BasePrice = 5.15m,
-                CategoryId = 1,
+                CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -236,7 +263,7 @@ public static class SeedHelper
                 Name = "Strawberry Limeade",
                 Description = "Fresh lime juice blended with strawberry purée for a refreshing, tangy drink.",
                 BasePrice = 5.00m,
-                CategoryId = 1,
+                CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -244,7 +271,7 @@ public static class SeedHelper
                 Name = "Shaken Lemonade",
                 Description = "Fresh lemon juice and simple syrup vigorously shaken for a bright, refreshing lemonade.",
                 BasePrice = 5.00m,
-                CategoryId = 1,
+                CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
             
@@ -254,7 +281,7 @@ public static class SeedHelper
                 Name = "Mannino Honey Crepe",
                 Description = "A sweet crepe drizzled with Mannino honey and topped with mixed berries.",
                 BasePrice = 10.00m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -262,7 +289,7 @@ public static class SeedHelper
                 Name = "Downtowner",
                 Description = "Strawberries and bananas wrapped in a crepe, finished with Nutella and Hershey's chocolate sauce.",
                 BasePrice = 10.75m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -270,7 +297,7 @@ public static class SeedHelper
                 Name = "Funky Monkey",
                 Description = "Nutella and bananas wrapped in a crepe, served with whipped cream.",
                 BasePrice = 10.00m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -278,7 +305,7 @@ public static class SeedHelper
                 Name = "Le S'mores",
                 Description = "Marshmallow cream and chocolate sauce inside a crepe, topped with graham cracker crumbs.",
                 BasePrice = 9.50m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -286,7 +313,7 @@ public static class SeedHelper
                 Name = "Strawberry Fields",
                 Description = "Fresh strawberries with Hershey's chocolate drizzle and a dusting of powdered sugar.",
                 BasePrice = 10.00m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -294,7 +321,7 @@ public static class SeedHelper
                 Name = "Bonjour",
                 Description = "A sweet crepe filled with syrup and cinnamon, finished with powdered sugar.",
                 BasePrice = 8.50m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -302,7 +329,7 @@ public static class SeedHelper
                 Name = "Banana Foster",
                 Description = "Bananas with cinnamon in a crepe, topped with a generous drizzle of caramel sauce.",
                 BasePrice = 8.95m,
-                CategoryId = 2,
+                CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
             
@@ -312,7 +339,7 @@ public static class SeedHelper
                 Name = "Matt's Scrambled Eggs",
                 Description = "Scrambled eggs and melted mozzarella cheese wrapped in a crepe.",
                 BasePrice = 5.00m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -320,7 +347,7 @@ public static class SeedHelper
                 Name = "Meanie Mushroom",
                 Description = "Sautéed mushrooms, mozzarella, tomato, and bacon inside a delicate crepe.",
                 BasePrice = 10.50m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -328,7 +355,7 @@ public static class SeedHelper
                 Name = "Turkey Club",
                 Description = "Sliced turkey, bacon, spinach, and tomato wrapped in a savory crepe.",
                 BasePrice = 10.50m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -336,7 +363,7 @@ public static class SeedHelper
                 Name = "Green Machine",
                 Description = "Spinach, artichokes, and mozzarella cheese inside a fresh crepe.",
                 BasePrice = 10.00m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -344,7 +371,7 @@ public static class SeedHelper
                 Name = "Perfect Pair",
                 Description = "A unique combination of bacon and Nutella wrapped in a crepe.",
                 BasePrice = 10.00m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -352,7 +379,7 @@ public static class SeedHelper
                 Name = "Crepe Fromage",
                 Description = "A savory crepe filled with a blend of cheeses.",
                 BasePrice = 8.00m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -360,7 +387,7 @@ public static class SeedHelper
                 Name = "Farmers Market Crepe",
                 Description = "Turkey, spinach, and mozzarella wrapped in a savory crepe.",
                 BasePrice = 10.50m,
-                CategoryId = 3,
+                CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
             
@@ -370,7 +397,7 @@ public static class SeedHelper
                 Name = "Travis Special",
                 Description = "Cream cheese, salmon, spinach, and a fried egg served on a freshly toasted bagel.",
                 BasePrice = 14.00m,
-                CategoryId = 4,
+                CategoryId = bagelsCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -378,7 +405,7 @@ public static class SeedHelper
                 Name = "Crème Brulage",
                 Description = "A toasted bagel with a caramelized sugar crust inspired by crème brûlée, served with cream cheese.",
                 BasePrice = 8.00m,
-                CategoryId = 4,
+                CategoryId = bagelsCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -386,7 +413,7 @@ public static class SeedHelper
                 Name = "The Fancy One",
                 Description = "Smoked salmon, cream cheese, and fresh dill on a toasted bagel.",
                 BasePrice = 13.00m,
-                CategoryId = 4,
+                CategoryId = bagelsCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -394,7 +421,7 @@ public static class SeedHelper
                 Name = "Breakfast Bagel",
                 Description = "A toasted bagel with your choice of ham, bacon, or sausage, a fried egg, and cheddar cheese.",
                 BasePrice = 9.50m,
-                CategoryId = 4,
+                CategoryId = bagelsCategoryId,
                 IsAvailable = true
             },
             new MenuItem
@@ -402,7 +429,7 @@ public static class SeedHelper
                 Name = "The Classic",
                 Description = "A toasted bagel with cream cheese.",
                 BasePrice = 5.25m,
-                CategoryId = 4,
+                CategoryId = bagelsCategoryId,
                 IsAvailable = true
             }
         );
