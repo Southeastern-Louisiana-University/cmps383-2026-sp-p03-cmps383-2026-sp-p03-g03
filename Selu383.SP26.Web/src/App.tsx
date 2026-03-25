@@ -1,97 +1,57 @@
-import { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import "./App.css";
-import NavBar from "./components/NavBar";
-import Home from "./components/Home";
-import Menu from "./components/Menu";
-import Order from "./components/Order";
-import Locations from "./components/Locations";
-import Account from "./components/Account";
-import SignInModal from "./components/SignInModal";
-import type { UserInterface } from "./Interfaces";
+import { T } from "./components/tokens";
+import { TopNavbar } from "./components/top-navbar";
+import { BackgroundArt } from "./components/background-art";
+import { Footer } from "./components/footer";
+import { AppProvider, useAppContext } from "./components/app-context";
+import { ItemDialog, CheckoutDialog, SuccessDialog } from "./components/dialogs";
+import { DashboardPage } from "./pages/dashboard";
+import { MenuPage } from "./pages/menu";
+import { CartPage } from "./pages/cart";
+import { ReservationPage } from "./pages/reservations";
+import { AuthPage } from "./pages/auth";
+import { ProfilePage } from "./pages/profile";
 
-function App() {
-  const [user, setUser] = useState<UserInterface | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
+function AppLayout() {
+  const { tab, setTab, count, isLoggedIn } = useAppContext();
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch("/api/authentication/me", {
-          credentials: "include",
-        });
-        if (response.ok) {
-          const userData = await response.json();
-          setUser(userData);
-          localStorage.setItem("user", JSON.stringify(userData));
-        } else {
-          setUser(null);
-          localStorage.removeItem("user");
-        }
-      } catch {
-        setUser(null);
-        localStorage.removeItem("user");
-      }
-    };
-    checkAuth();
-  }, []);
+  const effectiveTab = (!isLoggedIn && (tab === "profile")) ? "auth" : tab;
 
-  const handleLogin = async (username: string, password: string) => {
-    const response = await fetch("/api/authentication/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-      body: JSON.stringify({ userName: username, password: password }),
-    });
-    if (response.ok) {
-      const userData = await response.json();
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
-    }
+  const pages: Record<string, React.JSX.Element> = {
+    home: <DashboardPage />,
+    order: <MenuPage />,
+    cart: <CartPage />,
+    reserve: <ReservationPage />,
+    auth: <AuthPage />,
+    profile: <ProfilePage />,
   };
 
-  const handleLogout = async () => {
-    const response = await fetch("/api/authentication/logout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
-    });
-    if (response.ok) {
-      setUser(null);
-      localStorage.removeItem("user");
-    }
-  };
-
-  const openSignInModal = () => {
-    setModalOpen(true);
-  };
-
-  const closeSignInModal = () => {
-    setModalOpen(false);
-  };
+  const isAuthPage = effectiveTab === "auth";
 
   return (
-    <Router>
-      <div>
-        <NavBar
-          user={user}
-          onSignIn={openSignInModal}
-          onLogout={handleLogout}
-        />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/" element={<Home />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/order" element={<Order />} />
-          <Route path="/locations" element={<Locations />} />
-          <Route path="/account" element={<Account />} />
-        </Routes>
-        {modalOpen && (
-          <SignInModal onClose={closeSignInModal} onLogin={handleLogin} />
-        )}
-      </div>
-    </Router>
+    <div style={{ fontFamily: T.font, color: T.darkBrew, minHeight: "100vh", background: T.cream, position: "relative" }}>
+      <BackgroundArt />
+      <TopNavbar tab={effectiveTab} setTab={setTab} cartCount={count} />
+      {isAuthPage ? (
+        <main style={{ position: "relative", zIndex: 1 }}>
+          {pages[effectiveTab]}
+        </main>
+      ) : (
+        <main style={{ position: "relative", zIndex: 1, padding: "48px 48px 0", maxWidth: 1320, margin: "0 auto" }}>
+          {pages[effectiveTab]}
+        </main>
+      )}
+      {!isAuthPage && <Footer setTab={setTab} />}
+      <ItemDialog />
+      <CheckoutDialog />
+      <SuccessDialog />
+    </div>
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <AppProvider>
+      <AppLayout />
+    </AppProvider>
+  );
+}
