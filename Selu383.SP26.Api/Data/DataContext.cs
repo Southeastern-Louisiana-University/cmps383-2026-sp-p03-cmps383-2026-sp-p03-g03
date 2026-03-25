@@ -30,6 +30,7 @@ public class DataContext : IdentityDbContext<User, Role, int, IdentityUserClaim<
         public DbSet<LoyaltyLedger> LoyaltyLedgers { get; set; }
 
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

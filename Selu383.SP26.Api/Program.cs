@@ -8,7 +8,7 @@ using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// add services to the container.
+
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext")));
 
@@ -38,9 +38,43 @@ builder.Services.AddScoped<ReceiptPdfService>();
 builder.Services.AddScoped<BlobStorageService>();
 builder.Services.AddScoped<StripePaymentService>();
 
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowMobileApp", policy =>
+    {
+        policy
+            .SetIsOriginAllowed(origin =>
+            {
+                if (string.IsNullOrWhiteSpace(origin))
+                {
+                    return false;
+                }
+
+                if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                if (!Uri.TryCreate(origin, UriKind.Absolute, out var uri))
+                {
+                    return false;
+                }
+
+                return uri.Scheme == Uri.UriSchemeHttps &&
+                       uri.Host.EndsWith(".use2.devtunnels.ms", StringComparison.OrdinalIgnoreCase);
+            })
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials()
+            .WithExposedHeaders("Content-Type", "X-Total-Count");
+    });
+});
+
 var app = builder.Build();
 
-// configure stripe with the secret key from appsettings
+
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 using (var scope = app.Services.CreateScope())
@@ -48,32 +82,44 @@ using (var scope = app.Services.CreateScope())
     await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
 }
 
-// configure the http request pipeline.
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+
+app.UseCors("AllowMobileApp");
+
 app.UseHttpsRedirection();
 
-app
-    .UseRouting()
-    .UseAuthentication()
-    .UseAuthorization()
-    .UseEndpoints(x =>
+app.UseRouting();
+
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
     {
-        x.MapControllers();
-    });
+        context.Response.StatusCode = 200;
+        await context.Response.CompleteAsync();
+        return;
+    }
+    await next();
+});
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+
+app.MapControllers();
 
 app.UseStaticFiles();
 
 if(app.Environment.IsDevelopment())
 {
-    app.UseSpa(x =>
-    {
-       x.UseProxyToSpaDevelopmentServer("http://localhost:5173");
-    });
+
+
 }
 else
 {

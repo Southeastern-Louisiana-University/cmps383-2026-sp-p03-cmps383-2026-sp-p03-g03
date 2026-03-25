@@ -23,6 +23,8 @@ public class Order
 
     public DateTime OrderTime { get; set; } = DateTime.UtcNow;
 
+    public DateTime? ScheduledPickupTime { get; set; }
+
     public decimal Total { get; set; }
 
     public string? Note { get; set; }
