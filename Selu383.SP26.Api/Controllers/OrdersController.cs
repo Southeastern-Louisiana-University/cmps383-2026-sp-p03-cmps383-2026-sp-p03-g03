@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
@@ -25,6 +26,47 @@ public class OrdersController : ControllerBase
         _blobStorageService = blobStorageService;
     }
 
+    [HttpGet("my-orders")]
+    [Authorize]
+    public async Task<ActionResult<List<OrderDto>>> GetMyOrders()
+    {
+        var userId = User.GetCurrentUserId();
+        if (!userId.HasValue)
+            return Unauthorized();
+
+        var orders = await _context.Orders
+            .Where(o => o.CreatedByUserId == userId)
+            .Include(o => o.OrderItems)
+            .OrderByDescending(o => o.OrderTime)
+            .Select(o => new OrderDto
+            {
+                Id = o.Id,
+                LocationId = o.LocationId,
+                CreatedByUserId = o.CreatedByUserId,
+                OrderCode = o.OrderCode,
+                OrderType = o.OrderType,
+                Status = o.Status,
+                PaymentStatus = o.PaymentStatus,
+                OrderTime = o.OrderTime,
+                ScheduledPickupTime = o.ScheduledPickupTime,
+                Total = o.Total,
+                Note = o.Note,
+                PickupName = o.PickupName,
+                Items = o.OrderItems.Select(oi => new OrderItemDto
+                {
+                    Id = oi.Id,
+                    MenuItemId = oi.MenuItemId,
+                    Quantity = oi.Quantity,
+                    UnitPrice = oi.UnitPrice,
+                    LineTotal = oi.LineTotal,
+                    ItemNote = oi.ItemNote
+                }).ToList()
+            })
+            .ToListAsync();
+
+        return Ok(orders);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<ActionResult<OrderDto>> GetOrder(int id)
     {
@@ -45,6 +87,7 @@ public class OrdersController : ControllerBase
             Status = order.Status,
             PaymentStatus = order.PaymentStatus,
             OrderTime = order.OrderTime,
+            ScheduledPickupTime = order.ScheduledPickupTime,
             Total = order.Total,
             Note = order.Note,
             PickupName = order.PickupName,
@@ -67,6 +110,15 @@ public class OrdersController : ControllerBase
     {
         if (dto.Items == null || dto.Items.Count == 0)
             return BadRequest("Order must contain at least one item.");
+
+        if (dto.ScheduledPickupTime.HasValue)
+        {
+            if (!string.Equals(dto.OrderType, "Pickup", StringComparison.OrdinalIgnoreCase))
+                return BadRequest("Scheduled pickup is only available for pickup orders.");
+
+            if (dto.ScheduledPickupTime.Value < DateTime.UtcNow)
+                return BadRequest("Scheduled pickup time must be in the future.");
+        }
 
         var locationExists = await _context.Locations.AnyAsync(l => l.Id == dto.LocationId);
         if (!locationExists)
@@ -92,6 +144,7 @@ public class OrdersController : ControllerBase
             Status = "Placed",
             PaymentStatus = "Unpaid",
             OrderTime = DateTime.UtcNow,
+            ScheduledPickupTime = dto.ScheduledPickupTime,
             Note = dto.Note,
             PickupName = dto.PickupName
         };
@@ -128,6 +181,7 @@ public class OrdersController : ControllerBase
             Status = order.Status,
             PaymentStatus = order.PaymentStatus,
             OrderTime = order.OrderTime,
+            ScheduledPickupTime = order.ScheduledPickupTime,
             Total = order.Total,
             Note = order.Note,
             PickupName = order.PickupName,

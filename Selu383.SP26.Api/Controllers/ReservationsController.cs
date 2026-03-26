@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
+using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Reservations;
 
@@ -87,15 +88,15 @@ public class ReservationsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<ReservationDto>> Create(ReservationDto dto)
     {
-        //enforce party size limits
+
         if (dto.PartySize < 2 || dto.PartySize > 6)
             return BadRequest("Party size must be between 2 and 6 guests.");
 
-        //enforce 2 hour advance notice
+
         if (dto.ReservedFor < DateTime.UtcNow.AddHours(2))
             return BadRequest("Reservations must be made at least 2 hours in advance.");
 
-        //enforce business hourss
+
         var timeOfDay = dto.ReservedFor.TimeOfDay;
         if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
             return BadRequest("Reservations can only be made between 6:00 AM and 6:00 PM.");
@@ -118,11 +119,11 @@ public class ReservationsController : ControllerBase
         if (!table.IsActive)
             return BadRequest("Table is not active.");
 
-        //prevent booking of individual bar seats
+
         if (table.IsBarSeat)
             return BadRequest("Individual bar seats cannot be reserved.");
 
-        //ensure table can fit the party size
+
         if (dto.PartySize > table.Seats)
             return BadRequest($"Party size exceeds the table's capacity of {table.Seats}.");
 
@@ -157,15 +158,15 @@ public class ReservationsController : ControllerBase
     [Authorize(Roles = RoleNames.Admin)]
     public async Task<ActionResult<ReservationDto>> Update(int id, ReservationDto dto)
     {
-        //enforce party size limit (2 to 6 guests)
+
         if (dto.PartySize < 2 || dto.PartySize > 6)
             return BadRequest("Party size must be between 2 and 6 guests.");
 
-        // enforces 2 hour advance notice
+
         if (dto.ReservedFor < DateTime.UtcNow.AddHours(2))
             return BadRequest("Reservations must be made at least 2 hours in advance.");
 
-        //enforces business hours(6am to 6pm)
+
         var timeOfDay = dto.ReservedFor.TimeOfDay;
         if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
             return BadRequest("Reservations can only be made between 6:00 AM and 6:00 PM.");
@@ -189,11 +190,11 @@ public class ReservationsController : ControllerBase
         if (table.LocationId != dto.LocationId)
             return BadRequest("Table does not belong to this location.");
 
-        //prevent booking of individual bar seats
+
         if (table.IsBarSeat)
             return BadRequest("Individual bar seats cannot be reserved.");
 
-        //ensure table can fit the party size
+
         if (dto.PartySize > table.Seats)
             return BadRequest($"Party size exceeds the table's capacity of {table.Seats}.");
 
@@ -222,16 +223,32 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize]
     public async Task<ActionResult> Delete(int id)
     {
         var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
         if (reservation == null)
             return NotFound();
 
-        _context.Reservations.Remove(reservation);
+        var userId = User.GetCurrentUserId();
+        if (!userId.HasValue)
+            return Unauthorized();
+
+
+        var isAdmin = User.IsInRole(RoleNames.Admin);
+        if (!isAdmin && reservation.UserId != userId.Value)
+            return BadRequest("You can only cancel your own reservations.");
+
+
+        if (reservation.ReservedFor < DateTime.UtcNow)
+            return BadRequest("Cannot cancel a reservation for a past date/time.");
+
+        if (string.Equals(reservation.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+            return BadRequest("Reservation is already cancelled.");
+
+        reservation.Status = "Cancelled";
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Ok(new { message = "Reservation cancelled." });
     }
 }
