@@ -1,23 +1,13 @@
-const DEFAULT_API_BASE_URL = "https://cg6xt47n-7116.use2.devtunnels.ms";
+const DEFAULT_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
 const TIMEOUT = 30000; // 30 seconds
 
 const getApiBaseUrl = (): string => {
-  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-  if (envUrl) {
-    return envUrl.replace(/\/$/, "");
-  }
+  // const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
+  // if (envUrl) {
+  //   return envUrl.replace(/\/$/, "");
+  // }
 
-  // On web, infer API tunnel host from the current frontend tunnel host.
-  if (
-    typeof window !== "undefined" &&
-    window.location?.hostname?.endsWith(".use2.devtunnels.ms")
-  ) {
-    const apiHost = window.location.hostname.replace(
-      /-\d+\.use2\.devtunnels\.ms$/i,
-      "-7116.use2.devtunnels.ms",
-    );
-    return `${window.location.protocol}//${apiHost}`;
-  }
+  // console.log(envUrl);
 
   return DEFAULT_API_BASE_URL;
 };
