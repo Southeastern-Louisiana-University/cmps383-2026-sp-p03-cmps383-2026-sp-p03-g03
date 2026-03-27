@@ -1,11 +1,11 @@
-const DEFAULT_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net/";
+const DEFAULT_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
 const TIMEOUT = 30000; // 30 seconds
 
 const getApiBaseUrl = (): string => {
-  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-  if (envUrl) {
-    return envUrl.replace(/\/$/, "");
-  }
+  //const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
+  //if (envUrl) {
+  //  return envUrl.replace(/\/$/, "");
+  //}
 
   return DEFAULT_API_BASE_URL;
 };
