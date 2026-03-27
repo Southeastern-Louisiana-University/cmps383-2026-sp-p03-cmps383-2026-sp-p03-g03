@@ -15,8 +15,15 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<DataContext>();
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.Cookie.Name = "Selu383.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None;
+    options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+
     options.Events.OnRedirectToLogin = context =>
     {
         context.Response.StatusCode = 401;
@@ -86,13 +93,19 @@ using (var scope = app.Services.CreateScope())
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.ConfigObject.AdditionalItems["withCredentials"] = true;
+    });
 }
 
 
 app.UseCors("AllowMobileApp");
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseRouting();
 
