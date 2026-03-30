@@ -2,12 +2,24 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "Selu383.SP26.Mobile/**" # Only builds if mobile code changes
+      - ".github/workflows/expo.yml" # ...Or if you update this file
+  workflow_dispatch: {} # Should add a "Run workflow" button to the GitHub Actions UI
+
+# Prevents multiple builds from running at the same time on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   update:
     runs-on: ubuntu-latest
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -15,15 +27,25 @@ jobs:
           java-version: "17"
           distribution: "temurin"
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: ✨ Gradle Cache To Cut Build Time by 15ish Minutes
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: 🏗 Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 24.x
           cache: npm
           cache-dependency-path: Selu383.SP26.Mobile/package-lock.json
+
+      - name: 📦 Install dependencies
+        run: npm ci --prefix ./Selu383.SP26.Mobile # clean install
 
       - name: 🏗 Setup EAS
         uses: expo/expo-github-action@v8
@@ -33,16 +55,18 @@ jobs:
           project: Selu383.SP26.Mobile
           packager: npm
 
-      - name: 📦 Install dependencies
-        run: npm install ./Selu383.SP26.Mobile
-
-      - name: set environment variables
-        uses: allenevans/set-env@v3.0.0
-        with:
-          EAS_LOCAL_BUILD_ARTIFACTS_DIR: ${{ runner.temp }}
+      - name: 🛠️ Optimize Gradle Memory
+        run: |
+          mkdir -p ./Selu383.SP26.Mobile/android
+          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> ./Selu383.SP26.Mobile/android/gradle.properties
+          echo "org.gradle.parallel=true" >> ./Selu383.SP26.Mobile/android/gradle.properties
 
       - name: 🚀 Build app
-        run: cd ./Selu383.SP26.Mobile/ && eas build -p android --non-interactive --local
+        run: |
+          cd ./Selu383.SP26.Mobile/
+          eas build -p android --non-interactive --local
+        env:
+          EAS_LOCAL_BUILD_ARTIFACTS_DIR: ${{ runner.temp }}
 
       - name: 🛳️ Make Release
         uses: "marvinpinto/action-automatic-releases@latest"
