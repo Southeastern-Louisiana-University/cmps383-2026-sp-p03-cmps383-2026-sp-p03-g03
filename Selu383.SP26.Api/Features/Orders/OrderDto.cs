@@ -27,4 +27,6 @@ public class OrderDto
     public string? PickupName { get; set; }
 
     public List<OrderItemDto> Items { get; set; } = new();
+
+    public string? ReceiptUrl { get; set; }
 }

@@ -27,6 +27,7 @@ public class DataContext : IdentityDbContext<User, Role, int, IdentityUserClaim<
         public DbSet<Table> Tables => Set<Table>();
         public DbSet<Reservation> Reservations { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<PaymentMethod> PaymentMethods { get; set; }
         public DbSet<LoyaltyLedger> LoyaltyLedgers { get; set; }
 
 

@@ -7,7 +7,7 @@ using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Extensions; // Added for GetUserId()
 
 namespace Selu383.SP26.Api.Controllers;
-
+//the force be with us
 [ApiController]
 [Route("api/orders")]
 public class OrdersController : ControllerBase
@@ -37,6 +37,7 @@ public class OrdersController : ControllerBase
         var orders = await _context.Orders
             .Where(o => o.CreatedByUserId == userId)
             .Include(o => o.OrderItems)
+            .Include(o => o.Receipt)
             .OrderByDescending(o => o.OrderTime)
             .Select(o => new OrderDto
             {
@@ -60,7 +61,8 @@ public class OrdersController : ControllerBase
                     UnitPrice = oi.UnitPrice,
                     LineTotal = oi.LineTotal,
                     ItemNote = oi.ItemNote
-                }).ToList()
+                }).ToList(),
+                ReceiptUrl = o.Receipt != null ? o.Receipt.ReceiptText : null
             })
             .ToListAsync();
 
@@ -72,6 +74,7 @@ public class OrdersController : ControllerBase
     {
         var order = await _context.Orders
             .Include(o => o.OrderItems)
+            .Include(o => o.Receipt)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
@@ -99,7 +102,8 @@ public class OrdersController : ControllerBase
                 UnitPrice = oi.UnitPrice,
                 LineTotal = oi.LineTotal,
                 ItemNote = oi.ItemNote
-            }).ToList()
+            }).ToList(),
+            ReceiptUrl = order.Receipt != null ? order.Receipt.ReceiptText : null
         };
 
         return Ok(dto);
@@ -171,6 +175,39 @@ public class OrdersController : ControllerBase
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
+        // Auto-generate and save receipt
+        string? receiptUrl = null;
+        try
+        {
+            // Reload order with menu items for receipt generation
+            var orderWithItems = await _context.Orders
+                .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.MenuItem)
+                .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+            if (orderWithItems != null)
+            {
+                var pdfBytes = _receiptPdfService.GenerateThermalReceipt(orderWithItems);
+                var fileName = $"receipts/order-{orderWithItems.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+                receiptUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
+
+                // Save receipt record
+                orderWithItems.Receipt = new Receipt
+                {
+                    OrderId = orderWithItems.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiptText = receiptUrl
+                };
+
+                await _context.SaveChangesAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the order creation if receipt generation fails
+            Console.WriteLine($"Receipt generation failed for order {order.Id}: {ex.Message}");
+        }
+
         var result = new OrderDto
         {
             Id = order.Id,
@@ -193,13 +230,15 @@ public class OrdersController : ControllerBase
                 UnitPrice = oi.UnitPrice,
                 LineTotal = oi.LineTotal,
                 ItemNote = oi.ItemNote
-            }).ToList()
+            }).ToList(),
+            ReceiptUrl = receiptUrl
         };
 
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, result);
     }
 
     [HttpGet("{id:int}/receiptpdf")]
+    [HttpGet("{id:int}/receipt-pdf")]
     public async Task<IActionResult> GetReceiptPdf(int id)
     {
         var order = await _context.Orders
@@ -216,6 +255,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost("{id:int}/archivereceipt")]
+    [HttpPost("{id:int}/archive-receipt")]
     public async Task<ActionResult<object>> ArchiveReceipt(int id)
     {
         var order = await _context.Orders
@@ -226,10 +266,28 @@ public class OrdersController : ControllerBase
         if (order == null)
             return NotFound();
 
-        var pdfBytes = _receiptPdfService.GenerateReceipt(order);
+        var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
 
         var fileName = $"receipts/order{order.Id}{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
         var blobUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
+
+        // Update or create receipt record
+        if (order.Receipt == null)
+        {
+            order.Receipt = new Receipt
+            {
+                OrderId = order.Id,
+                CreatedAt = DateTime.UtcNow,
+                ReceiptText = blobUrl
+            };
+        }
+        else
+        {
+            order.Receipt.ReceiptText = blobUrl;
+            order.Receipt.CreatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
 
         return Ok(new
         {

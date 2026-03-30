@@ -37,12 +37,12 @@ public class AuthenticationController : ControllerBase
         var user = await userManager.FindByNameAsync(dto.UserName);
         if (user == null)
         {
-            return BadRequest();
+            return Unauthorized(new { message = "Invalid username or password." });
         }
         var result = await signInManager.CheckPasswordSignInAsync(user, dto.Password, true);
         if (!result.Succeeded)
         {
-            return BadRequest();
+            return Unauthorized(new { message = "Invalid username or password." });
         }
 
         await signInManager.SignInAsync(user, false);
@@ -71,8 +71,7 @@ public class AuthenticationController : ControllerBase
         Email = x.Email,
         PhoneNumber = x.PhoneNumber,
         Roles = x.UserRoles.Select(y => y.Role!.Name!).ToArray(),
-            //map the database value directly to the returned dto
-            LoyaltyPoints = x.LoyaltyPoints
+        LoyaltyPoints = x.LoyaltyPoints
     });
 }
 }

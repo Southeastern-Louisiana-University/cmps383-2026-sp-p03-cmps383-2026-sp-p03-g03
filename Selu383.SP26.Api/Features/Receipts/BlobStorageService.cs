@@ -13,7 +13,8 @@ public class BlobStorageService
 
     public async Task<string> UploadReceiptAsync(byte[] pdfBytes, string fileName)
     {
-        var connectionString = _configuration["AzureBlobStorage:ConnectionString"];
+        var connectionString = _configuration["AZURE_STORAGE_CONNECTION_STRING"]
+            ?? _configuration["AzureBlobStorage:ConnectionString"];
         var containerName = _configuration["AzureBlobStorage:ContainerName"];
 
         if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(containerName))

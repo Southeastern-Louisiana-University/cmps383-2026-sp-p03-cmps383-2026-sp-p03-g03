@@ -6,7 +6,7 @@ using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Loyalty;
-
+//the force be with us
 namespace Selu383.SP26.Api.Controllers;
 
 [ApiController]
@@ -38,7 +38,7 @@ public class StripeWebhookController : ControllerBase
 
         try
         {
-            var webhookSecret = _configuration["Stripe:WebhookSecret"];
+            var webhookSecret = _configuration["Stripe:WebhookSecret"]?.Trim();
 
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Stripe webhook secret is missing.");
@@ -67,7 +67,7 @@ public class StripeWebhookController : ControllerBase
 
                 var order = await _context.Orders
                     .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.MenuItem)
+                    .ThenInclude(oi => oi.MenuItem)
                     .Include(o => o.Location)
                     .Include(o => o.CreatedByUser)
                     .Include(o => o.Receipt)
@@ -97,7 +97,7 @@ public class StripeWebhookController : ControllerBase
 
                 if (order.Receipt == null)
                 {
-                    var pdfBytes = _receiptPdfService.GenerateReceipt(order);
+                    var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
                     var fileName = $"order-{order.Id}-receipt.pdf";
                     var receiptUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
 
