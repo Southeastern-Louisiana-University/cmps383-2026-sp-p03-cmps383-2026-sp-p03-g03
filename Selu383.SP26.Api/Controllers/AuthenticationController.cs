@@ -71,7 +71,7 @@ public class AuthenticationController : ControllerBase
         Email = x.Email,
         PhoneNumber = x.PhoneNumber,
         Roles = x.UserRoles.Select(y => y.Role!.Name!).ToArray(),
-            LoyaltyPoints = x.LoyaltyPoints
+        LoyaltyPoints = x.LoyaltyPoints
     });
 }
 }

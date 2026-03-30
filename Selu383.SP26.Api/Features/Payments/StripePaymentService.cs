@@ -18,9 +18,9 @@ public class StripePaymentService
 
     public async Task<string> CreateCheckoutSessionAsync(int orderId)
     {
-        var secretKey = _configuration["Stripe:SecretKey"];
-        var successUrl = _configuration["Stripe:SuccessUrl"];
-        var cancelUrl = _configuration["Stripe:CancelUrl"];
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        var successUrl = _configuration["Stripe:SuccessUrl"]?.Trim();
+        var cancelUrl = _configuration["Stripe:CancelUrl"]?.Trim();
 
         if (string.IsNullOrWhiteSpace(secretKey))
             throw new Exception("Stripe secret key is missing.");
