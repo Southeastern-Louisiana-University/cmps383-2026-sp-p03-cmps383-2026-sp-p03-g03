@@ -6,7 +6,7 @@ using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Payments;
 
 namespace Selu383.SP26.Api.Controllers;
-
+//the force be with us
 [ApiController]
 [Route("api/payments")]
 public class PaymentsController : ControllerBase

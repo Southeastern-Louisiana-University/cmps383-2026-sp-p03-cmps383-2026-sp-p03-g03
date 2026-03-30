@@ -6,7 +6,7 @@ using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Loyalty;
-
+//the force be with us
 namespace Selu383.SP26.Api.Controllers;
 
 [ApiController]
@@ -67,7 +67,7 @@ public class StripeWebhookController : ControllerBase
 
                 var order = await _context.Orders
                     .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.MenuItem)
+                    .ThenInclude(oi => oi.MenuItem)
                     .Include(o => o.Location)
                     .Include(o => o.CreatedByUser)
                     .Include(o => o.Receipt)

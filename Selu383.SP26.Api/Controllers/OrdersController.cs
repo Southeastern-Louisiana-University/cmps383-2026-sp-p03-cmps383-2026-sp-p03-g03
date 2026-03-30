@@ -7,7 +7,7 @@ using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Extensions; // Added for GetUserId()
 
 namespace Selu383.SP26.Api.Controllers;
-
+//the force be with us
 [ApiController]
 [Route("api/orders")]
 public class OrdersController : ControllerBase
