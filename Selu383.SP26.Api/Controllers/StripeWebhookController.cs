@@ -38,7 +38,7 @@ public class StripeWebhookController : ControllerBase
 
         try
         {
-            var webhookSecret = _configuration["Stripe:WebhookSecret"];
+            var webhookSecret = _configuration["Stripe:WebhookSecret"]?.Trim();
 
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Stripe webhook secret is missing.");
@@ -97,7 +97,7 @@ public class StripeWebhookController : ControllerBase
 
                 if (order.Receipt == null)
                 {
-                    var pdfBytes = _receiptPdfService.GenerateReceipt(order);
+                    var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
                     var fileName = $"order-{order.Id}-receipt.pdf";
                     var receiptUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
 
