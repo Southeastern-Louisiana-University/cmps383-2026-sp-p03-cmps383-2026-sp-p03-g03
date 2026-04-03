@@ -11,59 +11,67 @@ namespace Selu383.SP26.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly UserManager<User> userManager;
+    private readonly RoleManager<Role> roleManager;
 
-    public UsersController(UserManager<User> userManager)
+    public UsersController(UserManager<User> userManager, RoleManager<Role> roleManager)
     {
         this.userManager = userManager;
+        this.roleManager = roleManager;
     }
 
     [HttpPost]
-[Authorize(Roles = RoleNames.Admin)]
-public async Task<ActionResult<UserDto>> Create(CreateUserDto dto)
-{
-    using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
-
-    var newUser = new User
+    [Authorize(Roles = RoleNames.Admin)]
+    public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
     {
-        UserName = dto.UserName,
-        FirstName = dto.FirstName,
-        LastName = dto.LastName,
-        DisplayName = dto.DisplayName,
-        Email = dto.Email,
-        PhoneNumber = dto.PhoneNumber
-    };
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
 
-    var createResult = await userManager.CreateAsync(newUser, dto.Password);
-    if (!createResult.Succeeded)
-    {
-        return BadRequest();
-    }
+        var requestedRoles = dto.Roles.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+        foreach (var role in requestedRoles)
+        {
+            if (!await roleManager.RoleExistsAsync(role))
+                return BadRequest(new { message = $"Role '{role}' does not exist." });
+        }
 
-    try
-    {
-        var roleResult = await userManager.AddToRolesAsync(newUser, dto.Roles);
+        var newUser = new User
+        {
+            UserName = dto.UserName.Trim(),
+            FirstName = dto.FirstName?.Trim(),
+            LastName = dto.LastName?.Trim(),
+            DisplayName = dto.DisplayName?.Trim(),
+            Email = dto.Email?.Trim(),
+            PhoneNumber = dto.PhoneNumber?.Trim()
+        };
+
+        var createResult = await userManager.CreateAsync(newUser, dto.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(new
+            {
+                errors = createResult.Errors.Select(x => x.Description).ToArray()
+            });
+        }
+
+        var roleResult = await userManager.AddToRolesAsync(newUser, requestedRoles);
         if (!roleResult.Succeeded)
         {
-            return BadRequest();
+            return BadRequest(new
+            {
+                errors = roleResult.Errors.Select(x => x.Description).ToArray()
+            });
         }
-    }
-    catch (InvalidOperationException e) when (e.Message.StartsWith("Role") && e.Message.EndsWith("does not exist."))
-    {
-        return BadRequest();
-    }
 
-    transaction.Complete();
+        transaction.Complete();
 
-    return Ok(new UserDto
-    {
-        Id = newUser.Id,
-        UserName = newUser.UserName!,
-        FirstName = newUser.FirstName,
-        LastName = newUser.LastName,
-        DisplayName = newUser.DisplayName,
-        Email = newUser.Email,
-        PhoneNumber = newUser.PhoneNumber,
-        Roles = dto.Roles
-    });
-}   
+        return Ok(new UserDto
+        {
+            Id = newUser.Id,
+            UserName = newUser.UserName!,
+            FirstName = newUser.FirstName,
+            LastName = newUser.LastName,
+            DisplayName = newUser.DisplayName,
+            Email = newUser.Email,
+            PhoneNumber = newUser.PhoneNumber,
+            Roles = requestedRoles
+        });
+    }
 }

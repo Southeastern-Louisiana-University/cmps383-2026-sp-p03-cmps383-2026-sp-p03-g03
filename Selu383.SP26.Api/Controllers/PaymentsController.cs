@@ -3,10 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Extensions;
+using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Payments;
 
 namespace Selu383.SP26.Api.Controllers;
-//the force be with us
+
 [ApiController]
 [Route("api/payments")]
 public class PaymentsController : ControllerBase
@@ -26,9 +28,7 @@ public class PaymentsController : ControllerBase
     {
         var userId = User.GetCurrentUserId();
         if (!userId.HasValue)
-        {
             return Unauthorized();
-        }
 
         var methods = await _context.PaymentMethods
             .Where(m => m.UserId == userId.Value)
@@ -55,22 +55,13 @@ public class PaymentsController : ControllerBase
     {
         var userId = User.GetCurrentUserId();
         if (!userId.HasValue)
-        {
             return Unauthorized();
-        }
 
         var cardholderName = dto.CardholderName.Trim();
         var brand = dto.Brand.Trim();
 
-        if (string.IsNullOrWhiteSpace(cardholderName) || string.IsNullOrWhiteSpace(brand))
-        {
-            return BadRequest("Cardholder name and brand are required.");
-        }
-
         if (dto.ExpYear == DateTime.UtcNow.Year && dto.ExpMonth < DateTime.UtcNow.Month)
-        {
             return BadRequest("Card expiration cannot be in the past.");
-        }
 
         var shouldBeDefault = dto.IsDefault || !await _context.PaymentMethods.AnyAsync(m => m.UserId == userId.Value);
 
@@ -118,17 +109,13 @@ public class PaymentsController : ControllerBase
     {
         var userId = User.GetCurrentUserId();
         if (!userId.HasValue)
-        {
             return Unauthorized();
-        }
 
         var target = await _context.PaymentMethods
             .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId.Value);
 
         if (target == null)
-        {
             return NotFound();
-        }
 
         var userMethods = await _context.PaymentMethods
             .Where(m => m.UserId == userId.Value)
@@ -140,7 +127,7 @@ public class PaymentsController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        
+
         return Ok(new PaymentMethodDto
         {
             Id = target.Id,
@@ -159,17 +146,13 @@ public class PaymentsController : ControllerBase
     {
         var userId = User.GetCurrentUserId();
         if (!userId.HasValue)
-        {
             return Unauthorized();
-        }
 
         var method = await _context.PaymentMethods
             .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId.Value);
 
         if (method == null)
-        {
             return NotFound();
-        }
 
         var wasDefault = method.IsDefault;
         _context.PaymentMethods.Remove(method);
@@ -198,8 +181,24 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost("create-checkout-session")]
-    public async Task<ActionResult<object>> CreateCheckoutSession(CreateCheckoutSessionDto dto)
+    [Authorize]
+    public async Task<ActionResult<object>> CreateCheckoutSession([FromBody] CreateCheckoutSessionDto dto)
     {
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == dto.OrderId);
+        if (order == null)
+            return NotFound("Order not found.");
+
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+            return Forbid();
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+            return BadRequest("Order is already paid.");
+
         try
         {
             var url = await _stripePaymentService.CreateCheckoutSessionAsync(dto.OrderId);
@@ -213,5 +212,76 @@ public class PaymentsController : ControllerBase
         {
             return BadRequest(ex.Message);
         }
+    }
+
+    [HttpGet("orders/{orderId:int}")]
+    [Authorize]
+    public async Task<ActionResult<List<OrderPaymentDto>>> GetOrderPayments(int orderId)
+    {
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (order == null)
+            return NotFound();
+
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+            return Forbid();
+
+        var payments = await _context.Payments
+            .Where(x => x.OrderId == orderId)
+            .OrderByDescending(x => x.CreatedAt)
+            .Select(x => new OrderPaymentDto
+            {
+                Id = x.Id,
+                Provider = x.Provider,
+                PaymentMethodType = x.PaymentMethodType,
+                TransactionId = x.TransactionId,
+                Amount = x.Amount,
+                Status = x.Status,
+                CreatedAt = x.CreatedAt,
+                RemovedAt = x.RemovedAt,
+                RemovedReason = x.RemovedReason
+            })
+            .ToListAsync();
+
+        return Ok(payments);
+    }
+
+    [HttpDelete("orders/{orderId:int}/{paymentId:int}")]
+    [Authorize]
+    public async Task<ActionResult> RemoveOrderPayment(int orderId, int paymentId, [FromBody] RemovePaymentDto dto)
+    {
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (order == null)
+            return NotFound("Order not found.");
+
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+            return Forbid();
+
+        var payment = await _context.Payments.FirstOrDefaultAsync(x => x.Id == paymentId && x.OrderId == orderId);
+        if (payment == null)
+            return NotFound("Payment not found.");
+
+        if (payment.Status == PaymentStatuses.Removed)
+            return BadRequest("Payment is already removed.");
+
+        payment.Status = PaymentStatuses.Removed;
+        payment.RemovedAt = DateTime.UtcNow;
+        payment.RemovedReason = dto.Reason.Trim();
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+            order.PaymentStatus = PaymentStatuses.Removed;
+
+        await _context.SaveChangesAsync();
+
+        return Ok();
     }
 }

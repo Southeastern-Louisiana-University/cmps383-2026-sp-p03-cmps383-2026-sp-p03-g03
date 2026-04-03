@@ -17,7 +17,7 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
         builder.Property(x => x.Status)
             .HasMaxLength(50)
             .IsRequired()
-            .HasDefaultValue("Pending");
+            .HasDefaultValue(ReservationStatuses.Pending);
 
         builder.Property(x => x.SpecialRequests)
             .HasMaxLength(500);
@@ -36,5 +36,7 @@ public class ReservationConfiguration : IEntityTypeConfiguration<Reservation>
             .WithMany()
             .HasForeignKey(x => x.TableId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasIndex(x => new { x.TableId, x.ReservedFor });
     }
 }

@@ -79,12 +79,9 @@ public class TablesController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = RoleNames.Admin)]
-    public async Task<ActionResult<TableDto>> Create(TableDto dto)
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
+    public async Task<ActionResult<TableDto>> Create([FromBody] TableDto dto)
     {
-        if (dto.Seats < 1)
-            return BadRequest("Seats must be at least 1.");
-
         var locationExists = await _context.Locations.AnyAsync(x => x.Id == dto.LocationId);
         if (!locationExists)
             return BadRequest("Invalid location.");
@@ -99,7 +96,7 @@ public class TablesController : ControllerBase
         var table = new Table
         {
             LocationId = dto.LocationId,
-            TableNumber = dto.TableNumber,
+            TableNumber = dto.TableNumber.Trim(),
             Seats = dto.Seats,
             IsBarSeat = dto.IsBarSeat,
             IsActive = dto.IsActive
@@ -109,17 +106,15 @@ public class TablesController : ControllerBase
         await _context.SaveChangesAsync();
 
         dto.Id = table.Id;
+        dto.TableNumber = table.TableNumber;
 
         return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Roles = RoleNames.Admin)]
-    public async Task<ActionResult<TableDto>> Update(int id, TableDto dto)
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
+    public async Task<ActionResult<TableDto>> Update(int id, [FromBody] TableDto dto)
     {
-        if (dto.Seats < 1)
-            return BadRequest("Seats must be at least 1.");
-
         var table = await _context.Tables.FirstOrDefaultAsync(x => x.Id == id);
         if (table == null)
             return NotFound();
@@ -137,7 +132,7 @@ public class TablesController : ControllerBase
             return BadRequest("Table number already exists for this location.");
 
         table.LocationId = dto.LocationId;
-        table.TableNumber = dto.TableNumber;
+        table.TableNumber = dto.TableNumber.Trim();
         table.Seats = dto.Seats;
         table.IsBarSeat = dto.IsBarSeat;
         table.IsActive = dto.IsActive;
@@ -145,12 +140,13 @@ public class TablesController : ControllerBase
         await _context.SaveChangesAsync();
 
         dto.Id = table.Id;
+        dto.TableNumber = table.TableNumber;
 
         return Ok(dto);
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = RoleNames.Admin)]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
     public async Task<ActionResult> Delete(int id)
     {
         var table = await _context.Tables.FirstOrDefaultAsync(x => x.Id == id);

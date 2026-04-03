@@ -6,7 +6,8 @@ using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Loyalty;
-//the force be with us
+using Selu383.SP26.Api.Features.Payments;
+
 namespace Selu383.SP26.Api.Controllers;
 
 [ApiController]
@@ -43,24 +44,16 @@ public class StripeWebhookController : ControllerBase
             if (string.IsNullOrWhiteSpace(webhookSecret))
                 return BadRequest("Stripe webhook secret is missing.");
 
-            var stripeEvent = EventUtility.ConstructEvent(
-                json,
-                stripeSignature,
-                webhookSecret
-            );
+            var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
 
             if (stripeEvent.Type == "checkout.session.completed")
             {
                 var session = stripeEvent.Data.Object as Session;
-
                 if (session == null)
                     return BadRequest("Invalid Stripe checkout session.");
 
-                if (session.Metadata == null ||
-                    !session.Metadata.TryGetValue("orderId", out var orderIdValue))
-                {
+                if (session.Metadata == null || !session.Metadata.TryGetValue("orderId", out var orderIdValue))
                     return BadRequest("Missing orderId metadata.");
-                }
 
                 if (!int.TryParse(orderIdValue, out var orderId))
                     return BadRequest("Invalid orderId metadata.");
@@ -68,60 +61,98 @@ public class StripeWebhookController : ControllerBase
                 var order = await _context.Orders
                     .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.MenuItem)
-                    .Include(o => o.Location)
                     .Include(o => o.CreatedByUser)
                     .Include(o => o.Receipt)
+                    .Include(o => o.Payments)
                     .FirstOrDefaultAsync(o => o.Id == orderId);
 
                 if (order == null)
                     return NotFound("Order not found.");
 
-                order.PaymentStatus = "Paid";
-                order.Status = "Confirmed";
+                var transactionId = session.PaymentIntentId ?? session.Id;
+                var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == transactionId);
 
-                int pointsEarned = (int)Math.Round(order.Total * 10);
-
-                if (order.CreatedByUser != null)
+                if (existingPayment == null)
                 {
-                    _context.Set<LoyaltyLedger>().Add(new LoyaltyLedger
+                    order.Payments.Add(new Payment
                     {
-                        UserId = order.CreatedByUser.Id,
                         OrderId = order.Id,
-                        PointsEarned = pointsEarned,
-                        PointsRedeemed = 0,
+                        Provider = "Stripe",
+                        PaymentMethodType = "CheckoutSession",
+                        TransactionId = transactionId,
+                        Amount = order.Total,
+                        Status = PaymentStatuses.Paid,
                         CreatedAt = DateTime.UtcNow
                     });
-
-                    order.CreatedByUser.LoyaltyPoints += pointsEarned;
+                }
+                else
+                {
+                    existingPayment.Status = PaymentStatuses.Paid;
                 }
 
+                var wasAlreadyPaid = order.PaymentStatus == PaymentStatuses.Paid;
+
+                order.PaymentStatus = PaymentStatuses.Paid;
+                order.Status = OrderStatuses.Confirmed;
+
+                if (!wasAlreadyPaid && order.CreatedByUser != null)
+                {
+                    var pointsEarned = (int)Math.Round(order.Total * 10);
+
+                    var loyaltyExists = await _context.Set<LoyaltyLedger>()
+                        .AnyAsync(x => x.OrderId == order.Id);
+
+                    if (!loyaltyExists)
+                    {
+                        _context.Set<LoyaltyLedger>().Add(new LoyaltyLedger
+                        {
+                            UserId = order.CreatedByUser.Id,
+                            OrderId = order.Id,
+                            PointsEarned = pointsEarned,
+                            PointsRedeemed = 0,
+                            CreatedAt = DateTime.UtcNow
+                        });
+
+                        order.CreatedByUser.LoyaltyPoints += pointsEarned;
+                    }
+                }
+
+                // Save the payment/order state FIRST so webhook success does not depend on receipt upload
+                await _context.SaveChangesAsync();
+
+                // Receipt generation is best-effort only
                 if (order.Receipt == null)
                 {
-                    var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
-                    var fileName = $"order-{order.Id}-receipt.pdf";
-                    var receiptUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
-
-                    order.Receipt = new Receipt
+                    try
                     {
-                        OrderId = order.Id,
-                        CreatedAt = DateTime.UtcNow,
-                        ReceiptText = receiptUrl
-                    };
-                }
+                        var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
+                        var fileName = $"order-{order.Id}-receipt.pdf";
+                        var receiptUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
 
-                await _context.SaveChangesAsync();
+                        order.Receipt = new Receipt
+                        {
+                            OrderId = order.Id,
+                            CreatedAt = DateTime.UtcNow,
+                            ReceiptUrl = receiptUrl
+                        };
+
+                        await _context.SaveChangesAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Receipt generation/upload failed for order {order.Id}: {ex.Message}");
+                    }
+                }
             }
 
             return Ok();
         }
         catch (StripeException ex)
         {
-            Console.WriteLine($"Stripe webhook error: {ex.Message}");
             return BadRequest($"Stripe webhook error: {ex.Message}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Webhook error: {ex.Message}");
             return BadRequest($"Webhook error: {ex.Message}");
         }
     }

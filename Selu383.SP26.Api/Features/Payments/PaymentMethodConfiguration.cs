@@ -7,6 +7,10 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 {
     public void Configure(EntityTypeBuilder<PaymentMethod> builder)
     {
+        builder.ToTable("payment_methods");
+
+        builder.HasKey(x => x.Id);
+
         builder.Property(x => x.CardholderName)
             .HasMaxLength(100)
             .IsRequired();
@@ -20,5 +24,10 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
             .IsRequired();
 
         builder.HasIndex(x => x.UserId);
+
+        builder.HasOne(x => x.User)
+            .WithMany(x => x.PaymentMethods)
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Selu383.SP26.Api.Data;
 
@@ -11,9 +12,11 @@ using Selu383.SP26.Api.Data;
 namespace Selu383.SP26.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260402000341_BackendRefactor")]
+    partial class BackendRefactor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -344,33 +347,6 @@ namespace Selu383.SP26.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("LoyaltyLedgers");
-                });
-
-            modelBuilder.Entity("Selu383.SP26.Api.Features.Loyalty.Reward", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PointsCost")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Rewards");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuCategory", b =>
@@ -737,9 +713,9 @@ namespace Selu383.SP26.Api.Migrations
 
                     b.HasIndex("LocationId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("TableId");
 
-                    b.HasIndex("TableId", "ReservedFor");
+                    b.HasIndex("UserId");
 
                     b.ToTable("reservations", (string)null);
                 });

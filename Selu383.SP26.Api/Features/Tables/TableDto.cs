@@ -10,11 +10,12 @@ public class TableDto
     public int LocationId { get; set; }
 
     [Required]
+    [MaxLength(20)]
     public string TableNumber { get; set; } = string.Empty;
 
+    [Range(1, 50)]
     public int Seats { get; set; }
 
     public bool IsBarSeat { get; set; }
-
     public bool IsActive { get; set; }
 }
