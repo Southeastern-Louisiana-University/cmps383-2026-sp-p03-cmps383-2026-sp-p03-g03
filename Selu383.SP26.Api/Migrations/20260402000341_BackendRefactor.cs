@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
-
+//had to edit had extra clcum for sced pickup
 namespace Selu383.SP26.Api.Migrations
 {
     /// <inheritdoc />
