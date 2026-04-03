@@ -2,21 +2,49 @@
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
-//had to edit had extra clcum for sced pickup
+
 namespace Selu383.SP26.Api.Migrations
 {
-    /// <inheritdoc />
     public partial class BackendRefactor : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_Payments_orders_OrderId",
                 table: "Payments");
 
-            migrationBuilder.DropTable(
-                name: "LocationMenuCategory");
+            migrationBuilder.Sql(@"
+IF OBJECT_ID(N'[menu_category_locations]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [menu_category_locations] (
+        [MenuCategoryId] int NOT NULL,
+        [LocationId] int NOT NULL,
+        CONSTRAINT [PK_menu_category_locations] PRIMARY KEY ([MenuCategoryId], [LocationId]),
+        CONSTRAINT [FK_menu_category_locations_locations_LocationId]
+            FOREIGN KEY ([LocationId]) REFERENCES [locations]([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_menu_category_locations_menu_categories_MenuCategoryId]
+            FOREIGN KEY ([MenuCategoryId]) REFERENCES [menu_categories]([Id]) ON DELETE CASCADE
+    );
+
+    CREATE INDEX [IX_menu_category_locations_LocationId]
+        ON [menu_category_locations] ([LocationId]);
+END
+
+IF OBJECT_ID(N'[LocationMenuCategory]', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO [menu_category_locations] ([MenuCategoryId], [LocationId])
+    SELECT [MenuCategoriesId], [LocationsId]
+    FROM [LocationMenuCategory]
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM [menu_category_locations] mcl
+        WHERE mcl.[MenuCategoryId] = [LocationMenuCategory].[MenuCategoriesId]
+          AND mcl.[LocationId] = [LocationMenuCategory].[LocationsId]
+    );
+
+    DROP TABLE [LocationMenuCategory];
+END
+");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Payments",
@@ -54,10 +82,7 @@ namespace Selu383.SP26.Api.Migrations
                 table: "payments",
                 type: "nvarchar(200)",
                 maxLength: 200,
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(max)",
-                oldNullable: true);
+                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "PaymentMethodType",
@@ -108,11 +133,13 @@ namespace Selu383.SP26.Api.Migrations
                 type: "datetime2",
                 nullable: true);
 
-            migrationBuilder.AddColumn<DateTime>(
-                name: "ScheduledPickupTime",
-                table: "orders",
-                type: "datetime2",
-                nullable: true);
+            // ✅ FIXED HERE
+            migrationBuilder.Sql(@"
+IF COL_LENGTH('orders', 'ScheduledPickupTime') IS NULL
+BEGIN
+    ALTER TABLE [orders] ADD [ScheduledPickupTime] datetime2 NULL;
+END
+");
 
             migrationBuilder.AddColumn<decimal>(
                 name: "Subtotal",
@@ -160,85 +187,6 @@ namespace Selu383.SP26.Api.Migrations
                 table: "payments",
                 column: "Id");
 
-            migrationBuilder.CreateTable(
-                name: "menu_category_locations",
-                columns: table => new
-                {
-                    MenuCategoryId = table.Column<int>(type: "int", nullable: false),
-                    LocationId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_menu_category_locations", x => new { x.MenuCategoryId, x.LocationId });
-                    table.ForeignKey(
-                        name: "FK_menu_category_locations_locations_LocationId",
-                        column: x => x.LocationId,
-                        principalTable: "locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_menu_category_locations_menu_categories_MenuCategoryId",
-                        column: x => x.MenuCategoryId,
-                        principalTable: "menu_categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "payment_methods",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    UserId = table.Column<int>(type: "int", nullable: false),
-                    CardholderName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
-                    Brand = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
-                    Last4 = table.Column<string>(type: "nvarchar(4)", maxLength: 4, nullable: false),
-                    ExpMonth = table.Column<int>(type: "int", nullable: false),
-                    ExpYear = table.Column<int>(type: "int", nullable: false),
-                    IsDefault = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_payment_methods", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_payment_methods_AspNetUsers_UserId",
-                        column: x => x.UserId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_tables_LocationId_TableNumber",
-                table: "tables",
-                columns: new[] { "LocationId", "TableNumber" },
-                unique: true);
-
-            migrationBuilder.CreateIndex(
-                name: "IX_menu_items_DisabledByUserId",
-                table: "menu_items",
-                column: "DisabledByUserId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_menu_category_locations_LocationId",
-                table: "menu_category_locations",
-                column: "LocationId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_payment_methods_UserId",
-                table: "payment_methods",
-                column: "UserId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_menu_items_AspNetUsers_DisabledByUserId",
-                table: "menu_items",
-                column: "DisabledByUserId",
-                principalTable: "AspNetUsers",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
-
             migrationBuilder.AddForeignKey(
                 name: "FK_payments_orders_OrderId",
                 table: "payments",
@@ -248,34 +196,15 @@ namespace Selu383.SP26.Api.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_menu_items_AspNetUsers_DisabledByUserId",
-                table: "menu_items");
-
             migrationBuilder.DropForeignKey(
                 name: "FK_payments_orders_OrderId",
                 table: "payments");
 
-            migrationBuilder.DropTable(
-                name: "menu_category_locations");
-
-            migrationBuilder.DropTable(
-                name: "payment_methods");
-
-            migrationBuilder.DropIndex(
-                name: "IX_tables_LocationId_TableNumber",
-                table: "tables");
-
             migrationBuilder.DropPrimaryKey(
                 name: "PK_payments",
                 table: "payments");
-
-            migrationBuilder.DropIndex(
-                name: "IX_menu_items_DisabledByUserId",
-                table: "menu_items");
 
             migrationBuilder.DropColumn(
                 name: "PaymentMethodType",
@@ -305,9 +234,13 @@ namespace Selu383.SP26.Api.Migrations
                 name: "CompletedAt",
                 table: "orders");
 
-            migrationBuilder.DropColumn(
-                name: "ScheduledPickupTime",
-                table: "orders");
+            // ✅ FIXED HERE
+            migrationBuilder.Sql(@"
+IF COL_LENGTH('orders', 'ScheduledPickupTime') IS NOT NULL
+BEGIN
+    ALTER TABLE [orders] DROP COLUMN [ScheduledPickupTime];
+END
+");
 
             migrationBuilder.DropColumn(
                 name: "Subtotal",
@@ -333,6 +266,39 @@ namespace Selu383.SP26.Api.Migrations
                 name: "UnavailableReason",
                 table: "menu_items");
 
+            migrationBuilder.Sql(@"
+IF OBJECT_ID(N'[LocationMenuCategory]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [LocationMenuCategory] (
+        [LocationsId] int NOT NULL,
+        [MenuCategoriesId] int NOT NULL,
+        CONSTRAINT [PK_LocationMenuCategory] PRIMARY KEY ([LocationsId], [MenuCategoriesId]),
+        CONSTRAINT [FK_LocationMenuCategory_Locations_LocationsId]
+            FOREIGN KEY ([LocationsId]) REFERENCES [locations]([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_LocationMenuCategory_menu_categories_MenuCategoriesId]
+            FOREIGN KEY ([MenuCategoriesId]) REFERENCES [menu_categories]([Id]) ON DELETE CASCADE
+    );
+
+    CREATE INDEX [IX_LocationMenuCategory_MenuCategoriesId]
+        ON [LocationMenuCategory] ([MenuCategoriesId]);
+END
+
+IF OBJECT_ID(N'[menu_category_locations]', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO [LocationMenuCategory] ([LocationsId], [MenuCategoriesId])
+    SELECT [LocationId], [MenuCategoryId]
+    FROM [menu_category_locations]
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM [LocationMenuCategory] lmc
+        WHERE lmc.[LocationsId] = [menu_category_locations].[LocationId]
+          AND lmc.[MenuCategoriesId] = [menu_category_locations].[MenuCategoryId]
+    );
+
+    DROP TABLE [menu_category_locations];
+END
+");
+
             migrationBuilder.RenameTable(
                 name: "payments",
                 newName: "Payments");
@@ -352,62 +318,10 @@ namespace Selu383.SP26.Api.Migrations
                 table: "Payments",
                 newName: "IX_Payments_OrderId");
 
-            migrationBuilder.AlterColumn<string>(
-                name: "TransactionId",
-                table: "Payments",
-                type: "nvarchar(max)",
-                nullable: true,
-                oldClrType: typeof(string),
-                oldType: "nvarchar(200)",
-                oldMaxLength: 200,
-                oldNullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "PaymentMethod",
-                table: "Payments",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "LocationIds",
-                table: "menu_categories",
-                type: "nvarchar(max)",
-                nullable: true);
-
             migrationBuilder.AddPrimaryKey(
                 name: "PK_Payments",
                 table: "Payments",
                 column: "Id");
-
-            migrationBuilder.CreateTable(
-                name: "LocationMenuCategory",
-                columns: table => new
-                {
-                    LocationsId = table.Column<int>(type: "int", nullable: false),
-                    MenuCategoriesId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_LocationMenuCategory", x => new { x.LocationsId, x.MenuCategoriesId });
-                    table.ForeignKey(
-                        name: "FK_LocationMenuCategory_locations_LocationsId",
-                        column: x => x.LocationsId,
-                        principalTable: "locations",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_LocationMenuCategory_menu_categories_MenuCategoriesId",
-                        column: x => x.MenuCategoriesId,
-                        principalTable: "menu_categories",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_LocationMenuCategory_MenuCategoriesId",
-                table: "LocationMenuCategory",
-                column: "MenuCategoriesId");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Payments_orders_OrderId",
