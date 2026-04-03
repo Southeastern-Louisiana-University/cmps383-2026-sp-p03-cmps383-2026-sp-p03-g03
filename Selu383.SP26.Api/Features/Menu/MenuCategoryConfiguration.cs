@@ -21,10 +21,9 @@ public class MenuCategoryConfiguration : IEntityTypeConfiguration<MenuCategory>
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
 
-        builder.HasMany(x => x.Locations)
-           .WithMany(x => x.MenuCategories);
-
         builder.HasMany(x => x.MenuItems)
-            .WithOne(x => x.Category);
+            .WithOne(x => x.Category)
+            .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }
