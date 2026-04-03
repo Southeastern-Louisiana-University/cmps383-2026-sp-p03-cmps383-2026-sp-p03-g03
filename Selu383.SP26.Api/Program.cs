@@ -3,11 +3,9 @@ using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Payments;
-
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext")));
@@ -45,10 +43,9 @@ builder.Services.AddScoped<ReceiptPdfService>();
 builder.Services.AddScoped<BlobStorageService>();
 builder.Services.AddScoped<StripePaymentService>();
 
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowMobileApp", policy =>
+    options.AddPolicy("AllowFrontendApps", policy =>
     {
         policy
             .SetIsOriginAllowed(origin =>
@@ -59,7 +56,9 @@ builder.Services.AddCors(options =>
                 }
 
                 if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase) ||
-                    origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase))
+                    origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("http://127.0.0.1:", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("https://127.0.0.1:", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -70,7 +69,11 @@ builder.Services.AddCors(options =>
                 }
 
                 return uri.Scheme == Uri.UriSchemeHttps &&
-                       uri.Host.EndsWith(".use2.devtunnels.ms", StringComparison.OrdinalIgnoreCase);
+                       (
+                           uri.Host.EndsWith(".use2.devtunnels.ms", StringComparison.OrdinalIgnoreCase) ||
+                           uri.Host.EndsWith(".exp.direct", StringComparison.OrdinalIgnoreCase) ||
+                           uri.Host.EndsWith(".azurewebsites.net", StringComparison.OrdinalIgnoreCase)
+                       );
             })
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -81,14 +84,12 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 using (var scope = app.Services.CreateScope())
 {
     await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
 }
-
 
 if (app.Environment.IsDevelopment())
 {
@@ -99,9 +100,6 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-
-app.UseCors("AllowMobileApp");
-
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
@@ -109,6 +107,7 @@ if (!app.Environment.IsDevelopment())
 
 app.UseRouting();
 
+app.UseCors("AllowFrontendApps");
 
 app.Use(async (context, next) =>
 {
@@ -118,23 +117,17 @@ app.Use(async (context, next) =>
         await context.Response.CompleteAsync();
         return;
     }
+
     await next();
 });
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-
+app.UseStaticFiles();
 app.MapControllers();
 
-app.UseStaticFiles();
-
-if(app.Environment.IsDevelopment())
-{
-
-
-}
-else
+if (!app.Environment.IsDevelopment())
 {
     app.MapFallbackToFile("/index.html");
 }
