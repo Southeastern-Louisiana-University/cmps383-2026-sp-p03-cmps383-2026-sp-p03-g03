@@ -13,8 +13,38 @@ namespace Selu383.SP26.Api.Migrations
                 name: "FK_Payments_orders_OrderId",
                 table: "Payments");
 
-            migrationBuilder.DropTable(
-                name: "LocationMenuCategory");
+            migrationBuilder.Sql(@"
+IF OBJECT_ID(N'[menu_category_locations]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [menu_category_locations] (
+        [MenuCategoryId] int NOT NULL,
+        [LocationId] int NOT NULL,
+        CONSTRAINT [PK_menu_category_locations] PRIMARY KEY ([MenuCategoryId], [LocationId]),
+        CONSTRAINT [FK_menu_category_locations_locations_LocationId]
+            FOREIGN KEY ([LocationId]) REFERENCES [locations]([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_menu_category_locations_menu_categories_MenuCategoryId]
+            FOREIGN KEY ([MenuCategoryId]) REFERENCES [menu_categories]([Id]) ON DELETE CASCADE
+    );
+
+    CREATE INDEX [IX_menu_category_locations_LocationId]
+        ON [menu_category_locations] ([LocationId]);
+END
+
+IF OBJECT_ID(N'[LocationMenuCategory]', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO [menu_category_locations] ([MenuCategoryId], [LocationId])
+    SELECT [MenuCategoriesId], [LocationsId]
+    FROM [LocationMenuCategory]
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM [menu_category_locations] mcl
+        WHERE mcl.[MenuCategoryId] = [LocationMenuCategory].[MenuCategoriesId]
+          AND mcl.[LocationId] = [LocationMenuCategory].[LocationsId]
+    );
+
+    DROP TABLE [LocationMenuCategory];
+END
+");
 
             migrationBuilder.DropPrimaryKey(
                 name: "PK_Payments",
@@ -235,6 +265,39 @@ END
             migrationBuilder.DropColumn(
                 name: "UnavailableReason",
                 table: "menu_items");
+
+            migrationBuilder.Sql(@"
+IF OBJECT_ID(N'[LocationMenuCategory]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [LocationMenuCategory] (
+        [LocationsId] int NOT NULL,
+        [MenuCategoriesId] int NOT NULL,
+        CONSTRAINT [PK_LocationMenuCategory] PRIMARY KEY ([LocationsId], [MenuCategoriesId]),
+        CONSTRAINT [FK_LocationMenuCategory_Locations_LocationsId]
+            FOREIGN KEY ([LocationsId]) REFERENCES [locations]([Id]) ON DELETE CASCADE,
+        CONSTRAINT [FK_LocationMenuCategory_menu_categories_MenuCategoriesId]
+            FOREIGN KEY ([MenuCategoriesId]) REFERENCES [menu_categories]([Id]) ON DELETE CASCADE
+    );
+
+    CREATE INDEX [IX_LocationMenuCategory_MenuCategoriesId]
+        ON [LocationMenuCategory] ([MenuCategoriesId]);
+END
+
+IF OBJECT_ID(N'[menu_category_locations]', N'U') IS NOT NULL
+BEGIN
+    INSERT INTO [LocationMenuCategory] ([LocationsId], [MenuCategoriesId])
+    SELECT [LocationId], [MenuCategoryId]
+    FROM [menu_category_locations]
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM [LocationMenuCategory] lmc
+        WHERE lmc.[LocationsId] = [menu_category_locations].[LocationId]
+          AND lmc.[MenuCategoriesId] = [menu_category_locations].[MenuCategoryId]
+    );
+
+    DROP TABLE [menu_category_locations];
+END
+");
 
             migrationBuilder.RenameTable(
                 name: "payments",
