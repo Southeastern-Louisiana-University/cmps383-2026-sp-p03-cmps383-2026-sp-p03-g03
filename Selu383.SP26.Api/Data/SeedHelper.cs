@@ -4,11 +4,17 @@ using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Locations;
 using Selu383.SP26.Api.Features.Menu;
 using Selu383.SP26.Api.Features.Tables;
+using Selu383.SP26.Api.Features.Loyalty;
 
 namespace Selu383.SP26.Api.Data;
 
 public static class SeedHelper
 {
+    private const string SeedLocationPhone = "555-555-5555";
+    private const string SeedLocationState = "LA";
+    private static readonly TimeOnly SeedOpeningTime = new(6, 0);
+    private static readonly TimeOnly SeedClosingTime = new(18, 0);
+
     public static async Task MigrateAndSeed(IServiceProvider serviceProvider)
     {
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
@@ -20,7 +26,9 @@ public static class SeedHelper
         await AddLocations(dataContext);
         await AddTables(dataContext);
         await AddMenuCategories(dataContext);
+        await AddMenuCategoryLocations(dataContext);
         await AddMenuItems(dataContext);
+        await AddRewards(dataContext);
     }
 
     private static async Task AddUsers(IServiceProvider serviceProvider)
@@ -40,6 +48,22 @@ public static class SeedHelper
         };
         await userManager.CreateAsync(adminUser, defaultPassword);
         await userManager.AddToRoleAsync(adminUser, RoleNames.Admin);
+
+        var managerUser = new User
+        {
+            UserName = "manager1",
+            LoyaltyPoints = 0
+        };
+        await userManager.CreateAsync(managerUser, defaultPassword);
+        await userManager.AddToRoleAsync(managerUser, RoleNames.Manager);
+
+        var staffUser = new User
+        {
+            UserName = "staff1",
+            LoyaltyPoints = 0
+        };
+        await userManager.CreateAsync(staffUser, defaultPassword);
+        await userManager.AddToRoleAsync(staffUser, RoleNames.Staff);
 
         var bob = new User
         {
@@ -67,87 +91,188 @@ public static class SeedHelper
             return;
         }
 
-        await roleManager.CreateAsync(new Role
-        {
-            Name = RoleNames.Admin
-        });
-
-        await roleManager.CreateAsync(new Role
-        {
-            Name = RoleNames.User
-        });
+        await roleManager.CreateAsync(new Role { Name = RoleNames.Admin });
+        await roleManager.CreateAsync(new Role { Name = RoleNames.Manager });
+        await roleManager.CreateAsync(new Role { Name = RoleNames.Staff });
+        await roleManager.CreateAsync(new Role { Name = RoleNames.User });
     }
 
-     private static async Task AddLocations(DataContext dataContext)
-     {
-         if (await dataContext.Locations.AnyAsync())
-         {
-             return;
-         }
+    private static async Task AddLocations(DataContext dataContext)
+    {
+        if (await dataContext.Locations.AnyAsync())
+        {
+            var firstThreeLocations = await dataContext.Locations
+                .OrderBy(x => x.Id)
+                .Take(3)
+                .ToListAsync();
 
-         dataContext.Locations.AddRange(
-             new Location
-             {
-                 Name = "Campus Coffee Shop",
-                 Address = "Student Union",
-                 TableCount = 10
-             },
-             new Location
-             {
-                 Name = "Library Cafe",
-                 Address = "Main Library",
-                 TableCount = 20
-             },
-             new Location
-             {
-                 Name = "Downtown Coffee Bar",
-                 Address = "101 Market St",
-                 TableCount = 15
-             }
-         );
+            var updated = false;
+            for (var i = 0; i < firstThreeLocations.Count; i++)
+            {
+                updated |= ApplySeedLocationDefaults(firstThreeLocations[i], i + 1);
+            }
 
-         await dataContext.SaveChangesAsync();
-     }
+            if (updated)
+            {
+                await dataContext.SaveChangesAsync();
+            }
 
-     private static async Task AddTables(DataContext dataContext)
-     {
-         if (await dataContext.Tables.AnyAsync())
-         {
-             return;
-         }
+            return;
+        }
 
-         var tables = new List<Table>();
+        dataContext.Locations.AddRange(
+            new Location
+            {
+                Name = "Campus Coffee Shop",
+                Type = "Corporate",
+                Phone = SeedLocationPhone,
+                Address = "Student Union",
+                City = "Hammond",
+                State = SeedLocationState,
+                Zip = "70402",
+                OpeningTime = SeedOpeningTime,
+                ClosingTime = SeedClosingTime,
+                IsActive = true,
+                TableCount = 10
+            },
+            new Location
+            {
+                Name = "Library Cafe",
+                Type = "Corporate",
+                Phone = SeedLocationPhone,
+                Address = "Main Library",
+                City = "Baton Rouge",
+                State = SeedLocationState,
+                Zip = "70806",
+                OpeningTime = SeedOpeningTime,
+                ClosingTime = SeedClosingTime,
+                IsActive = true,
+                TableCount = 20
+            },
+            new Location
+            {
+                Name = "Downtown Coffee Bar",
+                Type = "Corporate",
+                Phone = SeedLocationPhone,
+                Address = "101 Market St",
+                City = "Denham Springs",
+                State = SeedLocationState,
+                Zip = "70706",
+                OpeningTime = SeedOpeningTime,
+                ClosingTime = SeedClosingTime,
+                IsActive = true,
+                TableCount = 15
+            }
+        );
 
+        await dataContext.SaveChangesAsync();
+    }
 
-         tables.AddRange(
-             new Table { LocationId = 1, TableNumber = "1", Seats = 2, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 1, TableNumber = "2", Seats = 2, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 1, TableNumber = "3", Seats = 4, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 1, TableNumber = "4", Seats = 6, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 1, TableNumber = "5", Seats = 6, IsBarSeat = false, IsActive = true }
-         );
+    private static bool ApplySeedLocationDefaults(Location location, int position)
+    {
+        var updated = false;
 
+        if (!location.IsActive)
+        {
+            location.IsActive = true;
+            updated = true;
+        }
 
-         tables.AddRange(
-             new Table { LocationId = 2, TableNumber = "1", Seats = 2, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 2, TableNumber = "2", Seats = 2, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 2, TableNumber = "3", Seats = 4, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 2, TableNumber = "4", Seats = 6, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 2, TableNumber = "5", Seats = 6, IsBarSeat = false, IsActive = true }
-         );
+        if (location.Type != "Corporate")
+        {
+            location.Type = "Corporate";
+            updated = true;
+        }
 
+        if (location.Phone != SeedLocationPhone)
+        {
+            location.Phone = SeedLocationPhone;
+            updated = true;
+        }
 
-         tables.AddRange(
-             new Table { LocationId = 3, TableNumber = "1", Seats = 2, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 3, TableNumber = "2", Seats = 2, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 3, TableNumber = "3", Seats = 4, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 3, TableNumber = "4", Seats = 6, IsBarSeat = false, IsActive = true },
-             new Table { LocationId = 3, TableNumber = "5", Seats = 6, IsBarSeat = false, IsActive = true }
-         );
+        var targetCity = position switch
+        {
+            1 => "Hammond",
+            2 => "Baton Rouge",
+            _ => "Denham Springs",
+        };
 
-         dataContext.Tables.AddRange(tables);
-         await dataContext.SaveChangesAsync();
-     }
+        var targetZip = position switch
+        {
+            1 => "70402",
+            2 => "70806",
+            _ => "70706",
+        };
+
+        if (location.City != targetCity)
+        {
+            location.City = targetCity;
+            updated = true;
+        }
+
+        if (location.State != SeedLocationState)
+        {
+            location.State = SeedLocationState;
+            updated = true;
+        }
+
+        if (location.Zip != targetZip)
+        {
+            location.Zip = targetZip;
+            updated = true;
+        }
+
+        if (location.OpeningTime != SeedOpeningTime)
+        {
+            location.OpeningTime = SeedOpeningTime;
+            updated = true;
+        }
+
+        if (location.ClosingTime != SeedClosingTime)
+        {
+            location.ClosingTime = SeedClosingTime;
+            updated = true;
+        }
+
+        return updated;
+    }
+
+    private static async Task AddTables(DataContext dataContext)
+    {
+        if (await dataContext.Tables.AnyAsync())
+        {
+            return;
+        }
+
+        var tables = new List<Table>();
+
+        tables.AddRange(
+            new Table { LocationId = 1, TableNumber = "1", Seats = 2, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 1, TableNumber = "2", Seats = 2, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 1, TableNumber = "3", Seats = 4, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 1, TableNumber = "4", Seats = 6, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 1, TableNumber = "5", Seats = 6, IsBarSeat = false, IsActive = true }
+        );
+
+        tables.AddRange(
+            new Table { LocationId = 2, TableNumber = "1", Seats = 2, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 2, TableNumber = "2", Seats = 2, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 2, TableNumber = "3", Seats = 4, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 2, TableNumber = "4", Seats = 6, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 2, TableNumber = "5", Seats = 6, IsBarSeat = false, IsActive = true }
+        );
+
+        tables.AddRange(
+            new Table { LocationId = 3, TableNumber = "1", Seats = 2, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 3, TableNumber = "2", Seats = 2, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 3, TableNumber = "3", Seats = 4, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 3, TableNumber = "4", Seats = 6, IsBarSeat = false, IsActive = true },
+            new Table { LocationId = 3, TableNumber = "5", Seats = 6, IsBarSeat = false, IsActive = true }
+        );
+
+        dataContext.Tables.AddRange(tables);
+        await dataContext.SaveChangesAsync();
+    }
 
     private static async Task AddMenuCategories(DataContext dataContext)
     {
@@ -158,6 +283,8 @@ public static class SeedHelper
 
         if (!hasExpectedCategories)
         {
+            dataContext.MenuItems.RemoveRange(dataContext.MenuItems);
+            dataContext.MenuCategoryLocations.RemoveRange(dataContext.MenuCategoryLocations);
             dataContext.MenuCategories.RemoveRange(dataContext.MenuCategories);
             await dataContext.SaveChangesAsync();
         }
@@ -171,31 +298,52 @@ public static class SeedHelper
             {
                 Name = "Drinks",
                 IsSeasonal = false,
-                IsActive = true,
-                LocationIds = new[] { 1, 2, 3 }
+                IsActive = true
             },
             new MenuCategory
             {
                 Name = "Crepes - Sweet",
                 IsSeasonal = false,
-                IsActive = true,
-                LocationIds = new[] { 1, 2, 3 }
+                IsActive = true
             },
             new MenuCategory
             {
                 Name = "Crepes - Savory",
                 IsSeasonal = false,
-                IsActive = true,
-                LocationIds = new[] { 1, 2, 3 }
+                IsActive = true
             },
             new MenuCategory
             {
                 Name = "Bagels",
                 IsSeasonal = false,
-                IsActive = true,
-                LocationIds = new[] { 1, 2, 3 }
+                IsActive = true
             }
         );
+
+        await dataContext.SaveChangesAsync();
+    }
+
+    private static async Task AddMenuCategoryLocations(DataContext dataContext)
+    {
+        if (await dataContext.MenuCategoryLocations.AnyAsync())
+        {
+            return;
+        }
+
+        var categories = await dataContext.MenuCategories.ToListAsync();
+        var locations = await dataContext.Locations.ToListAsync();
+
+        foreach (var category in categories)
+        {
+            foreach (var location in locations)
+            {
+                dataContext.MenuCategoryLocations.Add(new MenuCategoryLocation
+                {
+                    MenuCategoryId = category.Id,
+                    LocationId = location.Id
+                });
+            }
+        }
 
         await dataContext.SaveChangesAsync();
     }
@@ -206,15 +354,13 @@ public static class SeedHelper
             && await dataContext.MenuItems.AnyAsync(x => x.Name == "Supernova")
             && await dataContext.MenuItems.AnyAsync(x => x.Name == "The Classic");
 
-        if (!hasExpectedItems)
-        {
-            dataContext.MenuItems.RemoveRange(dataContext.MenuItems);
-            await dataContext.SaveChangesAsync();
-        }
-        else
+        if (hasExpectedItems)
         {
             return;
         }
+
+        dataContext.MenuItems.RemoveRange(dataContext.MenuItems);
+        await dataContext.SaveChangesAsync();
 
         var categoriesByName = await dataContext.MenuCategories
             .ToDictionaryAsync(x => x.Name, x => x.Id);
@@ -225,7 +371,6 @@ public static class SeedHelper
         var bagelsCategoryId = categoriesByName["Bagels"];
 
         dataContext.MenuItems.AddRange(
-
             new MenuItem
             {
                 Name = "Iced Latte",
@@ -274,8 +419,6 @@ public static class SeedHelper
                 CategoryId = drinksCategoryId,
                 IsAvailable = true
             },
-            
-
             new MenuItem
             {
                 Name = "Mannino Honey Crepe",
@@ -332,8 +475,6 @@ public static class SeedHelper
                 CategoryId = sweetCrepesCategoryId,
                 IsAvailable = true
             },
-            
-
             new MenuItem
             {
                 Name = "Matt's Scrambled Eggs",
@@ -390,8 +531,6 @@ public static class SeedHelper
                 CategoryId = savoryCrepesCategoryId,
                 IsAvailable = true
             },
-            
-
             new MenuItem
             {
                 Name = "Travis Special",
@@ -431,6 +570,40 @@ public static class SeedHelper
                 BasePrice = 5.25m,
                 CategoryId = bagelsCategoryId,
                 IsAvailable = true
+            }
+               );
+
+        await dataContext.SaveChangesAsync();
+    }
+
+    private static async Task AddRewards(DataContext dataContext)
+    {
+        if (await dataContext.Rewards.AnyAsync())
+        {
+            return;
+        }
+
+        dataContext.Rewards.AddRange(
+            new Reward
+            {
+                Name = "Free Coffee",
+                Description = "Redeem for one free coffee.",
+                PointsCost = 100,
+                IsActive = true
+            },
+            new Reward
+            {
+                Name = "Free Bagel",
+                Description = "Redeem for one free bagel.",
+                PointsCost = 150,
+                IsActive = true
+            },
+            new Reward
+            {
+                Name = "10% Off",
+                Description = "Redeem for 10% off your order.",
+                PointsCost = 200,
+                IsActive = true
             }
         );
 
