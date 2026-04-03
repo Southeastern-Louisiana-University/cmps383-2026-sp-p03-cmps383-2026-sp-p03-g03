@@ -11,7 +11,7 @@ public class ReceiptConfiguration : IEntityTypeConfiguration<Receipt>
 
         builder.HasKey(x => x.Id);
 
-        builder.Property(x => x.ReceiptText);
+        builder.Property(x => x.ReceiptUrl);
 
         builder.HasIndex(x => x.OrderId)
             .IsUnique();

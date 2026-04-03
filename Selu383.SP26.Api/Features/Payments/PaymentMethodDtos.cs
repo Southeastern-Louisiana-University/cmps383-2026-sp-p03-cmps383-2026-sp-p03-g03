@@ -35,3 +35,23 @@ public class PaymentMethodDto
     public int ExpYear { get; set; }
     public bool IsDefault { get; set; }
 }
+
+public class OrderPaymentDto
+{
+    public int Id { get; set; }
+    public string Provider { get; set; } = string.Empty;
+    public string PaymentMethodType { get; set; } = string.Empty;
+    public string? TransactionId { get; set; }
+    public decimal Amount { get; set; }
+    public string Status { get; set; } = string.Empty;
+    public DateTime CreatedAt { get; set; }
+    public DateTime? RemovedAt { get; set; }
+    public string? RemovedReason { get; set; }
+}
+
+public class RemovePaymentDto
+{
+    [Required]
+    [MaxLength(250)]
+    public string Reason { get; set; } = string.Empty;
+}

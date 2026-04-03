@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using Selu383.SP26.Api.Data;
+using Selu383.SP26.Api.Features.Orders;
 
 namespace Selu383.SP26.Api.Features.Payments;
 
@@ -38,23 +39,50 @@ public class StripePaymentService
         if (order == null)
             throw new Exception("Order not found.");
 
-        if (order.OrderItems == null || order.OrderItems.Count == 0)
-            throw new Exception("Order has no items.");
+        List<SessionLineItemOptions> lineItems;
 
-        var lineItems = order.OrderItems.Select(item => new SessionLineItemOptions
+        if (order.OrderItems.Count == 0)
         {
-            Quantity = item.Quantity,
-            PriceData = new SessionLineItemPriceDataOptions
+            if (order.Total <= 0)
+                throw new Exception("Order has no billable amount.");
+
+            lineItems = new List<SessionLineItemOptions>
             {
-                Currency = "usd",
-                UnitAmount = (long)(item.UnitPrice * 100m),
-                ProductData = new SessionLineItemPriceDataProductDataOptions
+                new()
                 {
-                    Name = item.MenuItem?.Name ?? $"Item {item.MenuItemId}",
-                    Description = string.IsNullOrWhiteSpace(item.ItemNote) ? null : item.ItemNote
+                    Quantity = 1,
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        Currency = "usd",
+                        UnitAmount = (long)(order.Total * 100m),
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = string.Equals(order.OrderType, OrderTypes.CoverCharge, StringComparison.OrdinalIgnoreCase)
+                                ? "Reservation Cover Charge"
+                                : "Order Charge",
+                            Description = string.IsNullOrWhiteSpace(order.Note) ? null : order.Note
+                        }
+                    }
                 }
-            }
-        }).ToList();
+            };
+        }
+        else
+        {
+            lineItems = order.OrderItems.Select(item => new SessionLineItemOptions
+            {
+                Quantity = item.Quantity,
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = "usd",
+                    UnitAmount = (long)(item.UnitPrice * 100m),
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.MenuItemName,
+                        Description = string.IsNullOrWhiteSpace(item.ItemNote) ? null : item.ItemNote
+                    }
+                }
+            }).ToList();
+        }
 
         var options = new SessionCreateOptions
         {
