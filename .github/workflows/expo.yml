@@ -5,7 +5,7 @@ on:
     paths:
       - "Selu383.SP26.Mobile/**" # Only builds if mobile code changes
       - ".github/workflows/expo.yml" # ...Or if you update this file
-  workflow_dispatch: {} # Should add a "Run workflow" button to the GitHub Actions UI
+  workflow_dispatch: {} # Adds a "Run workflow" button to the GitHub Actions UI
 
 # Prevents multiple builds from running at the same time on the same branch
 concurrency:
@@ -33,14 +33,14 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('Selu383.SP26.Mobile/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 24.x
+          node-version: 22.x
           cache: npm
           cache-dependency-path: Selu383.SP26.Mobile/package-lock.json
 
@@ -59,7 +59,9 @@ jobs:
         run: |
           mkdir -p ./Selu383.SP26.Mobile/android
           echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> ./Selu383.SP26.Mobile/android/gradle.properties
+          echo "org.gradle.daemon=false" >> ./Selu383.SP26.Mobile/android/gradle.properties
           echo "org.gradle.parallel=true" >> ./Selu383.SP26.Mobile/android/gradle.properties
+          echo "reactNativeArchitectures=arm64-v8a,x86_64" >> ./Selu383.SP26.Mobile/android/gradle.properties
 
       - name: 🚀 Build app
         run: |
@@ -68,11 +70,18 @@ jobs:
         env:
           EAS_LOCAL_BUILD_ARTIFACTS_DIR: ${{ runner.temp }}
 
-      - name: 🛳️ Make Release
-        uses: "marvinpinto/action-automatic-releases@latest"
+      - name: 📦 Upload APK to Workflow Artifacts
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          automatic_release_tag: "latest"
+          name: app-release
+          path: ${{ runner.temp }}/*.apk
+          retention-days: 7
+
+      - name: 🛳️ Make Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: "latest"
           prerelease: false
           files: |
             ${{ runner.temp }}/*.apk
