@@ -26,16 +26,18 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
+          cache: "gradle"
 
-      - name: ✨ Gradle Cache To Cut Build Time by 15ish Minutes
+      - name: 🛠️ Install ccache
+        run: sudo apt-get update && sudo apt-get install -y ccache
+
+      - name: ✨ Ccache Cache
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('Selu383.SP26.Mobile/package-lock.json') }}
+          path: ~/.cache/ccache
+          key: ${{ runner.os }}-ccache-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-gradle-
+            ${{ runner.os }}-ccache-
 
       - name: 🏗 Setup Node
         uses: actions/setup-node@v4
@@ -55,20 +57,14 @@ jobs:
           project: Selu383.SP26.Mobile
           packager: npm
 
-      - name: 🛠️ Optimize Gradle Memory
-        run: |
-          mkdir -p ./Selu383.SP26.Mobile/android
-          echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8" >> ./Selu383.SP26.Mobile/android/gradle.properties
-          echo "org.gradle.daemon=false" >> ./Selu383.SP26.Mobile/android/gradle.properties
-          echo "org.gradle.parallel=true" >> ./Selu383.SP26.Mobile/android/gradle.properties
-          echo "reactNativeArchitectures=arm64-v8a,x86_64" >> ./Selu383.SP26.Mobile/android/gradle.properties
-
       - name: 🚀 Build app
         run: |
           cd ./Selu383.SP26.Mobile/
           eas build -p android --non-interactive --local
         env:
           EAS_LOCAL_BUILD_ARTIFACTS_DIR: ${{ runner.temp }}
+          GRADLE_OPTS: "-Xmx4g -XX:MaxMetaspaceSize=1g -Dfile.encoding=UTF-8 -Dorg.gradle.parallel=true -Dorg.gradle.daemon=false"
+          USE_CCACHE: 1
 
       - name: 📦 Upload APK to Workflow Artifacts
         uses: actions/upload-artifact@v4
