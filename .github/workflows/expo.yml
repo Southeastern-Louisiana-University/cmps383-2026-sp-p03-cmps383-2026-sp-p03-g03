@@ -15,6 +15,8 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: 🏗 Setup repo
         uses: actions/checkout@v4
@@ -26,12 +28,7 @@ jobs:
         with:
           java-version: "17"
           distribution: "temurin"
-          cache: "gradle"
-          cache-dependency-path: |
-            Selu383.SP26.Mobile/**/build.gradle*
-            Selu383.SP26.Mobile/**/settings.gradle*
-            Selu383.SP26.Mobile/**/gradle-wrapper.properties
-            Selu383.SP26.Mobile/gradle/**/*
+
       - name: 🛠️ Install ccache
         run: sudo apt-get update && sudo apt-get install -y ccache
 
