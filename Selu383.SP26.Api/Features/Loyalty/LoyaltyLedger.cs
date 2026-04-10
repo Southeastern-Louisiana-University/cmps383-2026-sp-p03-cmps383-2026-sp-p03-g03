@@ -13,6 +13,9 @@ public class LoyaltyLedger
     public int? OrderId { get; set; }
     public virtual Order? Order { get; set; }
 
+    public int? RewardId { get; set; }
+    public string? RewardName { get; set; }
+
     public int PointsEarned { get; set; }
     public int PointsRedeemed { get; set; }
 

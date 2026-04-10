@@ -103,4 +103,53 @@ public class StripePaymentService
 
         return session.Url!;
     }
+
+    public async Task<PaymentMethodCreateResult> CreatePaymentMethodAsync(string cardholderName, string cardNumber, int expMonth, int expYear, string cvc)
+    {
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        if (string.IsNullOrWhiteSpace(secretKey))
+            throw new Exception("Stripe secret key is missing.");
+
+        StripeConfiguration.ApiKey = secretKey;
+
+        try
+        {
+            var options = new PaymentMethodCreateOptions
+            {
+                Type = "card",
+                Card = new PaymentMethodCardOptions
+                {
+                    Number = cardNumber,
+                    ExpMonth = (long)expMonth,
+                    ExpYear = (long)expYear,
+                    Cvc = cvc
+                }
+            };
+
+            var service = new PaymentMethodService();
+            var paymentMethod = await service.CreateAsync(options);
+
+            return new PaymentMethodCreateResult
+            {
+                StripePaymentMethodId = paymentMethod.Id,
+                Brand = paymentMethod.Card?.Brand ?? "Card",
+                Last4 = paymentMethod.Card?.Last4 ?? "0000",
+                ExpMonth = expMonth,
+                ExpYear = expYear
+            };
+        }
+        catch (StripeException ex)
+        {
+            throw new Exception($"Stripe API error: {ex.Message}", ex);
+        }
+    }
+}
+
+public class PaymentMethodCreateResult
+{
+    public string StripePaymentMethodId { get; set; } = string.Empty;
+    public string Brand { get; set; } = string.Empty;
+    public string Last4 { get; set; } = string.Empty;
+    public int ExpMonth { get; set; }
+    public int ExpYear { get; set; }
 }

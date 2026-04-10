@@ -11,6 +11,10 @@ public class PaymentMethodConfiguration : IEntityTypeConfiguration<PaymentMethod
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.StripePaymentMethodId)
+            .IsRequired()
+            .HasMaxLength(100);
+
         builder.Property(x => x.CardholderName)
             .HasMaxLength(100)
             .IsRequired();

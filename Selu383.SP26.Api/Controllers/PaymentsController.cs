@@ -15,11 +15,13 @@ public class PaymentsController : ControllerBase
 {
     private readonly DataContext _context;
     private readonly StripePaymentService _stripePaymentService;
+    private readonly ILogger<PaymentsController> _logger;
 
-    public PaymentsController(DataContext context, StripePaymentService stripePaymentService)
+    public PaymentsController(DataContext context, StripePaymentService stripePaymentService, ILogger<PaymentsController> logger)
     {
         _context = context;
         _stripePaymentService = stripePaymentService;
+        _logger = logger;
     }
 
     [HttpGet("methods")]
@@ -27,8 +29,13 @@ public class PaymentsController : ControllerBase
     public async Task<ActionResult<List<PaymentMethodDto>>> GetMyPaymentMethods()
     {
         var userId = User.GetCurrentUserId();
+        _logger.LogInformation("[GetMyPaymentMethods] Fetching methods for userId: {UserId}", userId);
+        
         if (!userId.HasValue)
+        {
+            _logger.LogWarning("[GetMyPaymentMethods] No userId found in claims");
             return Unauthorized();
+        }
 
         var methods = await _context.PaymentMethods
             .Where(m => m.UserId == userId.Value)
@@ -46,6 +53,7 @@ public class PaymentsController : ControllerBase
             })
             .ToListAsync();
 
+        _logger.LogInformation("[GetMyPaymentMethods] Returning {Count} methods for userId {UserId}", methods.Count, userId);
         return Ok(methods);
     }
 
@@ -53,54 +61,148 @@ public class PaymentsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<PaymentMethodDto>> AddPaymentMethod([FromBody] CreatePaymentMethodDto dto)
     {
-        var userId = User.GetCurrentUserId();
-        if (!userId.HasValue)
-            return Unauthorized();
-
-        var cardholderName = dto.CardholderName.Trim();
-        var brand = dto.Brand.Trim();
-
-        if (dto.ExpYear == DateTime.UtcNow.Year && dto.ExpMonth < DateTime.UtcNow.Month)
-            return BadRequest("Card expiration cannot be in the past.");
-
-        var shouldBeDefault = dto.IsDefault || !await _context.PaymentMethods.AnyAsync(m => m.UserId == userId.Value);
-
-        if (shouldBeDefault)
+        try
         {
-            var existingDefaultMethods = await _context.PaymentMethods
-                .Where(m => m.UserId == userId.Value && m.IsDefault)
-                .ToListAsync();
-
-            foreach (var method in existingDefaultMethods)
+            _logger.LogInformation("[AddPaymentMethod] START: Received request");
+            
+            if (dto == null)
             {
-                method.IsDefault = false;
+                _logger.LogWarning("[AddPaymentMethod] Payload is null");
+                return BadRequest("Payment method payload is required.");
             }
+
+            var userId = User.GetCurrentUserId();
+            _logger.LogInformation("[AddPaymentMethod] UserId extracted: {UserId}", userId);
+            
+            if (!userId.HasValue)
+            {
+                _logger.LogWarning("[AddPaymentMethod] No userId in claims");
+                return Unauthorized();
+            }
+
+            // Verify user exists in database
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId.Value);
+            _logger.LogInformation("[AddPaymentMethod] User {UserId} exists: {Exists}", userId, userExists);
+            
+            if (!userExists)
+            {
+                return Unauthorized();
+            }
+
+            var cardholderName = dto.CardholderName?.Trim();
+            var brand = dto.Brand?.Trim();
+            var last4 = dto.Last4?.Trim();
+
+            _logger.LogInformation("[AddPaymentMethod] Validating inputs: name={Name}, brand={Brand}, last4={Last4}, expMonth={ExpMonth}, expYear={ExpYear}", 
+                cardholderName, brand, last4, dto.ExpMonth, dto.ExpYear);
+
+            // Validation
+            if (string.IsNullOrWhiteSpace(cardholderName))
+                return BadRequest("Cardholder name is required.");
+
+            if (string.IsNullOrWhiteSpace(brand))
+                return BadRequest("Card brand is required.");
+
+            if (string.IsNullOrWhiteSpace(last4) || last4.Length != 4 || !last4.All(char.IsDigit))
+                return BadRequest("Last4 must be exactly 4 digits.");
+
+            if (dto.ExpMonth < 1 || dto.ExpMonth > 12)
+                return BadRequest("Expiration month must be between 1 and 12.");
+
+            if (dto.ExpYear < DateTime.UtcNow.Year)
+                return BadRequest("Expiration year is invalid.");
+
+            if (dto.ExpYear == DateTime.UtcNow.Year && dto.ExpMonth < DateTime.UtcNow.Month)
+                return BadRequest("Card expiration cannot be in the past.");
+
+            // Reconstruct full card number from dto (it only has last4, so we use it for validation)
+            // In production, the card number should come via tokenized form from Stripe Elements
+            // For now, we need the full card number to create the Stripe PaymentMethod
+            // This is the DTO's CardNumber field which should contain the full card number
+            var cardNumber = dto.CardNumber ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(cardNumber) || cardNumber.Length < 13)
+                return BadRequest("Valid card number is required.");
+
+            var cvc = dto.Cvc ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(cvc) || cvc.Length < 3 || cvc.Length > 4)
+                return BadRequest("Valid CVV is required.");
+
+            _logger.LogInformation("[AddPaymentMethod] Creating Stripe PaymentMethod");
+            
+            // Tokenize with Stripe
+            var stripeResult = await _stripePaymentService.CreatePaymentMethodAsync(
+                cardholderName, cardNumber, dto.ExpMonth, dto.ExpYear, cvc);
+            
+            _logger.LogInformation("[AddPaymentMethod] Stripe PaymentMethod created: {StripeId}", stripeResult.StripePaymentMethodId);
+
+            _logger.LogInformation("[AddPaymentMethod] Checking for existing methods");
+            var userHasExistingMethods = await _context.PaymentMethods
+                .AnyAsync(m => m.UserId == userId.Value);
+            
+            _logger.LogInformation("[AddPaymentMethod] User has existing methods: {Has}", userHasExistingMethods);
+
+            var shouldBeDefault = dto.IsDefault || !userHasExistingMethods;
+            _logger.LogInformation("[AddPaymentMethod] Should be default: {ShouldBeDefault}", shouldBeDefault);
+
+            if (shouldBeDefault && userHasExistingMethods)
+            {
+                _logger.LogInformation("[AddPaymentMethod] Clearing other defaults");
+                var existingDefaults = await _context.PaymentMethods
+                    .Where(m => m.UserId == userId.Value && m.IsDefault)
+                    .ToListAsync();
+
+                foreach (var method in existingDefaults)
+                {
+                    method.IsDefault = false;
+                }
+                
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("[AddPaymentMethod] Cleared {Count} defaults", existingDefaults.Count);
+            }
+
+            // Create and add the new payment method (with Stripe ID)
+            var paymentMethod = new PaymentMethod
+            {
+                UserId = userId.Value,
+                StripePaymentMethodId = stripeResult.StripePaymentMethodId,
+                CardholderName = cardholderName,
+                Brand = stripeResult.Brand,
+                Last4 = stripeResult.Last4,
+                ExpMonth = stripeResult.ExpMonth,
+                ExpYear = stripeResult.ExpYear,
+                IsDefault = shouldBeDefault,
+            };
+
+            _logger.LogInformation("[AddPaymentMethod] Adding new payment method to context");
+            _context.PaymentMethods.Add(paymentMethod);
+            
+            _logger.LogInformation("[AddPaymentMethod] Saving to database");
+            await _context.SaveChangesAsync();
+            
+            _logger.LogInformation("[AddPaymentMethod] SUCCESS: Payment method saved with ID {MethodId}", paymentMethod.Id);
+
+            return Ok(new PaymentMethodDto
+            {
+                Id = paymentMethod.Id,
+                CardholderName = paymentMethod.CardholderName,
+                Brand = paymentMethod.Brand,
+                Last4 = paymentMethod.Last4,
+                ExpMonth = paymentMethod.ExpMonth,
+                ExpYear = paymentMethod.ExpYear,
+                IsDefault = paymentMethod.IsDefault,
+            });
         }
-
-        var paymentMethod = new PaymentMethod
+        catch (Exception ex)
         {
-            UserId = userId.Value,
-            CardholderName = cardholderName,
-            Brand = brand,
-            Last4 = dto.Last4,
-            ExpMonth = dto.ExpMonth,
-            ExpYear = dto.ExpYear,
-            IsDefault = shouldBeDefault,
-        };
-
-        _context.PaymentMethods.Add(paymentMethod);
-        await _context.SaveChangesAsync();
-
-        return Ok(new PaymentMethodDto
-        {
-            Id = paymentMethod.Id,
-            CardholderName = paymentMethod.CardholderName,
-            Brand = paymentMethod.Brand,
-            Last4 = paymentMethod.Last4,
-            ExpMonth = paymentMethod.ExpMonth,
-            ExpYear = paymentMethod.ExpYear,
-            IsDefault = paymentMethod.IsDefault,
-        });
+            _logger.LogError(ex, "[AddPaymentMethod] FAILED with exception: {Message}", ex.Message);
+            if (ex.InnerException != null)
+            {
+                _logger.LogError(ex.InnerException, "[AddPaymentMethod] Inner exception: {Message}", ex.InnerException.Message);
+            }
+            
+            return StatusCode(StatusCodes.Status500InternalServerError, 
+                new { error = "Failed to add payment method", details = ex.Message });
+        }
     }
 
     [HttpPost("methods/{id:int}/default")]
@@ -284,4 +386,5 @@ public class PaymentsController : ControllerBase
 
         return Ok();
     }
+
 }

@@ -39,6 +39,8 @@ public class LoyaltyController : ControllerBase
             {
                 x.Id,
                 x.OrderId,
+                x.RewardId,
+                x.RewardName,
                 x.PointsEarned,
                 x.PointsRedeemed,
                 x.CreatedAt
@@ -97,6 +99,8 @@ public class LoyaltyController : ControllerBase
         _context.LoyaltyLedgers.Add(new LoyaltyLedger
         {
             UserId = user.Id,
+            RewardId = reward.Id,
+            RewardName = reward.Name,
             PointsEarned = 0,
             PointsRedeemed = reward.PointsCost,
             CreatedAt = DateTime.UtcNow

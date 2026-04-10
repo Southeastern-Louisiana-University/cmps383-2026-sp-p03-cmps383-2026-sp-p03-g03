@@ -39,6 +39,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(userData);
     } catch (err: any) {
       setUser(null);
+      setError(null);
       console.log("No active session");
     } finally {
       setIsLoading(false);
@@ -49,7 +50,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       setIsLoading(true);
       setError(null);
-      const userData = await api.login(username, password);
+
+      await api.login(username, password);
+      const userData = await api.getCurrentUser();
       setUser(userData);
     } catch (err: any) {
       const errorMessage = err.message || "Login failed";
@@ -77,7 +80,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     checkAuth();
   }, []);
-  
+
   const value: AuthContextType = {
     user,
     isLoading,

@@ -7,6 +7,5 @@ public static class RoleNames
     public const string Staff = nameof(Staff);
     public const string Customer = nameof(Customer);
 
-    // Backward-compatible alias for older code/seed data.
     public const string User = nameof(Customer);
 }
