@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Locations;
@@ -20,7 +21,16 @@ public static class SeedHelper
     {
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
-        await dataContext.Database.MigrateAsync();
+        try
+        {
+            await dataContext.Database.MigrateAsync();
+        }
+        catch (SqlException ex) when (
+            ex.Number == 2705 &&
+            ex.Message.Contains("StripePaymentMethodId", StringComparison.OrdinalIgnoreCase))
+        {
+            // Azure may already have this column from a manual change; continue startup safely.
+        }
         await EnsureLoyaltyLedgerRewardColumns(dataContext);
 
         await AddRoles(serviceProvider);

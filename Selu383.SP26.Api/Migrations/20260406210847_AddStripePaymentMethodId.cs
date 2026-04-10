@@ -10,21 +10,23 @@ namespace Selu383.SP26.Api.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "StripePaymentMethodId",
-                table: "payment_methods",
-                type: "nvarchar(100)",
-                maxLength: 100,
-                nullable: false,
-                defaultValue: "");
+            migrationBuilder.Sql(@"
+IF COL_LENGTH('payment_methods', 'StripePaymentMethodId') IS NULL
+BEGIN
+    ALTER TABLE [payment_methods] ADD [StripePaymentMethodId] nvarchar(100) NOT NULL DEFAULT N'';
+END
+");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropColumn(
-                name: "StripePaymentMethodId",
-                table: "payment_methods");
+            migrationBuilder.Sql(@"
+IF COL_LENGTH('payment_methods', 'StripePaymentMethodId') IS NOT NULL
+BEGIN
+    ALTER TABLE [payment_methods] DROP COLUMN [StripePaymentMethodId];
+END
+");
         }
     }
 }

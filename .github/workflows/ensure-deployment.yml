@@ -9,7 +9,19 @@ jobs:
 
     steps:
       - name: Warm up URL
-        run: curl -s ${{ github.event.deployment_status.environment_url }}/api/locations
+        run: |
+          URL="${{ github.event.deployment_status.environment_url }}/api/locations"
+          for i in {1..20}; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$URL" || true)
+            if [ "$code" = "200" ]; then
+              echo "Warmup succeeded"
+              exit 0
+            fi
+            echo "Warmup attempt $i: HTTP $code"
+            sleep 10
+          done
+          echo "Warmup failed after retries"
+          exit 1
       - name: Test locations API
         run: curl -sSf ${{ github.event.deployment_status.environment_url }}/api/locations
       - name: Test React
