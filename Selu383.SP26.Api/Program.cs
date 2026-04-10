@@ -88,7 +88,25 @@ StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 using (var scope = app.Services.CreateScope())
 {
-    await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
+    var startupLogger = scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("Startup");
+
+    try
+    {
+        await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        startupLogger.LogError(ex, "Database migrate/seed failed during startup.");
+
+        if (app.Environment.IsDevelopment())
+        {
+            throw;
+        }
+
+        startupLogger.LogWarning("Continuing startup without blocking process because environment is non-development.");
+    }
 }
 
 if (app.Environment.IsDevelopment())
