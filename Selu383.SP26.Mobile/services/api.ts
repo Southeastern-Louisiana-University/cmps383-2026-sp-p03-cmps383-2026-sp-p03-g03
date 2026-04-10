@@ -148,6 +148,20 @@ export interface ReservationCoverChargeRequiredDto {
   checkoutUrl?: string | null;
 }
 
+export interface StripePaymentSyncResultDto {
+  orderId: number;
+  paymentStatus: string;
+  orderStatus: string;
+  updated: boolean;
+}
+
+export interface PayWithSavedMethodResultDto {
+  succeeded: boolean;
+  requiresCheckout: boolean;
+  message: string;
+  paymentStatus?: string;
+}
+
 export interface ReservationDto {
   id: number;
   locationId: number;
@@ -424,6 +438,18 @@ export const createStripeCheckoutSession = async (orderId: number): Promise<stri
   return response.checkoutUrl;
 };
 
+export const syncStripePaymentStatus = async (
+  orderId: number,
+): Promise<StripePaymentSyncResultDto> => {
+  return apiCall(`/api/payments/orders/${orderId}/sync-stripe-status`, "POST");
+};
+
+export const payOrderWithSavedMethod = async (
+  orderId: number,
+): Promise<PayWithSavedMethodResultDto> => {
+  return apiCall(`/api/payments/orders/${orderId}/pay-with-saved-method`, "POST", {});
+};
+
 export const getPaymentMethods = async (): Promise<PaymentMethodDto[]> => {
   try {
     const response = await apiCall("/api/payments/methods", "GET");
@@ -519,6 +545,8 @@ export default {
   getLocations,
   createOrder,
   createStripeCheckoutSession,
+  syncStripePaymentStatus,
+  payOrderWithSavedMethod,
   getPaymentMethods,
   addPaymentMethod,
   setDefaultPaymentMethod,

@@ -316,6 +316,88 @@ public class PaymentsController : ControllerBase
         }
     }
 
+    [HttpPost("orders/{orderId:int}/pay-with-saved-method")]
+    [Authorize]
+    public async Task<ActionResult<PayWithSavedMethodResultDto>> PayWithSavedMethod(int orderId, [FromBody] PayWithSavedMethodDto? dto)
+    {
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (order == null)
+            return NotFound("Order not found.");
+
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+            return Forbid();
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+        {
+            return Ok(new PayWithSavedMethodResultDto
+            {
+                Succeeded = true,
+                RequiresCheckout = false,
+                Message = "Order is already paid.",
+                PaymentStatus = order.PaymentStatus
+            });
+        }
+
+        var paymentMethod = await _context.PaymentMethods
+            .Where(x => x.UserId == currentUserId.Value)
+            .Where(x => dto == null || !dto.PaymentMethodId.HasValue || x.Id == dto.PaymentMethodId.Value)
+            .OrderByDescending(x => x.IsDefault)
+            .ThenByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        if (paymentMethod == null)
+        {
+            return Ok(new PayWithSavedMethodResultDto
+            {
+                Succeeded = false,
+                RequiresCheckout = true,
+                Message = "No saved payment method found.",
+                PaymentStatus = order.PaymentStatus
+            });
+        }
+
+        try
+        {
+            await _stripePaymentService.ChargeOrderWithSavedMethodAsync(orderId, paymentMethod.StripePaymentMethodId);
+
+            var refreshed = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+
+            return Ok(new PayWithSavedMethodResultDto
+            {
+                Succeeded = true,
+                RequiresCheckout = false,
+                Message = "Payment completed using saved card.",
+                PaymentStatus = refreshed?.PaymentStatus ?? PaymentStatuses.Paid
+            });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Ok(new PayWithSavedMethodResultDto
+            {
+                Succeeded = false,
+                RequiresCheckout = true,
+                Message = ex.Message,
+                PaymentStatus = order.PaymentStatus
+            });
+        }
+        catch (Stripe.StripeException ex)
+        {
+            _logger.LogWarning(ex, "[PayWithSavedMethod] Stripe rejected saved method payment for order {OrderId}", orderId);
+            return Ok(new PayWithSavedMethodResultDto
+            {
+                Succeeded = false,
+                RequiresCheckout = true,
+                Message = "Saved card could not be charged. Please complete checkout.",
+                PaymentStatus = order.PaymentStatus
+            });
+        }
+    }
+
     [HttpGet("orders/{orderId:int}")]
     [Authorize]
     public async Task<ActionResult<List<OrderPaymentDto>>> GetOrderPayments(int orderId)
@@ -350,6 +432,37 @@ public class PaymentsController : ControllerBase
             .ToListAsync();
 
         return Ok(payments);
+    }
+
+    [HttpPost("orders/{orderId:int}/sync-stripe-status")]
+    [Authorize]
+    public async Task<ActionResult<object>> SyncStripeStatus(int orderId)
+    {
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized();
+
+        var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (order == null)
+            return NotFound("Order not found.");
+
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+            return Forbid();
+
+        var updated = await _stripePaymentService.SyncOrderPaymentStatusFromStripeAsync(orderId);
+
+        var refreshedOrder = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
+        if (refreshedOrder == null)
+            return NotFound("Order not found.");
+
+        return Ok(new
+        {
+            orderId = refreshedOrder.Id,
+            paymentStatus = refreshedOrder.PaymentStatus,
+            orderStatus = refreshedOrder.Status,
+            updated
+        });
     }
 
     [HttpDelete("orders/{orderId:int}/{paymentId:int}")]
