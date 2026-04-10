@@ -61,3 +61,16 @@ public class RemovePaymentDto
     [MaxLength(250)]
     public string Reason { get; set; } = string.Empty;
 }
+
+public class PayWithSavedMethodDto
+{
+    public int? PaymentMethodId { get; set; }
+}
+
+public class PayWithSavedMethodResultDto
+{
+    public bool Succeeded { get; set; }
+    public bool RequiresCheckout { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public string? PaymentStatus { get; set; }
+}

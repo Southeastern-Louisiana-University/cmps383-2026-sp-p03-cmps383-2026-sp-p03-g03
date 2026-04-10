@@ -143,6 +143,148 @@ public class StripePaymentService
             throw new Exception($"Stripe API error: {ex.Message}", ex);
         }
     }
+
+    public async Task<bool> SyncOrderPaymentStatusFromStripeAsync(int orderId)
+    {
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        if (string.IsNullOrWhiteSpace(secretKey))
+            throw new Exception("Stripe secret key is missing.");
+
+        StripeConfiguration.ApiKey = secretKey;
+
+        var order = await _context.Orders
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order == null)
+            throw new Exception("Order not found.");
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+            return false;
+
+        var sessionService = new SessionService();
+        var sessions = await sessionService.ListAsync(new SessionListOptions { Limit = 100 });
+        var targetOrderId = orderId.ToString();
+
+        var paidSession = sessions.Data.FirstOrDefault(s =>
+        {
+            var matchesOrder =
+                (!string.IsNullOrWhiteSpace(s.ClientReferenceId) && s.ClientReferenceId == targetOrderId) ||
+                (s.Metadata != null && s.Metadata.TryGetValue("orderId", out var metadataOrderId) && metadataOrderId == targetOrderId);
+
+            if (!matchesOrder)
+                return false;
+
+            return string.Equals(s.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(s.Status, "complete", StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (paidSession == null)
+            return false;
+
+        var transactionId = paidSession.PaymentIntentId ?? paidSession.Id;
+        var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == transactionId);
+
+        if (existingPayment == null)
+        {
+            order.Payments.Add(new Payment
+            {
+                OrderId = order.Id,
+                Provider = "Stripe",
+                PaymentMethodType = "CheckoutSession",
+                TransactionId = transactionId,
+                Amount = order.Total,
+                Status = PaymentStatuses.Paid,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            existingPayment.Status = PaymentStatuses.Paid;
+        }
+
+        order.PaymentStatus = PaymentStatuses.Paid;
+        order.Status = OrderStatuses.Confirmed;
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<string> ChargeOrderWithSavedMethodAsync(int orderId, string stripePaymentMethodId)
+    {
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        if (string.IsNullOrWhiteSpace(secretKey))
+            throw new Exception("Stripe secret key is missing.");
+
+        StripeConfiguration.ApiKey = secretKey;
+
+        var order = await _context.Orders
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order == null)
+            throw new Exception("Order not found.");
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+            return "Order is already paid.";
+
+        var intentService = new PaymentIntentService();
+
+        var createOptions = new PaymentIntentCreateOptions
+        {
+            Amount = (long)(order.Total * 100m),
+            Currency = "usd",
+            Confirm = true,
+            PaymentMethod = stripePaymentMethodId,
+            OffSession = true,
+            Description = $"Order {order.OrderCode}",
+            Metadata = new Dictionary<string, string>
+            {
+                ["orderId"] = order.Id.ToString(),
+                ["orderCode"] = order.OrderCode
+            }
+        };
+
+        PaymentIntent intent;
+        try
+        {
+            intent = await intentService.CreateAsync(createOptions);
+        }
+        catch (StripeException ex) when (string.Equals(ex.StripeError?.Code, "authentication_required", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Saved card requires authentication. Please complete checkout flow.");
+        }
+
+        if (!string.Equals(intent.Status, "succeeded", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Saved card payment did not complete. Please use checkout.");
+
+        var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == intent.Id);
+        if (existingPayment == null)
+        {
+            order.Payments.Add(new Payment
+            {
+                OrderId = order.Id,
+                Provider = "Stripe",
+                PaymentMethodType = "SavedPaymentMethod",
+                TransactionId = intent.Id,
+                Amount = order.Total,
+                Status = PaymentStatuses.Paid,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            existingPayment.Status = PaymentStatuses.Paid;
+        }
+
+        order.PaymentStatus = PaymentStatuses.Paid;
+        order.Status = OrderStatuses.Confirmed;
+
+        await _context.SaveChangesAsync();
+
+        return intent.Id;
+    }
 }
 
 public class PaymentMethodCreateResult

@@ -124,15 +124,20 @@ END
     {
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
 
-        if (roleManager.Roles.Any())
+        await EnsureRoleExistsAsync(roleManager, RoleNames.Admin);
+        await EnsureRoleExistsAsync(roleManager, RoleNames.Manager);
+        await EnsureRoleExistsAsync(roleManager, RoleNames.Staff);
+        await EnsureRoleExistsAsync(roleManager, RoleNames.User);
+    }
+
+    private static async Task EnsureRoleExistsAsync(RoleManager<Role> roleManager, string roleName)
+    {
+        if (await roleManager.RoleExistsAsync(roleName))
         {
             return;
         }
 
-        await roleManager.CreateAsync(new Role { Name = RoleNames.Admin });
-        await roleManager.CreateAsync(new Role { Name = RoleNames.Manager });
-        await roleManager.CreateAsync(new Role { Name = RoleNames.Staff });
-        await roleManager.CreateAsync(new Role { Name = RoleNames.User });
+        await roleManager.CreateAsync(new Role { Name = roleName });
     }
 
     private static async Task AddLocations(DataContext dataContext)
