@@ -1,131 +1,123 @@
-import { T, LOGO, MENU, card, btnP, btnO, noiseOverlay, getCat } from "../components/tokens";
+import { T, LOGO, MENU, getCat } from "../components/tokens";
 import { Ic } from "../components/icons";
 import { LoyaltyCard } from "../components/loyalty-card";
 import { useAppContext } from "../components/app-context";
 import { ImageWithFallback } from "../components/ImageWithFallback";
 
 export function DashboardPage() {
-  const { user, setTab, setSel, setQty, setNote, cart, setCart } = useAppContext();
+  const { user, setTab, setSel, setQty, setNote, cart, setCart } =
+    useAppContext();
 
   const featured = [MENU.Drinks[2], MENU["Sweet Crepes"][1], MENU.Bagels[0]];
 
   return (
-    <div>
-      <section style={{
-        position: "relative", borderRadius: T.rXl, overflow: "hidden",
-        height: 480, marginBottom: 96,
-      }}>
+    <div className="cl-dashboard-page">
+      <section className="cl-dashboard-hero">
         <ImageWithFallback
-          src={T.heroImg} alt="Caffeinated Lions coffee shop"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          src={T.heroImg}
+          alt="Caffeinated Lions coffee shop"
+          className="cl-dashboard-hero-image"
         />
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(58,46,31,0.85) 0%, rgba(58,46,31,0.5) 50%, rgba(74,124,89,0.3) 100%)" }} />
-        <div style={noiseOverlay} />
+        <div className="cl-dashboard-hero-overlay" />
+        <div className="cl-noise-overlay" />
 
-        <div style={{ position: "relative", zIndex: 1, height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end", padding: "64px" }}>
-          <p style={{
-            fontFamily: T.font, fontSize: 11, fontWeight: 600, color: T.caramel,
-            letterSpacing: "2px", textTransform: "uppercase", margin: "0 0 16px",
-          }}>
-            Welcome back, {user.name}
-          </p>
-          <h1 style={{
-            fontFamily: T.fontDisplay, fontSize: 56, fontWeight: 700,
-            color: T.white, margin: "0 0 16px", lineHeight: 1.08, maxWidth: 580,
-            letterSpacing: "-0.5px",
-          }}>
-            Every cup,<br />a moment worth savoring.
+        <div className="cl-dashboard-hero-content">
+          <p className="cl-dashboard-hero-kicker">Welcome back, {user.name}</p>
+          <h1 className="cl-dashboard-hero-title">
+            Every cup,
+            <br />a moment worth savoring.
           </h1>
-          <p style={{
-            fontFamily: T.font, fontSize: 18, color: "rgba(255,255,255,0.7)",
-            margin: "0 0 36px", maxWidth: 440, lineHeight: 1.6,
-          }}>
-            Handcrafted drinks and fresh crepes, made with love in the heart of downtown.
+          <p className="cl-dashboard-hero-subtitle">
+            Handcrafted drinks and fresh crepes, made with love in the heart of
+            downtown.
           </p>
-          <div style={{ display: "flex", gap: 12 }}>
-            <button onClick={() => setTab("order")} className="cl-btn-primary cl-focus-ring" style={btnP}>
+          <div className="cl-dashboard-hero-actions">
+            <button
+              onClick={() => setTab("order")}
+              className="cl-btn-primary cl-focus-ring cl-btn-primary-base"
+            >
               View Our Menu
             </button>
-            <button onClick={() => setTab("reserve")} className="cl-btn-outline cl-focus-ring" style={{
-              ...btnO, color: T.white, borderColor: "rgba(255,255,255,0.35)",
-            }}>
+            <button
+              onClick={() => setTab("reserve")}
+              className="cl-btn-outline cl-focus-ring cl-btn-outline-base cl-dashboard-hero-outline-btn"
+            >
               Reserve a Table
             </button>
           </div>
         </div>
 
-        <img src={LOGO} alt="" style={{
-          position: "absolute", bottom: 40, right: 64, width: 120, height: 120,
-          objectFit: "contain", opacity: 0.08,
-        }} />
+        <img src={LOGO} alt="" className="cl-dashboard-hero-logo" />
       </section>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, marginBottom: 96 }}>
+      <section className="cl-dashboard-feature-grid">
         {[
-          { icon: "menu", title: "Handcrafted Daily", desc: "Every drink made fresh by skilled baristas using locally roasted beans." },
-          { icon: "clock", title: "Quick Pickup", desc: "Order ahead and skip the line. Your order ready when you arrive." },
-          { icon: "gift", title: "Earn Rewards", desc: "Earn points on every purchase. Redeem for free drinks and crepes." },
+          {
+            icon: "menu",
+            title: "Handcrafted Daily",
+            desc: "Every drink made fresh by skilled baristas using locally roasted beans.",
+          },
+          {
+            icon: "clock",
+            title: "Quick Pickup",
+            desc: "Order ahead and skip the line. Your order ready when you arrive.",
+          },
+          {
+            icon: "gift",
+            title: "Earn Rewards",
+            desc: "Earn points on every purchase. Redeem for free drinks and crepes.",
+          },
         ].map((v, i) => (
-          <div key={v.title} className="cl-fade-in" style={{ textAlign: "center", padding: "8px 16px", animationDelay: `${i * 0.1}s` }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: 16, margin: "0 auto 20px",
-              background: T.cream, border: `1px solid ${T.sand}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
+          <div
+            key={v.title}
+            className={`cl-fade-in cl-dashboard-feature-item ${i === 0 ? "cl-delay-0" : i === 1 ? "cl-delay-1" : "cl-delay-2"}`}
+          >
+            <div className="cl-dashboard-feature-icon-wrap">
               <Ic name={v.icon} size={24} color={T.green} />
             </div>
-            <h3 style={{ fontFamily: T.fontDisplay, fontSize: 22, fontWeight: 700, margin: "0 0 8px", color: T.darkBrew, lineHeight: 1.2 }}>{v.title}</h3>
-            <p style={{ fontFamily: T.font, fontSize: 15, color: T.mocha, margin: 0, lineHeight: 1.6 }}>{v.desc}</p>
+            <h3 className="cl-dashboard-feature-title">{v.title}</h3>
+            <p className="cl-dashboard-feature-desc">{v.desc}</p>
           </div>
         ))}
       </section>
 
-      <section style={{ marginBottom: 96 }}>
-        <div style={{ marginBottom: 40 }}>
-          <p style={{ fontFamily: T.font, fontSize: 11, fontWeight: 600, letterSpacing: "2px", textTransform: "uppercase", color: T.green, margin: "0 0 8px" }}>
-            Popular Right Now
-          </p>
-          <h2 style={{ fontFamily: T.fontDisplay, fontSize: 40, fontWeight: 700, color: T.darkBrew, margin: 0, lineHeight: 1.15 }}>
-            What our regulars love
-          </h2>
+      <section className="cl-dashboard-popular-section">
+        <div className="cl-dashboard-popular-header">
+          <p className="cl-dashboard-section-kicker">Popular Right Now</p>
+          <h2 className="cl-dashboard-section-title">What our regulars love</h2>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1.25fr 1fr", gap: 24, gridTemplateRows: "1fr 1fr" }}>
+        <div className="cl-dashboard-popular-grid">
           <div
-            onClick={() => { setSel(featured[0]); setQty(1); setNote(""); }}
-            className="cl-card-hover cl-img-zoom"
-            style={{
-              ...card(), gridRow: "1 / 3", cursor: "pointer", overflow: "hidden",
-              display: "flex", flexDirection: "column", position: "relative",
+            onClick={() => {
+              setSel(featured[0]);
+              setQty(1);
+              setNote("");
             }}
+            className="cl-card-base cl-card-hover cl-img-zoom cl-dashboard-featured-card"
           >
-            <div style={{ position: "relative", height: 280, overflow: "hidden", flexShrink: 0 }}>
-              <ImageWithFallback src={T.icedImg} alt={featured[0].name} style={{
-                width: "100%", height: "100%", objectFit: "cover",
-                transition: "transform 0.4s ease",
-              }} />
-              <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 50%, rgba(58,46,31,0.08) 100%)" }} />
-              <span style={{
-                position: "absolute", top: 16, left: 16,
-                background: T.green, color: T.white,
-                fontFamily: T.font, fontSize: 11, fontWeight: 600,
-                letterSpacing: "1px", textTransform: "uppercase",
-                padding: "6px 14px", borderRadius: 6,
-              }}>Staff Pick</span>
+            <div className="cl-dashboard-featured-media">
+              <ImageWithFallback
+                src={T.icedImg}
+                alt={featured[0].name}
+                className="cl-dashboard-featured-image"
+              />
+              <div className="cl-dashboard-featured-overlay" />
+              <span className="cl-dashboard-staff-pick">Staff Pick</span>
             </div>
-            <div style={{ padding: "28px 28px 32px", flex: 1, display: "flex", flexDirection: "column" }}>
-              <p style={{ fontFamily: T.font, fontSize: 11, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: T.mocha, margin: "0 0 8px" }}>
+            <div className="cl-dashboard-featured-content">
+              <p className="cl-dashboard-item-kicker">
                 {getCat(featured[0].id)}
               </p>
-              <h3 style={{ fontFamily: T.fontDisplay, fontSize: 28, fontWeight: 700, color: T.darkBrew, margin: "0 0 8px", lineHeight: 1.2 }}>
+              <h3 className="cl-dashboard-featured-title">
                 {featured[0].name}
               </h3>
-              <p style={{ fontFamily: T.font, fontSize: 15, color: T.mocha, lineHeight: 1.6, margin: "0 0 20px", flex: 1 }}>
-                {featured[0].desc}
-              </p>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontFamily: T.fontDisplay, fontSize: 24, fontWeight: 700, color: T.darkBrew }}>${featured[0].price.toFixed(2)}</span>
-                <span style={{ fontFamily: T.font, fontSize: 13, fontWeight: 600, color: T.green }}>Add to order →</span>
+              <p className="cl-dashboard-featured-desc">{featured[0].desc}</p>
+              <div className="cl-dashboard-item-footer">
+                <span className="cl-dashboard-featured-price">
+                  ${featured[0].price.toFixed(2)}
+                </span>
+                <span className="cl-dashboard-item-cta">Add to order →</span>
               </div>
             </div>
           </div>
@@ -133,33 +125,31 @@ export function DashboardPage() {
           {featured.slice(1).map((item, i) => (
             <div
               key={item.id}
-              onClick={() => { setSel(item); setQty(1); setNote(""); }}
-              className="cl-card-hover"
-              style={{
-                ...card(), cursor: "pointer", overflow: "hidden",
-                display: "flex", gap: 0,
+              onClick={() => {
+                setSel(item);
+                setQty(1);
+                setNote("");
               }}
+              className="cl-card-base cl-card-hover cl-dashboard-secondary-card"
             >
-              <div style={{ width: 160, flexShrink: 0, overflow: "hidden", position: "relative" }}>
+              <div className="cl-dashboard-secondary-media">
                 <ImageWithFallback
                   src={i === 0 ? T.crepeImg : T.cafeImg}
                   alt={item.name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", minHeight: 180 }}
+                  className="cl-dashboard-secondary-image"
                 />
               </div>
-              <div style={{ padding: "24px", display: "flex", flexDirection: "column", flex: 1 }}>
-                <p style={{ fontFamily: T.font, fontSize: 11, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: T.mocha, margin: "0 0 6px" }}>
+              <div className="cl-dashboard-secondary-content">
+                <p className="cl-dashboard-item-kicker cl-dashboard-item-kicker-tight">
                   {getCat(item.id)}
                 </p>
-                <h3 style={{ fontFamily: T.fontDisplay, fontSize: 22, fontWeight: 700, color: T.darkBrew, margin: "0 0 6px", lineHeight: 1.2 }}>
-                  {item.name}
-                </h3>
-                <p style={{ fontFamily: T.font, fontSize: 14, color: T.mocha, lineHeight: 1.5, margin: "0 0 16px", flex: 1 }}>
-                  {item.desc}
-                </p>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span style={{ fontFamily: T.fontDisplay, fontSize: 20, fontWeight: 700, color: T.darkBrew }}>${item.price.toFixed(2)}</span>
-                  <span style={{ fontFamily: T.font, fontSize: 13, fontWeight: 600, color: T.green }}>View →</span>
+                <h3 className="cl-dashboard-secondary-title">{item.name}</h3>
+                <p className="cl-dashboard-secondary-desc">{item.desc}</p>
+                <div className="cl-dashboard-item-footer">
+                  <span className="cl-dashboard-secondary-price">
+                    ${item.price.toFixed(2)}
+                  </span>
+                  <span className="cl-dashboard-item-cta">View →</span>
                 </div>
               </div>
             </div>
@@ -167,47 +157,48 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <section style={{ display: "grid", gridTemplateColumns: "1fr 400px", gap: 32, marginBottom: 96 }}>
+      <section className="cl-dashboard-lower-grid">
         <div>
-          <div style={{
-            ...card(), padding: "32px", display: "flex", alignItems: "center", gap: 24,
-            marginBottom: 24,
-          }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: 16,
-              overflow: "hidden", flexShrink: 0,
-            }}>
-              <ImageWithFallback src={T.latteImg} alt="Iced Latte" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div className="cl-card-base cl-dashboard-reorder-card">
+            <div className="cl-dashboard-reorder-media">
+              <ImageWithFallback
+                src={T.latteImg}
+                alt="Iced Latte"
+                className="cl-dashboard-fill-image"
+              />
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontFamily: T.font, fontSize: 11, fontWeight: 600, letterSpacing: "1px", textTransform: "uppercase", color: T.mocha, margin: "0 0 4px" }}>
+            <div className="cl-dashboard-flex-1">
+              <p className="cl-dashboard-item-kicker cl-dashboard-item-kicker-xs">
                 Order Again
               </p>
-              <h4 style={{ fontFamily: T.fontDisplay, fontSize: 20, fontWeight: 700, margin: "0 0 2px", color: T.darkBrew, lineHeight: 1.2 }}>Iced Latte</h4>
-              <p style={{ fontFamily: T.font, fontSize: 15, color: T.mocha, margin: 0 }}>Your most ordered drink — $5.50</p>
+              <h4 className="cl-dashboard-reorder-title">Iced Latte</h4>
+              <p className="cl-dashboard-reorder-copy">
+                Your most ordered drink — $5.50
+              </p>
             </div>
             <button
-              onClick={() => setCart([...cart, { ...MENU.Drinks[0], qty: 1, note: "" }])}
-              className="cl-btn-primary cl-focus-ring"
-              style={btnP}
+              onClick={() =>
+                setCart([...cart, { ...MENU.Drinks[0], qty: 1, note: "" }])
+              }
+              className="cl-btn-primary cl-focus-ring cl-btn-primary-base"
             >
               Reorder
             </button>
           </div>
 
-          <div style={{
-            borderRadius: T.rLg, overflow: "hidden", position: "relative", height: 200,
-          }}>
-            <ImageWithFallback src={T.beansImg} alt="Fresh roasted beans" style={{
-              width: "100%", height: "100%", objectFit: "cover",
-            }} />
-            <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(58,46,31,0.8), rgba(58,46,31,0.4))" }} />
-            <div style={noiseOverlay} />
-            <div style={{ position: "relative", zIndex: 1, padding: "32px 36px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
-              <h3 style={{ fontFamily: T.fontDisplay, fontSize: 28, fontWeight: 700, color: T.white, margin: "0 0 4px", lineHeight: 1.2 }}>
+          <div className="cl-dashboard-roast-banner">
+            <ImageWithFallback
+              src={T.beansImg}
+              alt="Fresh roasted beans"
+              className="cl-dashboard-fill-image"
+            />
+            <div className="cl-dashboard-roast-overlay" />
+            <div className="cl-noise-overlay" />
+            <div className="cl-dashboard-roast-content">
+              <h3 className="cl-dashboard-roast-title">
                 Freshly roasted daily
               </h3>
-              <p style={{ fontFamily: T.font, fontSize: 15, color: T.caramel, margin: 0 }}>
+              <p className="cl-dashboard-roast-copy">
                 Single-origin beans from Guatemala, Ethiopia & Colombia
               </p>
             </div>
@@ -217,23 +208,19 @@ export function DashboardPage() {
         <div>
           <LoyaltyCard user={user} />
 
-          <div style={{ ...card(), marginTop: 24, padding: "28px 28px 20px" }}>
-            <h4 style={{
-              fontFamily: T.font, fontSize: 11, fontWeight: 600, letterSpacing: "1.5px",
-              textTransform: "uppercase", color: T.mocha, margin: "0 0 20px",
-            }}>Your Activity</h4>
+          <div className="cl-card-base cl-dashboard-activity-card">
+            <h4 className="cl-dashboard-activity-title">Your Activity</h4>
             {[
               { l: "Last Order", v: "Mar 21 — Iced Latte" },
               { l: "Reservation", v: "None upcoming" },
               { l: "Points This Month", v: "+55" },
             ].map((r, i, arr) => (
-              <div key={r.l} style={{
-                display: "flex", justifyContent: "space-between", alignItems: "center",
-                padding: "14px 0",
-                borderBottom: i < arr.length - 1 ? `1px solid ${T.sand}` : "none",
-              }}>
-                <span style={{ fontSize: 14, color: T.mocha, fontFamily: T.font }}>{r.l}</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: T.darkBrew, fontFamily: T.font }}>{r.v}</span>
+              <div
+                key={r.l}
+                className={`cl-dashboard-activity-row ${i < arr.length - 1 ? "cl-dashboard-activity-row-divided" : ""}`}
+              >
+                <span className="cl-dashboard-activity-label">{r.l}</span>
+                <span className="cl-dashboard-activity-value">{r.v}</span>
               </div>
             ))}
           </div>

@@ -177,28 +177,30 @@
 
 .cl-card-hover:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 28px rgba(58,46,31,0.12), 0 2px 6px rgba(58,46,31,0.06);
+  box-shadow:
+    0 8px 28px rgba(58, 46, 31, 0.12),
+    0 2px 6px rgba(58, 46, 31, 0.06);
 }
 
 .cl-btn-primary:hover {
-  background: #3B6347;
+  background: #3b6347;
 }
 .cl-btn-primary:active {
   transform: scale(0.97);
 }
 
 .cl-btn-outline:hover {
-  background: #D4E4D8;
-  color: #3B6347;
+  background: #d4e4d8;
+  color: #3b6347;
 }
 
 .cl-nav-link:hover {
-  color: #FFFFFF;
-  background: rgba(255,255,255,0.06);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .cl-focus-ring:focus-visible {
-  outline: 2px solid #4A7C59;
+  outline: 2px solid #4a7c59;
   outline-offset: 2px;
 }
 
@@ -211,6 +213,2513 @@
 }
 
 @keyframes clFadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cl-delay-0 {
+  animation-delay: 0s;
+}
+
+.cl-delay-1 {
+  animation-delay: 0.1s;
+}
+
+.cl-delay-2 {
+  animation-delay: 0.2s;
+}
+
+.cl-card-base {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #f0e8dd;
+  box-shadow:
+    0 1px 3px rgba(58, 46, 31, 0.06),
+    0 1px 2px rgba(58, 46, 31, 0.04);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.cl-btn-primary-base {
+  background: #65a30d;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 32px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  transition:
+    background 0.2s,
+    transform 0.1s;
+}
+
+.cl-btn-outline-base {
+  background: transparent;
+  color: #65a30d;
+  border: 1.5px solid #65a30d;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.cl-label-base {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8b7355;
+  margin-bottom: 8px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-input-base {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5d5c3;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #1d1715;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.cl-select-base {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #e5d5c3;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #1d1715;
+  background: #ffffff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C4A32' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+}
+
+.cl-noise-overlay {
+  position: absolute;
+  inset: 0;
+  opacity: 0.03;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px 128px;
+}
+
+.cl-dashboard-page {
+  display: block;
+}
+
+.cl-dashboard-hero {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  height: 480px;
+  margin-bottom: 96px;
+}
+
+.cl-dashboard-hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cl-dashboard-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(58, 46, 31, 0.85) 0%,
+    rgba(58, 46, 31, 0.5) 50%,
+    rgba(74, 124, 89, 0.3) 100%
+  );
+}
+
+.cl-dashboard-hero-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 64px;
+}
+
+.cl-dashboard-hero-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #c4a882;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin: 0 0 16px;
+}
+
+.cl-dashboard-hero-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 56px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px;
+  line-height: 1.08;
+  max-width: 580px;
+  letter-spacing: -0.5px;
+}
+
+.cl-dashboard-hero-subtitle {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 36px;
+  max-width: 440px;
+  line-height: 1.6;
+}
+
+.cl-dashboard-hero-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.cl-dashboard-hero-outline-btn {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+.cl-dashboard-hero-logo {
+  position: absolute;
+  bottom: 40px;
+  right: 64px;
+  width: 120px;
+  height: 120px;
+  object-fit: contain;
+  opacity: 0.08;
+}
+
+.cl-dashboard-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  margin-bottom: 96px;
+}
+
+.cl-dashboard-feature-item {
+  text-align: center;
+  padding: 8px 16px;
+}
+
+.cl-dashboard-feature-icon-wrap {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  margin: 0 auto 20px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-dashboard-feature-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #1d1715;
+  line-height: 1.2;
+}
+
+.cl-dashboard-feature-desc {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cl-dashboard-popular-section {
+  margin-bottom: 96px;
+}
+
+.cl-dashboard-popular-header {
+  margin-bottom: 40px;
+}
+
+.cl-dashboard-section-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #65a30d;
+  margin: 0 0 8px;
+}
+
+.cl-dashboard-section-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0;
+  line-height: 1.15;
+}
+
+.cl-dashboard-popular-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 24px;
+  grid-template-rows: 1fr 1fr;
+}
+
+.cl-dashboard-featured-card {
+  grid-row: 1 / 3;
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.cl-dashboard-featured-media {
+  position: relative;
+  height: 280px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cl-dashboard-featured-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.cl-dashboard-featured-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 50%,
+    rgba(58, 46, 31, 0.08) 100%
+  );
+}
+
+.cl-dashboard-staff-pick {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  background: #65a30d;
+  color: #ffffff;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 6px;
+}
+
+.cl-dashboard-featured-content {
+  padding: 28px 28px 32px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-dashboard-item-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin: 0 0 8px;
+}
+
+.cl-dashboard-item-kicker-tight {
+  margin-bottom: 6px;
+}
+
+.cl-dashboard-item-kicker-xs {
+  margin-bottom: 4px;
+}
+
+.cl-dashboard-featured-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.cl-dashboard-featured-desc {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  line-height: 1.6;
+  margin: 0 0 20px;
+  flex: 1;
+}
+
+.cl-dashboard-item-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cl-dashboard-featured-price {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1715;
+}
+
+.cl-dashboard-item-cta {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #65a30d;
+}
+
+.cl-dashboard-secondary-card {
+  cursor: pointer;
+  overflow: hidden;
+  display: flex;
+  gap: 0;
+}
+
+.cl-dashboard-secondary-media {
+  width: 160px;
+  flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.cl-dashboard-secondary-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  min-height: 180px;
+}
+
+.cl-dashboard-secondary-content {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.cl-dashboard-secondary-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 6px;
+  line-height: 1.2;
+}
+
+.cl-dashboard-secondary-desc {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  line-height: 1.5;
+  margin: 0 0 16px;
+  flex: 1;
+}
+
+.cl-dashboard-secondary-price {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1d1715;
+}
+
+.cl-dashboard-lower-grid {
+  display: grid;
+  grid-template-columns: 1fr 400px;
+  gap: 32px;
+  margin-bottom: 96px;
+}
+
+.cl-dashboard-reorder-card {
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.cl-dashboard-reorder-media {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.cl-dashboard-fill-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cl-dashboard-flex-1 {
+  flex: 1;
+}
+
+.cl-dashboard-reorder-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: #1d1715;
+  line-height: 1.2;
+}
+
+.cl-dashboard-reorder-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  margin: 0;
+}
+
+.cl-dashboard-roast-banner {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  height: 200px;
+}
+
+.cl-dashboard-roast-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(58, 46, 31, 0.8),
+    rgba(58, 46, 31, 0.4)
+  );
+}
+
+.cl-dashboard-roast-content {
+  position: relative;
+  z-index: 1;
+  padding: 32px 36px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cl-dashboard-roast-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.cl-dashboard-roast-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #c4a882;
+  margin: 0;
+}
+
+.cl-dashboard-activity-card {
+  margin-top: 24px;
+  padding: 28px 28px 20px;
+}
+
+.cl-dashboard-activity-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin: 0 0 20px;
+}
+
+.cl-dashboard-activity-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+}
+
+.cl-dashboard-activity-row-divided {
+  border-bottom: 1px solid #f0e8dd;
+}
+
+.cl-dashboard-activity-label {
+  font-size: 14px;
+  color: #8b7355;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-dashboard-activity-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d1715;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-auth-page {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: calc(100vh - 72px);
+  margin: -48px -48px 0;
+}
+
+.cl-auth-hero {
+  position: relative;
+  overflow: hidden;
+}
+
+.cl-auth-hero-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cl-auth-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(58, 46, 31, 0.92) 0%,
+    rgba(58, 46, 31, 0.7) 50%,
+    rgba(74, 124, 89, 0.4) 100%
+  );
+}
+
+.cl-auth-hero-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 64px;
+}
+
+.cl-auth-hero-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 32px;
+}
+
+.cl-auth-hero-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 16px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  white-space: pre-line;
+}
+
+.cl-auth-hero-subtitle {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0 0 48px;
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+.cl-auth-stats {
+  display: flex;
+  gap: 32px;
+}
+
+.cl-auth-stat-number {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 2px;
+  line-height: 1;
+}
+
+.cl-auth-stat-label {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  color: #c4a882;
+  margin: 0;
+}
+
+.cl-auth-form-pane {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 64px;
+  background: #faf6f1;
+}
+
+.cl-auth-form-shell {
+  width: 100%;
+  max-width: 420px;
+}
+
+.cl-auth-form-header {
+  margin-bottom: 40px;
+}
+
+.cl-auth-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #65a30d;
+  margin: 0 0 8px;
+}
+
+.cl-auth-heading {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 8px;
+  line-height: 1.15;
+}
+
+.cl-auth-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cl-auth-error {
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cl-auth-error-text {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #c53030;
+}
+
+.cl-auth-field-block {
+  margin-bottom: 20px;
+}
+
+.cl-auth-input-wrap {
+  position: relative;
+}
+
+.cl-auth-input-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.cl-auth-input-with-left-icon {
+  padding-left: 42px;
+}
+
+.cl-auth-input-with-both-icons {
+  padding-left: 42px;
+  padding-right: 44px;
+}
+
+.cl-auth-eye-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+}
+
+.cl-auth-password-block {
+  margin-bottom: 28px;
+}
+
+.cl-auth-forgot-button {
+  background: none;
+  border: none;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  color: #65a30d;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  margin-top: 8px;
+}
+
+.cl-auth-demo-box {
+  background: #ffffff;
+  border: 1px solid #f0e8dd;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+
+.cl-auth-demo-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 12px;
+  color: #8b7355;
+  margin: 0 0 4px;
+  font-weight: 600;
+}
+
+.cl-auth-demo-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  color: #5c4a32;
+  margin: 0;
+}
+
+.cl-auth-submit {
+  width: 100%;
+  padding: 16px 28px;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.cl-auth-submit-loading {
+  opacity: 0.7;
+}
+
+.cl-auth-spinner {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: clSpin 0.6s linear infinite;
+}
+
+.cl-auth-switch-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  margin: 28px 0 0;
+  text-align: center;
+}
+
+.cl-auth-switch-button {
+  background: none;
+  border: none;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #65a30d;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+@keyframes clSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cl-menu-page {
+  display: block;
+}
+
+.cl-menu-header {
+  margin-bottom: 48px;
+}
+
+.cl-menu-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #65a30d;
+  margin: 0 0 8px;
+}
+
+.cl-menu-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 12px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.cl-menu-subtitle {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 18px;
+  color: #8b7355;
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+.cl-menu-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 48px;
+  border-bottom: 1px solid #f0e8dd;
+}
+
+.cl-menu-tab {
+  padding: 12px 28px;
+  border: none;
+  background: none;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  margin-bottom: -1px;
+}
+
+.cl-menu-tab-active {
+  font-weight: 600;
+  color: #1d1715;
+  border-bottom: 2px solid #65a30d;
+}
+
+.cl-menu-tab-inactive {
+  font-weight: 500;
+  color: #8b7355;
+  border-bottom: 2px solid transparent;
+}
+
+.cl-menu-banner {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  height: 200px;
+  margin-bottom: 48px;
+}
+
+.cl-menu-banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cl-menu-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(58, 46, 31, 0.8) 0%,
+    rgba(58, 46, 31, 0.3) 60%,
+    transparent 100%
+  );
+}
+
+.cl-menu-banner-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 36px 40px;
+  z-index: 1;
+}
+
+.cl-menu-banner-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+
+.cl-menu-banner-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #c4a882;
+  margin: 0;
+}
+
+.cl-menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.cl-menu-featured-card {
+  grid-column: 1 / -1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+.cl-menu-featured-icon-wrap {
+  width: 220px;
+  height: 180px;
+  flex-shrink: 0;
+  background: #faf6f1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-menu-featured-content {
+  padding: 32px 36px;
+  flex: 1;
+}
+
+.cl-menu-featured-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.cl-menu-featured-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.cl-menu-featured-price {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  font-weight: 600;
+  color: #65a30d;
+}
+
+.cl-menu-featured-badge {
+  background: #faf6f1;
+  color: #65a30d;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #f0e8dd;
+}
+
+.cl-menu-featured-desc {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 16px;
+  color: #8b7355;
+  line-height: 1.6;
+  margin: 12px 0 0;
+  max-width: 500px;
+}
+
+.cl-menu-item-card {
+  cursor: pointer;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cl-menu-flex-1 {
+  flex: 1;
+}
+
+.cl-menu-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.cl-menu-item-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cl-menu-item-price {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1715;
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.cl-menu-item-desc {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.cl-res-page {
+  display: block;
+}
+
+.cl-res-hero {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  height: 320px;
+  margin-bottom: 64px;
+}
+
+.cl-res-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.cl-res-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(58, 46, 31, 0.85) 0%,
+    rgba(58, 46, 31, 0.5) 60%,
+    rgba(74, 124, 89, 0.2) 100%
+  );
+}
+
+.cl-res-hero-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 48px 56px;
+  z-index: 1;
+}
+
+.cl-res-hero-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #c4a882;
+  margin: 0 0 12px;
+}
+
+.cl-res-hero-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px;
+  line-height: 1.1;
+}
+
+.cl-res-hero-subtitle {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0;
+  max-width: 420px;
+}
+
+.cl-res-success {
+  text-align: center;
+  padding: 80px 40px 64px;
+}
+
+.cl-res-success-icon-wrap {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin: 0 auto 28px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-res-success-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: #1d1715;
+}
+
+.cl-res-success-party {
+  font-size: 18px;
+  color: #8b7355;
+  margin: 0 0 8px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-res-success-copy {
+  font-size: 15px;
+  color: #c4a882;
+  margin: 0 0 48px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-res-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 48px;
+  align-items: start;
+}
+
+.cl-res-form-card {
+  padding: 40px;
+}
+
+.cl-res-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px 32px;
+  margin-bottom: 32px;
+}
+
+.cl-res-col-full {
+  grid-column: 1 / -1;
+}
+
+.cl-res-party-grid {
+  display: flex;
+  gap: 8px;
+}
+
+.cl-res-party-btn {
+  flex: 1;
+  padding: 14px 0;
+  border-radius: 8px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cl-res-party-btn-active {
+  border: 2px solid #65a30d;
+  background: #faf6f1;
+  color: #65a30d;
+}
+
+.cl-res-party-btn-inactive {
+  border: 1px solid #e5d5c3;
+  background: #ffffff;
+  color: #5c4a32;
+}
+
+.cl-res-confirm-btn {
+  padding: 16px 48px;
+  font-size: 16px;
+}
+
+.cl-res-info-card {
+  padding: 28px;
+  margin-bottom: 20px;
+}
+
+.cl-res-side-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin: 0 0 16px;
+}
+
+.cl-res-tip-row {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0e8dd;
+}
+
+.cl-res-tip-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cl-res-tip-text {
+  font-size: 14px;
+  color: #5c4a32;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-res-walkin-card {
+  padding: 28px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+}
+
+.cl-res-walkin-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-bottom: 16px;
+}
+
+.cl-res-walkin-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 6px;
+  line-height: 1.3;
+}
+
+.cl-res-walkin-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  margin: 0;
+  line-height: 1.6;
+}
+
+.cl-cart-page {
+  display: block;
+}
+
+.cl-cart-header {
+  margin-bottom: 40px;
+}
+
+.cl-cart-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #65a30d;
+  margin: 0 0 8px;
+}
+
+.cl-cart-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 40px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.cl-cart-empty-state {
+  text-align: center;
+  padding: 96px 40px 80px;
+  border: 1px dashed #e5d5c3;
+  border-radius: 16px;
+}
+
+.cl-cart-empty-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 24px;
+  display: block;
+  opacity: 0.25;
+}
+
+.cl-cart-empty-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #1d1715;
+}
+
+.cl-cart-empty-copy {
+  font-size: 16px;
+  color: #8b7355;
+  margin: 0 0 32px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+.cl-cart-item-card {
+  padding: 24px 28px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cl-cart-flex-1 {
+  flex: 1;
+}
+
+.cl-cart-item-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: #1d1715;
+  line-height: 1.2;
+}
+
+.cl-cart-item-note {
+  margin: 0;
+  font-size: 13px;
+  color: #65a30d;
+  font-style: italic;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-item-unit-price {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #8b7355;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cl-cart-qty-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cl-cart-qty-btn-minus {
+  border: 1px solid #e5d5c3;
+  background: #ffffff;
+  transition: border-color 0.2s;
+}
+
+.cl-cart-qty-btn-plus {
+  border: none;
+  background: #65a30d;
+  transition: background 0.2s;
+}
+
+.cl-cart-qty-value {
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-line-total {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1d1715;
+  min-width: 70px;
+  text-align: right;
+}
+
+.cl-cart-remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.cl-cart-summary-card {
+  padding: 32px;
+  position: sticky;
+  top: 96px;
+}
+
+.cl-cart-summary-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin: 0 0 24px;
+}
+
+.cl-cart-summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cl-cart-summary-label {
+  font-size: 15px;
+  color: #8b7355;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-summary-value {
+  font-size: 15px;
+  font-weight: 500;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  color: #1d1715;
+}
+
+.cl-cart-points-box {
+  background: #faf6f1;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  border: 1px solid #f0e8dd;
+}
+
+.cl-cart-points-label {
+  font-size: 13px;
+  color: #65a30d;
+  font-weight: 600;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-points-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: #65a30d;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-cart-divider {
+  height: 1px;
+  background: #f0e8dd;
+  margin: 20px 0;
+}
+
+.cl-cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.cl-cart-total-text {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1715;
+}
+
+.cl-cart-checkout-btn {
+  width: 100%;
+  padding: 16px 28px;
+  font-size: 16px;
+}
+
+.cl-profile-page {
+  display: block;
+}
+
+.cl-profile-hero-card {
+  padding: 40px 48px;
+  margin-bottom: 32px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.cl-profile-hero-logo {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 140px;
+  height: 140px;
+  object-fit: contain;
+  opacity: 0.04;
+}
+
+.cl-profile-avatar-wrap {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #1d1715;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid #f0e8dd;
+}
+
+.cl-profile-avatar-letter {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 36px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.cl-profile-flex-1 {
+  flex: 1;
+}
+
+.cl-profile-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.cl-profile-name {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.cl-profile-tier-badge {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+.cl-profile-tier-badge-gold {
+  background: #d4a01718;
+  color: #d4a017;
+  border: 1px solid #d4a01730;
+}
+
+.cl-profile-tier-badge-silver {
+  background: #8b8b8b18;
+  color: #8b8b8b;
+  border: 1px solid #8b8b8b30;
+}
+
+.cl-profile-tier-badge-bronze {
+  background: #cd7f3218;
+  color: #cd7f32;
+  border: 1px solid #cd7f3230;
+}
+
+.cl-profile-meta {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  margin: 4px 0 0;
+}
+
+.cl-profile-signout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #8b7355;
+  border-color: #e5d5c3;
+}
+
+.cl-profile-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #f0e8dd;
+}
+
+.cl-profile-tab {
+  padding: 12px 24px;
+  border: none;
+  background: none;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: -1px;
+  transition: color 0.2s;
+}
+
+.cl-profile-tab-active {
+  font-weight: 600;
+  color: #1d1715;
+  border-bottom: 2px solid #65a30d;
+}
+
+.cl-profile-tab-inactive {
+  font-weight: 500;
+  color: #8b7355;
+  border-bottom: 2px solid transparent;
+}
+
+.cl-profile-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+.cl-profile-info-card {
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.cl-profile-card-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.cl-profile-section-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin: 0;
+}
+
+.cl-profile-edit-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #65a30d;
+  padding: 0;
+}
+
+.cl-profile-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.cl-profile-mini-btn-outline {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
+.cl-profile-mini-btn-primary {
+  padding: 8px 20px;
+  font-size: 13px;
+}
+
+.cl-profile-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 24px;
+}
+
+.cl-profile-col-full {
+  grid-column: 1 / -1;
+}
+
+.cl-profile-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+
+.cl-profile-info-row {
+  padding: 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.cl-profile-info-row-divided {
+  border-bottom: 1px solid #f0e8dd;
+}
+
+.cl-profile-info-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cl-profile-info-label {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 12px;
+  color: #c4a882;
+  margin: 0 0 2px;
+  font-weight: 500;
+}
+
+.cl-profile-info-value {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #1d1715;
+  margin: 0;
+  font-weight: 500;
+}
+
+.cl-profile-payment-card {
+  padding: 32px;
+}
+
+.cl-profile-title-mb20 {
+  margin-bottom: 20px;
+}
+
+.cl-profile-visa-card {
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1px solid #d4e9b3;
+}
+
+.cl-profile-visa-logo-wrap {
+  width: 48px;
+  height: 32px;
+  border-radius: 6px;
+  background: #1a1f71;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-profile-visa-logo-text {
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-profile-visa-primary {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  color: #1d1715;
+}
+
+.cl-profile-visa-secondary {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #8b7355;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-profile-default-badge {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #65a30d;
+  background: #faf6f1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid #f0e8dd;
+}
+
+.cl-profile-add-payment-btn {
+  background: none;
+  border: 1px dashed #e5d5c3;
+  border-radius: 8px;
+  padding: 16px;
+  width: 100%;
+  margin-top: 12px;
+  cursor: pointer;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: border-color 0.2s;
+}
+
+.cl-profile-stats-card {
+  margin-top: 24px;
+  padding: 28px;
+}
+
+.cl-profile-stats-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+}
+
+.cl-profile-stats-row-divided {
+  border-bottom: 1px solid #f0e8dd;
+}
+
+.cl-profile-stats-label {
+  font-size: 14px;
+  color: #8b7355;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-profile-stats-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1d1715;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.cl-profile-block-header {
+  margin-bottom: 32px;
+}
+
+.cl-profile-block-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 8px;
+}
+
+.cl-profile-block-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  color: #8b7355;
+  margin: 0;
+}
+
+.cl-profile-order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cl-profile-order-card {
+  padding: 24px 28px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.cl-profile-order-icon-wrap {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.cl-profile-order-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.cl-profile-order-id {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.cl-profile-order-date {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  color: #8b7355;
+}
+
+.cl-profile-order-items {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  margin: 0;
+}
+
+.cl-profile-order-right {
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.cl-profile-order-total {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 0 0 4px;
+}
+
+.cl-profile-order-status {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #65a30d;
+  background: #faf6f1;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid #f0e8dd;
+}
+
+.cl-profile-favorites-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.cl-profile-fav-card {
+  cursor: pointer;
+  padding: 28px;
+  position: relative;
+}
+
+.cl-profile-fav-heart-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.cl-profile-fav-title {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1d1715;
+  margin: 16px 0 4px;
+  line-height: 1.2;
+}
+
+.cl-profile-fav-kicker {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: #8b7355;
+  margin: 0 0 8px;
+}
+
+.cl-profile-fav-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  line-height: 1.5;
+  margin: 0 0 16px;
+}
+
+.cl-profile-fav-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cl-profile-fav-price {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #1d1715;
+}
+
+.cl-profile-fav-cta {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: #65a30d;
+}
+
+.cl-profile-settings-wrap {
+  max-width: 720px;
+}
+
+.cl-profile-setting-card {
+  padding: 28px 32px;
+  margin-bottom: 16px;
+}
+
+.cl-profile-setting-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.cl-profile-setting-icon-wrap {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: #faf6f1;
+  border: 1px solid #f0e8dd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-profile-setting-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: #1d1715;
+  margin: 0;
+}
+
+.cl-profile-pill-row {
+  display: flex;
+  gap: 8px;
+}
+
+.cl-profile-pill-row-wrap {
+  flex-wrap: wrap;
+}
+
+.cl-profile-pill {
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cl-profile-pill-wide {
+  padding: 10px 24px;
+}
+
+.cl-profile-pill-active {
+  border: 1.5px solid #65a30d;
+  background: #faf6f1;
+  color: #65a30d;
+}
+
+.cl-profile-pill-inactive {
+  border: 1px solid #e5d5c3;
+  background: #ffffff;
+  color: #5c4a32;
+}
+
+.cl-profile-danger-card {
+  padding: 28px 32px;
+  margin-top: 32px;
+  border-color: #fed7d7;
+}
+
+.cl-profile-danger-title {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #c53030;
+  margin: 0 0 8px;
+}
+
+.cl-profile-danger-copy {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  color: #8b7355;
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.cl-profile-danger-btn {
+  background: none;
+  border: 1.5px solid #e53e3e;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #e53e3e;
+  cursor: pointer;
+  transition: background 0.2s;
 }
