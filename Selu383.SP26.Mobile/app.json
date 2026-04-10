@@ -39,6 +39,14 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "reactNativeArchitectures": "arm64-v8a,x86_64"
+          }
+        }
       ]
     ],
     "experiments": {
