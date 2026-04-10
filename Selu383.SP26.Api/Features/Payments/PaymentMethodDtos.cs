@@ -8,6 +8,12 @@ public class CreatePaymentMethodDto
     [MaxLength(100)]
     public string CardholderName { get; set; } = string.Empty;
 
+    // Full card number (only used for Stripe tokenization, never persisted)
+    public string? CardNumber { get; set; }
+
+    // CVV (only used for Stripe tokenization, never persisted)
+    public string? Cvc { get; set; }
+
     [Required]
     [MaxLength(30)]
     public string Brand { get; set; } = string.Empty;

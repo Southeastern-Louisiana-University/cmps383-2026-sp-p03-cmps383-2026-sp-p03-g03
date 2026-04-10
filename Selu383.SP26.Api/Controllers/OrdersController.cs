@@ -78,13 +78,24 @@ public class OrdersController : ControllerBase
         if (!currentUserId.HasValue)
             return Unauthorized();
 
-        var allowedOrderTypes = new[] { OrderTypes.Pickup, OrderTypes.InStore, OrderTypes.DriveThru, OrderTypes.CoverCharge };
-        if (!allowedOrderTypes.Contains(dto.OrderType))
+        var normalizedOrderType = (dto.OrderType ?? string.Empty).Trim();
+        var canonicalOrderType = normalizedOrderType.Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant() switch
+        {
+            "pickup" => OrderTypes.Pickup,
+            "dinein" => OrderTypes.DineIn,
+            "instore" => OrderTypes.InStore,
+            "drivethru" => OrderTypes.DriveThru,
+            "covercharge" => OrderTypes.CoverCharge,
+            _ => normalizedOrderType
+        };
+
+        var allowedOrderTypes = new[] { OrderTypes.Pickup, OrderTypes.DineIn, OrderTypes.InStore, OrderTypes.DriveThru, OrderTypes.CoverCharge };
+        if (!allowedOrderTypes.Contains(canonicalOrderType, StringComparer.OrdinalIgnoreCase))
             return BadRequest("Invalid order type.");
 
         if (dto.ScheduledPickupTime.HasValue)
         {
-            if (!string.Equals(dto.OrderType, OrderTypes.Pickup, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(canonicalOrderType, OrderTypes.Pickup, StringComparison.OrdinalIgnoreCase))
                 return BadRequest("Scheduled pickup is only available for pickup orders.");
 
             if (dto.ScheduledPickupTime.Value <= DateTime.UtcNow)
@@ -109,7 +120,7 @@ public class OrdersController : ControllerBase
             LocationId = dto.LocationId,
             CreatedByUserId = currentUserId.Value,
             OrderCode = $"ORD{DateTime.UtcNow:yyyyMMddHHmmss}",
-            OrderType = dto.OrderType,
+            OrderType = canonicalOrderType,
             Status = OrderStatuses.Placed,
             PaymentStatus = PaymentStatuses.Unpaid,
             OrderTime = DateTime.UtcNow,

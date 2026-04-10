@@ -18,17 +18,20 @@ public class StripeWebhookController : ControllerBase
     private readonly DataContext _context;
     private readonly ReceiptPdfService _receiptPdfService;
     private readonly BlobStorageService _blobStorageService;
+    private readonly ILogger<StripeWebhookController> _logger;
 
     public StripeWebhookController(
         IConfiguration configuration,
         DataContext context,
         ReceiptPdfService receiptPdfService,
-        BlobStorageService blobStorageService)
+        BlobStorageService blobStorageService,
+        ILogger<StripeWebhookController> logger)
     {
         _configuration = configuration;
         _context = context;
         _receiptPdfService = receiptPdfService;
         _blobStorageService = blobStorageService;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -37,26 +40,37 @@ public class StripeWebhookController : ControllerBase
         var json = await new StreamReader(Request.Body).ReadToEndAsync();
         var stripeSignature = Request.Headers["Stripe-Signature"];
 
+        _logger.LogInformation("[Webhook] Received event");
+
         try
         {
             var webhookSecret = _configuration["Stripe:WebhookSecret"]?.Trim();
 
             if (string.IsNullOrWhiteSpace(webhookSecret))
+            {
+                _logger.LogWarning("[Webhook] Stripe webhook secret is missing");
                 return BadRequest("Stripe webhook secret is missing.");
+            }
 
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
+            _logger.LogInformation("[Webhook] Event type: {EventType}", stripeEvent.Type);
 
             if (stripeEvent.Type == "checkout.session.completed")
             {
                 var session = stripeEvent.Data.Object as Session;
                 if (session == null)
+                {
+                    _logger.LogWarning("[Webhook] Invalid Stripe checkout session");
                     return BadRequest("Invalid Stripe checkout session.");
+                }
 
-                if (session.Metadata == null || !session.Metadata.TryGetValue("orderId", out var orderIdValue))
-                    return BadRequest("Missing orderId metadata.");
+                if (!TryResolveOrderId(session, out var orderId))
+                {
+                    _logger.LogWarning("[Webhook] Could not resolve orderId from metadata or client_reference_id");
+                    return Ok();
+                }
 
-                if (!int.TryParse(orderIdValue, out var orderId))
-                    return BadRequest("Invalid orderId metadata.");
+                _logger.LogInformation("[Webhook] Processing payment for order {OrderId}", orderId);
 
                 var order = await _context.Orders
                     .Include(o => o.OrderItems)
@@ -67,13 +81,20 @@ public class StripeWebhookController : ControllerBase
                     .FirstOrDefaultAsync(o => o.Id == orderId);
 
                 if (order == null)
-                    return NotFound("Order not found.");
+                {
+                    _logger.LogWarning("[Webhook] Order {OrderId} not found", orderId);
+                    return Ok();
+                }
+
+                _logger.LogInformation("[Webhook] Order found. Current status: {Status}, Current payment status: {PaymentStatus}", 
+                    order.Status, order.PaymentStatus);
 
                 var transactionId = session.PaymentIntentId ?? session.Id;
                 var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == transactionId);
 
                 if (existingPayment == null)
                 {
+                    _logger.LogInformation("[Webhook] Creating new Payment record for order {OrderId}", orderId);
                     order.Payments.Add(new Payment
                     {
                         OrderId = order.Id,
@@ -87,6 +108,7 @@ public class StripeWebhookController : ControllerBase
                 }
                 else
                 {
+                    _logger.LogInformation("[Webhook] Updating existing Payment for order {OrderId}", orderId);
                     existingPayment.Status = PaymentStatuses.Paid;
                 }
 
@@ -94,10 +116,13 @@ public class StripeWebhookController : ControllerBase
 
                 order.PaymentStatus = PaymentStatuses.Paid;
                 order.Status = OrderStatuses.Confirmed;
+                _logger.LogInformation("[Webhook] Order status updated to {Status}, payment status to {PaymentStatus}", 
+                    order.Status, order.PaymentStatus);
 
                 if (!wasAlreadyPaid && order.CreatedByUser != null)
                 {
                     var pointsEarned = (int)Math.Round(order.Total * 10);
+                    _logger.LogInformation("[Webhook] Adding {Points} loyalty points to user {UserId}", pointsEarned, order.CreatedByUser.Id);
 
                     var loyaltyExists = await _context.Set<LoyaltyLedger>()
                         .AnyAsync(x => x.OrderId == order.Id);
@@ -119,6 +144,7 @@ public class StripeWebhookController : ControllerBase
 
                 // Save the payment/order state FIRST so webhook success does not depend on receipt upload
                 await _context.SaveChangesAsync();
+                _logger.LogInformation("[Webhook] Changes saved to database");
 
                 // Receipt generation is best-effort only
                 if (order.Receipt == null)
@@ -140,7 +166,7 @@ public class StripeWebhookController : ControllerBase
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Receipt generation/upload failed for order {order.Id}: {ex.Message}");
+                        _logger.LogError(ex, "[Webhook] Receipt generation/upload failed for order {OrderId}", order.Id);
                     }
                 }
             }
@@ -155,5 +181,20 @@ public class StripeWebhookController : ControllerBase
         {
             return BadRequest($"Webhook error: {ex.Message}");
         }
+    }
+
+    private static bool TryResolveOrderId(Session session, out int orderId)
+    {
+        orderId = 0;
+
+        if (session.Metadata != null &&
+            session.Metadata.TryGetValue("orderId", out var metadataOrderId) &&
+            int.TryParse(metadataOrderId, out orderId))
+        {
+            return true;
+        }
+
+        return !string.IsNullOrWhiteSpace(session.ClientReferenceId) &&
+               int.TryParse(session.ClientReferenceId, out orderId);
     }
 }

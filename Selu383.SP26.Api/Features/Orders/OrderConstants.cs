@@ -3,6 +3,7 @@ namespace Selu383.SP26.Api.Features.Orders;
 public static class OrderTypes
 {
     public const string Pickup = "Pickup";
+    public const string DineIn = "DineIn";
     public const string InStore = "InStore";
     public const string DriveThru = "DriveThru";
     public const string CoverCharge = "CoverCharge";
