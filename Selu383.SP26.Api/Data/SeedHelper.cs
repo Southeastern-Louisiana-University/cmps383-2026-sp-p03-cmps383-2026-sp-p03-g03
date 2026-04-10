@@ -12,6 +12,7 @@ public static class SeedHelper
 {
     private const string SeedLocationPhone = "555-555-5555";
     private const string SeedLocationState = "LA";
+    private const int BobTestPoints = 10000;
     private static readonly TimeOnly SeedOpeningTime = new(6, 0);
     private static readonly TimeOnly SeedClosingTime = new(18, 0);
 
@@ -20,6 +21,7 @@ public static class SeedHelper
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
         await dataContext.Database.MigrateAsync();
+        await EnsureLoyaltyLedgerRewardColumns(dataContext);
 
         await AddRoles(serviceProvider);
         await AddUsers(serviceProvider);
@@ -31,55 +33,81 @@ public static class SeedHelper
         await AddRewards(dataContext);
     }
 
+    private static async Task EnsureLoyaltyLedgerRewardColumns(DataContext dataContext)
+    {
+        await dataContext.Database.ExecuteSqlRawAsync(@"
+IF COL_LENGTH('LoyaltyLedgers', 'RewardId') IS NULL
+BEGIN
+    ALTER TABLE [LoyaltyLedgers] ADD [RewardId] int NULL;
+END
+
+IF COL_LENGTH('LoyaltyLedgers', 'RewardName') IS NULL
+BEGIN
+    ALTER TABLE [LoyaltyLedgers] ADD [RewardName] nvarchar(200) NULL;
+END
+");
+    }
+
     private static async Task AddUsers(IServiceProvider serviceProvider)
     {
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-        if (userManager.Users.Any())
+        if (!userManager.Users.Any())
         {
-            return;
+            var adminUser = new User
+            {
+                UserName = "galkadi",
+                LoyaltyPoints = 0
+            };
+            await userManager.CreateAsync(adminUser, defaultPassword);
+            await userManager.AddToRoleAsync(adminUser, RoleNames.Admin);
+
+            var managerUser = new User
+            {
+                UserName = "manager1",
+                LoyaltyPoints = 0
+            };
+            await userManager.CreateAsync(managerUser, defaultPassword);
+            await userManager.AddToRoleAsync(managerUser, RoleNames.Manager);
+
+            var staffUser = new User
+            {
+                UserName = "staff1",
+                LoyaltyPoints = 0
+            };
+            await userManager.CreateAsync(staffUser, defaultPassword);
+            await userManager.AddToRoleAsync(staffUser, RoleNames.Staff);
+
+            var sue = new User
+            {
+                UserName = "sue",
+                LoyaltyPoints = 300
+            };
+            await userManager.CreateAsync(sue, defaultPassword);
+            await userManager.AddToRoleAsync(sue, RoleNames.User);
         }
 
-        var adminUser = new User
+        var bob = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == "bob");
+        if (bob == null)
         {
-            UserName = "galkadi",
-            LoyaltyPoints = 0
-        };
-        await userManager.CreateAsync(adminUser, defaultPassword);
-        await userManager.AddToRoleAsync(adminUser, RoleNames.Admin);
+            bob = new User
+            {
+                UserName = "bob",
+                LoyaltyPoints = BobTestPoints
+            };
+            await userManager.CreateAsync(bob, defaultPassword);
+        }
+        else if (bob.LoyaltyPoints < BobTestPoints)
+        {
+            bob.LoyaltyPoints = BobTestPoints;
+            await userManager.UpdateAsync(bob);
+        }
 
-        var managerUser = new User
+        if (!await userManager.IsInRoleAsync(bob, RoleNames.User))
         {
-            UserName = "manager1",
-            LoyaltyPoints = 0
-        };
-        await userManager.CreateAsync(managerUser, defaultPassword);
-        await userManager.AddToRoleAsync(managerUser, RoleNames.Manager);
-
-        var staffUser = new User
-        {
-            UserName = "staff1",
-            LoyaltyPoints = 0
-        };
-        await userManager.CreateAsync(staffUser, defaultPassword);
-        await userManager.AddToRoleAsync(staffUser, RoleNames.Staff);
-
-        var bob = new User
-        {
-            UserName = "bob",
-            LoyaltyPoints = 150
-        };
-        await userManager.CreateAsync(bob, defaultPassword);
-        await userManager.AddToRoleAsync(bob, RoleNames.User);
-
-        var sue = new User
-        {
-            UserName = "sue",
-            LoyaltyPoints = 300
-        };
-        await userManager.CreateAsync(sue, defaultPassword);
-        await userManager.AddToRoleAsync(sue, RoleNames.User);
+            await userManager.AddToRoleAsync(bob, RoleNames.User);
+        }
     }
 
     private static async Task AddRoles(IServiceProvider serviceProvider)
@@ -578,30 +606,38 @@ public static class SeedHelper
 
     private static async Task AddRewards(DataContext dataContext)
     {
-        if (await dataContext.Rewards.AnyAsync())
+        var hasExpectedRewards = await dataContext.Rewards.AnyAsync(x => x.Name == "Free Drink (Supernova)")
+            && await dataContext.Rewards.AnyAsync(x => x.Name == "Free Drink (Strawberry Lemonade)")
+            && await dataContext.Rewards.AnyAsync(x => x.Name == "10% Off Order")
+            && await dataContext.Rewards.CountAsync() == 3;
+
+        if (hasExpectedRewards)
         {
             return;
         }
 
+        dataContext.Rewards.RemoveRange(dataContext.Rewards);
+        await dataContext.SaveChangesAsync();
+
         dataContext.Rewards.AddRange(
             new Reward
             {
-                Name = "Free Coffee",
-                Description = "Redeem for one free coffee.",
-                PointsCost = 100,
+                Name = "Free Drink (Supernova)",
+                Description = "Redeem for one Supernova drink from the menu.",
+                PointsCost = 180,
                 IsActive = true
             },
             new Reward
             {
-                Name = "Free Bagel",
-                Description = "Redeem for one free bagel.",
-                PointsCost = 150,
+                Name = "Free Drink (Strawberry Lemonade)",
+                Description = "Redeem for one Strawberry Lemonade drink from the menu.",
+                PointsCost = 180,
                 IsActive = true
             },
             new Reward
             {
-                Name = "10% Off",
-                Description = "Redeem for 10% off your order.",
+                Name = "10% Off Order",
+                Description = "Redeem for 10% off your next order.",
                 PointsCost = 200,
                 IsActive = true
             }
