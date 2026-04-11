@@ -1,0 +1,21 @@
+
+android {
+    
+    defaultConfig {  }
+    signingConfigs {
+        release {
+            if (project.hasProperty('MYAPP_UPLOAD_STORE_FILE')) {
+                storeFile file(MYAPP_UPLOAD_STORE_FILE)
+                storePassword BestPassword321!
+                keyAlias MYAPP_UPLOAD_KEY_ALIAS
+                keyPassword BestPassword321!
+            }
+        }
+    }
+    buildTypes {
+        release {
+            
+            signingConfig signingConfigs.release
+        }
+    }
+}
