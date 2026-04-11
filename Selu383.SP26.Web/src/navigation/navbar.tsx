@@ -3,6 +3,7 @@ import { Ic } from "../components/icons";
 import { useAppContext } from "../contexts/app-context";
 import { useLocation, useNavigate } from "react-router-dom";
 import { APP_ROUTES, isActiveRoute } from "./routes";
+import "./navbar.css";
 
 const navItems = [
   { route: APP_ROUTES.home, label: "Home" },

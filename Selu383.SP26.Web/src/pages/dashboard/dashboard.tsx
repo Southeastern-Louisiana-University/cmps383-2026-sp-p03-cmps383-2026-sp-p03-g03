@@ -1,8 +1,8 @@
 import { T, LOGO } from "../../styles/tokens.ts";
-import { Ic } from "../../components/icons";
-import { LoyaltyCard } from "../../components/loyalty-card";
+import { Ic } from "../../components/icons.tsx";
+import { LoyaltyCard } from "../../components/loyalty-card.tsx";
 import { useAppContext } from "../../contexts/app-context.tsx";
-import { ImageWithFallback } from "../../components/image-with-fallback";
+import { ImageWithFallback } from "../../components/image-with-fallback.tsx";
 import { useMenuCatalog } from "../../api/menu.ts";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../navigation/routes.ts";

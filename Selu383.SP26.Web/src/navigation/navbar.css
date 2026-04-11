@@ -1,0 +1,203 @@
+.topnav-root {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid var(--sand);
+  height: 72px;
+  backdrop-filter: blur(12px);
+  background: rgba(250, 246, 241, 0.95);
+}
+
+.topnav-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 48px;
+}
+
+.topnav-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-right: 64px;
+}
+
+.topnav-brand-logo {
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+}
+
+.topnav-brand-text {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  letter-spacing: -0.3px;
+  line-height: 1;
+}
+
+.topnav-nav {
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.topnav-nav-item {
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: none;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.topnav-nav-item-active {
+  background: var(--cream);
+  color: var(--dark-brew);
+  font-weight: 600;
+}
+
+.topnav-nav-item-idle {
+  background: transparent;
+  color: var(--mocha);
+  font-weight: 500;
+}
+
+.topnav-nav-indicator {
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--green);
+  border-radius: 1px;
+}
+
+.topnav-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topnav-cart {
+  position: relative;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.topnav-cart-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: var(--green);
+  color: var(--white);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.topnav-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--sand);
+  margin: 0 8px;
+}
+
+.topnav-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px 6px 6px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.topnav-profile-active {
+  background: var(--cream);
+}
+
+.topnav-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--dark-brew);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.topnav-avatar-initial {
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--white);
+}
+
+.topnav-user-meta {
+  text-align: left;
+}
+
+.topnav-user-name {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--dark-brew);
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  line-height: 1.2;
+}
+
+.topnav-user-points {
+  margin: 0;
+  font-size: 11px;
+  color: var(--mocha);
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  line-height: 1.2;
+}
+
+.topnav-signin {
+  padding: 10px 24px;
+  font-size: 14px;
+}

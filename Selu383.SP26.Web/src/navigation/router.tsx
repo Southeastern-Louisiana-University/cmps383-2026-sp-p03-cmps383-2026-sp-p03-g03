@@ -1,5 +1,5 @@
 import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
-import { DashboardPage } from "../pages/landing/dashboard";
+import { DashboardPage } from "../pages/dashboard/dashboard";
 import { MenuPage } from "../pages/menu/menu";
 import { CartPage } from "../pages/cart/cart";
 import { OrdersPage } from "../pages/orders/orders";
