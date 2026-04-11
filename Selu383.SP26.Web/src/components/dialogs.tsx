@@ -1,7 +1,9 @@
 import { T, card, btnP, lbl, inp } from "../styles/tokens";
 import { Ic, ItemIcon } from "./icons";
 import { Dialog } from "./dialog";
-import { useAppContext } from "./app-context";
+import { useAppContext } from "../contexts/app-context";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../navigation/routes";
 
 export function ItemDialog() {
   const { sel, setSel, note, setNote, qty, setQty, addToCart } =
@@ -443,7 +445,8 @@ export function CheckoutDialog() {
 }
 
 export function SuccessDialog() {
-  const { showOK, setShowOK, setCart, setTab, total } = useAppContext();
+  const { showOK, setShowOK, setCart, total } = useAppContext();
+  const navigate = useNavigate();
 
   return (
     <Dialog
@@ -531,7 +534,7 @@ export function SuccessDialog() {
           onClick={() => {
             setShowOK(false);
             setCart([]);
-            setTab("home");
+            navigate(APP_ROUTES.home);
           }}
           className="btn-primary focus-ring"
           style={{ ...btnP, padding: "14px 56px", fontSize: 16 }}

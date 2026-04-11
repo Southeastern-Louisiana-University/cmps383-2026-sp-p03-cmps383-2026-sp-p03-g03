@@ -1,5 +1,5 @@
-import { AppProvider } from "./components/app-context";
-import { Router } from "./router";
+import { AppProvider } from "./contexts/app-context";
+import { Router } from "./navigation/router";
 
 export default function App() {
   return (

@@ -1,9 +1,12 @@
 import { T, LOGO } from "../../styles/tokens";
 import { Ic, ItemIcon } from "../../components/icons";
-import { useAppContext } from "../../components/app-context";
+import { useAppContext } from "../../contexts/app-context";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../../navigation/routes";
 
 export function CartPage() {
-  const { cart, setCart, setTab, setShowCO, total } = useAppContext();
+  const { cart, setCart, setShowCO, total } = useAppContext();
+  const navigate = useNavigate();
 
   return (
     <div className="cart-page">
@@ -20,7 +23,7 @@ export function CartPage() {
             Browse our menu and add something delicious.
           </p>
           <button
-            onClick={() => setTab("order")}
+            onClick={() => navigate(APP_ROUTES.menu)}
             className="btn-primary focus-ring btn-primary-base"
           >
             Browse Menu

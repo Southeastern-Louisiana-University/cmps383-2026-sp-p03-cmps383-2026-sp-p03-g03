@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { T } from "../../styles/tokens.ts";
 import { ItemIcon } from "../../components/icons";
-import { useAppContext } from "../../components/app-context";
+import { useAppContext } from "../../contexts/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
-import { useMenuCatalog } from "../../services/menu.ts";
+import { useMenuCatalog } from "../../api/menu.ts";
 
 const catImages: Record<string, string> = {
   Drinks: T.icedImg,

@@ -1,22 +1,29 @@
 import { T, LOGO } from "../styles/tokens";
-import { Ic } from "./icons";
-import { useAppContext } from "./app-context";
+import { Ic } from "../components/icons";
+import { useAppContext } from "../contexts/app-context";
+import { useLocation, useNavigate } from "react-router-dom";
+import { APP_ROUTES, isActiveRoute } from "./routes";
 
 const navItems = [
-  { k: "home", l: "Home" },
-  { k: "order", l: "Menu" },
-  { k: "orders", l: "Order" },
-  { k: "reserve", l: "Reservations" },
+  { route: APP_ROUTES.home, label: "Home" },
+  { route: APP_ROUTES.menu, label: "Menu" },
+  { route: APP_ROUTES.orders, label: "Order" },
+  { route: APP_ROUTES.reservations, label: "Reservations" },
 ] as const;
 
 export function Navbar({ cartCount }: { cartCount: number }) {
-  const { isLoggedIn, setTab, tab, user } = useAppContext();
+  const { isLoggedIn, user } = useAppContext();
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
   const initials = user.name.charAt(0).toUpperCase();
 
   return (
     <header className="topnav-root">
       <div className="topnav-inner">
-        <button onClick={() => setTab("home")} className="topnav-brand">
+        <button
+          onClick={() => navigate(APP_ROUTES.home)}
+          className="topnav-brand"
+        >
           <img
             src={LOGO}
             alt="Caffeinated Lions"
@@ -28,19 +35,21 @@ export function Navbar({ cartCount }: { cartCount: number }) {
         <nav className="topnav-nav">
           {navItems.map((n) => (
             <button
-              key={n.k}
-              onClick={() => setTab(n.k)}
-              className={`cl-nav-link focus-ring topnav-nav-item ${tab === n.k ? "topnav-nav-item-active" : "topnav-nav-item-idle"}`}
+              key={n.route}
+              onClick={() => navigate(n.route)}
+              className={`cl-nav-link focus-ring topnav-nav-item ${isActiveRoute(pathname, n.route) ? "topnav-nav-item-active" : "topnav-nav-item-idle"}`}
             >
-              {n.l}
-              {tab === n.k && <span className="topnav-nav-indicator" />}
+              {n.label}
+              {isActiveRoute(pathname, n.route) && (
+                <span className="topnav-nav-indicator" />
+              )}
             </button>
           ))}
         </nav>
 
         <div className="topnav-actions">
           <button
-            onClick={() => setTab("cart")}
+            onClick={() => navigate(APP_ROUTES.cart)}
             className="focus-ring topnav-cart"
           >
             <Ic name="cart" size={22} color={T.darkBrew} />
@@ -53,8 +62,8 @@ export function Navbar({ cartCount }: { cartCount: number }) {
 
           {isLoggedIn ? (
             <button
-              onClick={() => setTab("profile")}
-              className={`cl-focus-ring topnav-profile ${tab === "profile" ? "topnav-profile-active" : ""}`}
+              onClick={() => navigate(APP_ROUTES.profile)}
+              className={`cl-focus-ring topnav-profile ${isActiveRoute(pathname, APP_ROUTES.profile) ? "topnav-profile-active" : ""}`}
             >
               <div className="topnav-avatar">
                 <span className="topnav-avatar-initial">{initials}</span>
@@ -66,7 +75,7 @@ export function Navbar({ cartCount }: { cartCount: number }) {
             </button>
           ) : (
             <button
-              onClick={() => setTab("auth")}
+              onClick={() => navigate(APP_ROUTES.auth)}
               className="btn-primary focus-ring topnav-signin"
             >
               Sign In

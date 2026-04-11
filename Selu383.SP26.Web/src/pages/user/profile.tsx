@@ -2,7 +2,10 @@ import { useState } from "react";
 import { T, LOGO } from "../../styles/tokens";
 import { Ic, ItemIcon } from "../../components/icons";
 import { LoyaltyCard } from "../../components/loyalty-card";
-import { useAppContext } from "../../components/app-context";
+import { useAppContext } from "../../contexts/app-context";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../../navigation/routes";
+import "./profile.css";
 
 const ORDER_HISTORY = [
   {
@@ -42,6 +45,7 @@ type ProfileTab = "overview" | "orders" | "favorites" | "settings";
 
 export function ProfilePage() {
   const { user, setUser, logout, setSel, setQty, setNote } = useAppContext();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState({
@@ -98,7 +102,10 @@ export function ProfilePage() {
         </div>
 
         <button
-          onClick={logout}
+          onClick={() => {
+            logout();
+            navigate(APP_ROUTES.home);
+          }}
           className="btn-outline focus-ring btn-outline-base profile-signout"
         >
           <Ic name="logout" size={16} color={T.mocha} />

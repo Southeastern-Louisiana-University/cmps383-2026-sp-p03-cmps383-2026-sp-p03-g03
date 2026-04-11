@@ -1,4 +1,4 @@
-import logoImg from "../assets/ConceptLogo2.png";
+import conceptLogo from "./assets/ConceptLogo2.png";
 
 export const T = {
   cream: "#FAF6F1",
@@ -45,7 +45,7 @@ export const T = {
     "https://images.unsplash.com/photo-1762806883627-4bcbfad98a2c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwaW50ZXJpb3IlMjB3YXJtJTIwd29vZGVuJTIwY296eSUyMGV2ZW5pbmd8ZW58MXx8fHwxNzc0MzM1OTgzfDA&ixlib=rb-4.1.0&q=80&w=1080",
 };
 
-export const LOGO = logoImg;
+export const LOGO = conceptLogo;
 
 export const CSS_TOKENS = {
   "--cream": T.cream,

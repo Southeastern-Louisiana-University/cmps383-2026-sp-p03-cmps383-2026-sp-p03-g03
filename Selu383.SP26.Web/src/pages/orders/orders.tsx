@@ -1,7 +1,8 @@
 import { useMemo } from "react";
-import { useAppContext } from "../../components/app-context";
 import { Ic } from "../../components/icons";
-import { useMyOrders } from "../../services/orders.ts";
+import { useMyOrders } from "../../api/orders.ts";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../../navigation/routes";
 
 function formatOrderDate(isoDate: string) {
   const asDate = new Date(isoDate);
@@ -17,7 +18,7 @@ function formatOrderDate(isoDate: string) {
 }
 
 export function OrdersPage() {
-  const { setTab } = useAppContext();
+  const navigate = useNavigate();
   const { orders, loading, unauthorized, error } = useMyOrders();
 
   const orderCards = useMemo(
@@ -48,7 +49,7 @@ export function OrdersPage() {
             Please sign in to view your order history.
           </p>
           <button
-            onClick={() => setTab("auth")}
+            onClick={() => navigate(APP_ROUTES.auth)}
             className="btn-primary focus-ring btn-primary-base"
           >
             Sign In
@@ -65,7 +66,7 @@ export function OrdersPage() {
             Start with the menu and your orders will appear here.
           </p>
           <button
-            onClick={() => setTab("order")}
+            onClick={() => navigate(APP_ROUTES.menu)}
             className="btn-primary focus-ring btn-primary-base"
           >
             Browse Menu

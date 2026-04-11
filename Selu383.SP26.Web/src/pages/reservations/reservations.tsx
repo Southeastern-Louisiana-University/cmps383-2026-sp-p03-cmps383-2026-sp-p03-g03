@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { T, LOGO } from "../../styles/tokens";
+import { T } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
 import { ImageWithFallback } from "../../components/image-with-fallback";
-import type { LocationDto } from "../../services/interfaces";
+import type { LocationDto } from "../../api/interfaces";
 
 export function ReservationPage() {
   const [res, setRes] = useState({ date: "", time: "08:00", party: 2 });
@@ -68,8 +68,6 @@ export function ReservationPage() {
               <div className="res-col-full">
                 <label className="label-base">Location</label>
                 <select className="select-base">
-                  // This needs a loading state and error handling for the fetch
-                  now.
                   {locations ? (
                     locations.map((loc) => (
                       <option key={loc.id} value={loc.id}>
@@ -152,7 +150,6 @@ export function ReservationPage() {
             </div>
 
             <div className="card-base res-walkin-card">
-              <img src={LOGO} alt="" className="res-walkin-logo" />
               <p className="res-walkin-title">Walk-ins welcome</p>
               <p className="res-walkin-copy">
                 Bar seating and patio seats are first-come, first-served — no

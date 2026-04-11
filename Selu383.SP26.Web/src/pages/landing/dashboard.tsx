@@ -1,18 +1,22 @@
 import { T, LOGO } from "../../styles/tokens.ts";
 import { Ic } from "../../components/icons";
 import { LoyaltyCard } from "../../components/loyalty-card";
-import { useAppContext } from "../../components/app-context";
+import { useAppContext } from "../../contexts/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
-import { useMenuCatalog } from "../../services/menu.ts";
+import { useMenuCatalog } from "../../api/menu.ts";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../../navigation/routes.ts";
+import "./dashboard.css";
 
-export function HomePage() {
-  const { user, setTab, setSel, setQty, setNote, cart, setCart } =
-    useAppContext();
+export function DashboardPage() {
+  const { user, setSel, setQty, setNote, cart, setCart } = useAppContext();
+  const navigate = useNavigate();
   const { featuredItems, loading, error } = useMenuCatalog();
 
   const featured = featuredItems.slice(0, 3);
   const reorderItem =
-    featuredItems.find((item) => item.category === "Drinks") ?? featuredItems[0];
+    featuredItems.find((item) => item.category === "Drinks") ??
+    featuredItems[0];
 
   return (
     <div className="dashboard-page">
@@ -37,13 +41,13 @@ export function HomePage() {
           </p>
           <div className="dashboard-hero-actions">
             <button
-              onClick={() => setTab("order")}
+              onClick={() => navigate(APP_ROUTES.menu)}
               className="btn-primary focus-ring btn-primary-base"
             >
               View Our Menu
             </button>
             <button
-              onClick={() => setTab("reserve")}
+              onClick={() => navigate(APP_ROUTES.reservations)}
               className="btn-outline focus-ring btn-outline-base dashboard-hero-outline-btn"
             >
               Reserve a Table

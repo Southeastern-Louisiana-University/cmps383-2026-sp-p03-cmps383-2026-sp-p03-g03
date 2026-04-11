@@ -1,26 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import type { CartItem, MenuItem } from "../services/interfaces";
-
-const TAB_ROUTES = {
-  home: "/",
-  order: "/menu",
-  orders: "/orders",
-  cart: "/cart",
-  reserve: "/reservations",
-  auth: "/auth",
-  profile: "/profile",
-} as const;
-
-function getTabFromPath(pathname: string) {
-  if (pathname === "/auth") return "auth";
-  if (pathname === "/cart") return "cart";
-  if (pathname === "/orders") return "orders";
-  if (pathname === "/menu" || pathname === "/order") return "order";
-  if (pathname === "/reservations" || pathname === "/reserve") return "reserve";
-  if (pathname === "/profile") return "profile";
-  return "home";
-}
+import type { CartItem, MenuItem } from "../api/interfaces";
 
 export interface UserProfile {
   name: string;
@@ -50,8 +29,6 @@ interface AppContextType {
   setQty: React.Dispatch<React.SetStateAction<number>>;
   rcpt: string;
   setRcpt: React.Dispatch<React.SetStateAction<string>>;
-  tab: string;
-  setTab: (t: string) => void;
   user: UserProfile;
   setUser: React.Dispatch<React.SetStateAction<UserProfile>>;
   total: number;
@@ -88,8 +65,6 @@ const accounts: Map<string, { name: string; password: string }> = new Map();
 accounts.set("bob@email.com", { name: "Bob", password: "password123" });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sel, setSel] = useState<MenuItem | null>(null);
   const [showCO, setShowCO] = useState(false);
@@ -99,16 +74,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [rcpt, setRcpt] = useState("email");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<UserProfile>(DEFAULT_USER);
-
-  const tab = getTabFromPath(location.pathname);
-
-  const setTab = (nextTab: string) => {
-    const targetRoute =
-      TAB_ROUTES[nextTab as keyof typeof TAB_ROUTES] ?? TAB_ROUTES.home;
-    if (targetRoute !== location.pathname) {
-      navigate(targetRoute);
-    }
-  };
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const count = cart.reduce((s, i) => s + i.qty, 0);
@@ -137,7 +102,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       return { ok: false, error: "Incorrect password." };
     setUser({ ...DEFAULT_USER, name: acct.name, email: trimEmail });
     setIsLoggedIn(true);
-    setTab("home");
     return { ok: true };
   };
 
@@ -164,14 +128,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       tier: "Bronze",
     });
     setIsLoggedIn(true);
-    setTab("home");
     return { ok: true };
   };
 
   const logout = () => {
     setIsLoggedIn(false);
     setCart([]);
-    setTab("home");
   };
 
   return (
@@ -191,8 +153,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setQty,
         rcpt,
         setRcpt,
-        tab,
-        setTab,
         user,
         setUser,
         total,

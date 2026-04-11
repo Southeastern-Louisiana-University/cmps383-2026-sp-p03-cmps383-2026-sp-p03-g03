@@ -1,5 +1,3 @@
-import type { MenuItem } from "./interfaces";
-
 export interface LocationDto {
   id: number;
   name: string;

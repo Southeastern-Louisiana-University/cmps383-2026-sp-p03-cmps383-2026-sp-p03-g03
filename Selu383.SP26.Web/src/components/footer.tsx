@@ -1,8 +1,11 @@
 import { LOGO } from "../styles/tokens";
-import { useAppContext } from "./app-context";
+import { useAppContext } from "../contexts/app-context";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../navigation/routes";
 
 export function Footer() {
-  const { isLoggedIn, setTab } = useAppContext();
+  const { isLoggedIn } = useAppContext();
+  const navigate = useNavigate();
   return (
     <footer className="footer-root">
       <div className="noise-overlay footer-noise" />
@@ -34,14 +37,14 @@ export function Footer() {
           <div>
             <h4 className="footer-col-title">Menu</h4>
             {[
-              { l: "Drinks", k: "order" },
-              { l: "Sweet Crepes", k: "order" },
-              { l: "Savory Crepes", k: "order" },
-              { l: "Bagels", k: "order" },
+              { l: "Drinks", route: APP_ROUTES.menu },
+              { l: "Sweet Crepes", route: APP_ROUTES.menu },
+              { l: "Savory Crepes", route: APP_ROUTES.menu },
+              { l: "Bagels", route: APP_ROUTES.menu },
             ].map((item) => (
               <button
                 key={item.l}
-                onClick={() => setTab(item.k)}
+                onClick={() => navigate(item.route)}
                 className="footer-link"
               >
                 {item.l}
@@ -54,22 +57,31 @@ export function Footer() {
             {isLoggedIn ? (
               <>
                 <button
-                  onClick={() => setTab("profile")}
+                  onClick={() => navigate(APP_ROUTES.profile)}
                   className="footer-link"
                 >
                   My Profile
                 </button>
-                <button onClick={() => setTab("cart")} className="footer-link">
+                <button
+                  onClick={() => navigate(APP_ROUTES.orders)}
+                  className="footer-link"
+                >
                   My Orders
                 </button>
                 <p className="footer-link footer-link-text">Rewards</p>
               </>
             ) : (
               <>
-                <button onClick={() => setTab("auth")} className="footer-link">
+                <button
+                  onClick={() => navigate(APP_ROUTES.auth)}
+                  className="footer-link"
+                >
                   Sign In
                 </button>
-                <button onClick={() => setTab("auth")} className="footer-link">
+                <button
+                  onClick={() => navigate(APP_ROUTES.auth)}
+                  className="footer-link"
+                >
                   Create Account
                 </button>
               </>

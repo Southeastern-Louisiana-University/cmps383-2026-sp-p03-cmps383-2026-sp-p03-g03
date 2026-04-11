@@ -1,11 +1,14 @@
 import { useState } from "react";
 import { T, LOGO } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
-import { useAppContext } from "../../components/app-context";
+import { useAppContext } from "../../contexts/app-context";
 import { ImageWithFallback } from "../../components/image-with-fallback";
+import { useNavigate } from "react-router-dom";
+import { APP_ROUTES } from "../../navigation/routes";
 
 export function AuthPage() {
   const { login, signup } = useAppContext();
+  const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -26,6 +29,7 @@ export function AuthPage() {
           : signup(name, email, password);
 
       if (!result.ok) setError(result.error || "Something went wrong.");
+      if (result.ok) navigate(APP_ROUTES.home);
       setLoading(false);
     }, 600);
   };
