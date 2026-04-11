@@ -1,7 +1,7 @@
 import { T, LOGO } from "../../styles/tokens.ts";
 import { Ic } from "../../components/icons.tsx";
 import { LoyaltyCard } from "../../components/loyalty-card.tsx";
-import { useAppContext } from "../../contexts/app-context.tsx";
+import { useAppContext } from "../../api/contexts/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback.tsx";
 import { useMenuCatalog } from "../../api/menu.ts";
 import { useNavigate } from "react-router-dom";
@@ -186,9 +186,7 @@ export function DashboardPage() {
               />
             </div>
             <div className="flex-1">
-              <p className="item-kicker item-kicker-xs">
-                Order Again
-              </p>
+              <p className="item-kicker item-kicker-xs">Order Again</p>
               <h4 className="reorder-title">Iced Latte</h4>
               <p className="reorder-copy">
                 {reorderItem

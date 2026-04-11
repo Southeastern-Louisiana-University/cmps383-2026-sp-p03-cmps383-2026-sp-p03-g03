@@ -1,0 +1,110 @@
+.loyalty-card {
+  background: var(--dark-brew);
+  border-radius: 16px;
+  padding: 32px;
+  position: relative;
+  overflow: hidden;
+}
+
+.loyalty-orb {
+  position: absolute;
+  top: -40px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 50%;
+}
+
+.loyalty-logo-wrap {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  opacity: 0.08;
+}
+
+.loyalty-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+}
+
+.loyalty-kicker {
+  color: var(--caramel);
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0 0 12px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.loyalty-points-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+
+.loyalty-points-value {
+  color: var(--white);
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.loyalty-points-label {
+  color: var(--caramel);
+  font-size: 16px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+  font-weight: 500;
+}
+
+.loyalty-progress-track {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 100px;
+  height: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.loyalty-progress-fill {
+  background: var(--green);
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.4s ease;
+}
+
+.loyalty-footer-row {
+  display: flex;
+  justify-content: space-between;
+}
+
+.loyalty-footer-copy {
+  color: var(--caramel);
+  font-size: 13px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}
+
+.loyalty-footer-muted {
+  color: rgba(196, 168, 130, 0.5);
+  font-size: 12px;
+  font-family:
+    "DM Sans",
+    -apple-system,
+    BlinkMacSystemFont,
+    sans-serif;
+}

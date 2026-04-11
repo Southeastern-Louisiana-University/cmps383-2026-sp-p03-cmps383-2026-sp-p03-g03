@@ -14,7 +14,7 @@ import {
   CheckoutDialog,
   SuccessDialog,
 } from "../components/dialogs";
-import { useAppContext } from "../contexts/app-context";
+import { useAppContext } from "../api/contexts/app-context";
 import { APP_ROUTES, normalizeRoute } from "./routes";
 
 function AppLayout() {

@@ -1,33 +1,35 @@
 import conceptLogo from "./assets/ConceptLogo2.png";
 
+const cssVar = (name: string): string => `var(--${name})`;
+
 export const T = {
-  cream: "#FAF6F1",
-  sand: "#F0E8DD",
-  warmTan: "#E5D5C3",
-  caramel: "#C4A882",
-  mocha: "#8B7355",
-  espresso: "#5C4A32",
-  darkBrew: "#1d1715",
-  green: "#65a30d",
-  greenLight: "#8bc82b",
-  greenDark: "#558c0a",
-  greenMuted: "#d4e9b3",
-  greenVibrant: "#7ec914",
-  lime: "#aee535",
-  white: "#FFFFFF",
+  cream: cssVar("cream"),
+  sand: cssVar("sand"),
+  warmTan: cssVar("warm-tan"),
+  caramel: cssVar("caramel"),
+  mocha: cssVar("mocha"),
+  espresso: cssVar("espresso"),
+  darkBrew: cssVar("dark-brew"),
+  green: cssVar("green"),
+  greenLight: cssVar("green-light"),
+  greenDark: cssVar("green-dark"),
+  greenMuted: cssVar("green-muted"),
+  greenVibrant: cssVar("green-vibrant"),
+  lime: cssVar("lime"),
+  white: cssVar("white"),
 
-  shadow: "0 1px 3px rgba(58,46,31,0.06), 0 1px 2px rgba(58,46,31,0.04)",
-  shadowMd: "0 4px 16px rgba(58,46,31,0.08), 0 1px 3px rgba(58,46,31,0.06)",
-  shadowLg: "0 12px 40px rgba(58,46,31,0.12), 0 4px 12px rgba(58,46,31,0.06)",
-  shadowHover: "0 8px 28px rgba(58,46,31,0.12), 0 2px 6px rgba(58,46,31,0.06)",
+  shadow: cssVar("shadow"),
+  shadowMd: cssVar("shadow-md"),
+  shadowLg: cssVar("shadow-lg"),
+  shadowHover: cssVar("shadow-hover"),
 
-  r: "12px",
-  rSm: "8px",
-  rLg: "16px",
-  rXl: "20px",
+  r: cssVar("radius-base"),
+  rSm: cssVar("radius-sm-base"),
+  rLg: cssVar("radius-lg-base"),
+  rXl: cssVar("radius-xl-base"),
 
-  font: "'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif",
-  fontDisplay: "'Playfair Display', Georgia, serif",
+  font: cssVar("font-body"),
+  fontDisplay: cssVar("font-display"),
 
   heroImg:
     "https://images.unsplash.com/photo-1764175761007-ae6c79e802b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcnRpc2FuJTIwY29mZmVlJTIwc2hvcCUyMGludGVyaW9yJTIwbW9vZHklMjB3YXJtJTIwbGlnaHRpbmd8ZW58MXx8fHwxNzc0MzM1OTc4fDA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -46,41 +48,6 @@ export const T = {
 };
 
 export const LOGO = conceptLogo;
-
-export const CSS_TOKENS = {
-  "--cream": T.cream,
-  "--sand": T.sand,
-  "--warm-tan": T.warmTan,
-  "--caramel": T.caramel,
-  "--mocha": T.mocha,
-  "--espresso": T.espresso,
-  "--dark-brew": T.darkBrew,
-  "--green": T.green,
-  "--green-light": T.greenLight,
-  "--green-dark": T.greenDark,
-  "--green-muted": T.greenMuted,
-  "--green-vibrant": T.greenVibrant,
-  "--lime": T.lime,
-  "--white": T.white,
-  "--bg-green-muted": T.greenMuted,
-  "--bg-warm-tan": T.warmTan,
-  "--shadow": T.shadow,
-  "--shadow-md": T.shadowMd,
-  "--shadow-lg": T.shadowLg,
-  "--shadow-hover": T.shadowHover,
-  "--radius": T.r,
-  "--radius-sm": T.rSm,
-  "--radius-lg": T.rLg,
-  "--radius-xl": T.rXl,
-} as const;
-
-export const applyCssTokens = (
-  root: HTMLElement = document.documentElement,
-): void => {
-  Object.entries(CSS_TOKENS).forEach(([name, value]) => {
-    root.style.setProperty(name, value);
-  });
-};
 
 export const card = (extra?: React.CSSProperties): React.CSSProperties => ({
   background: T.white,

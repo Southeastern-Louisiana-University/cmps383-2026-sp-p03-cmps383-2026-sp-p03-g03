@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { CartItem, MenuItem } from "../api/interfaces";
+import type { CartItem, MenuItem } from "../interfaces";
 
 export interface UserProfile {
   name: string;

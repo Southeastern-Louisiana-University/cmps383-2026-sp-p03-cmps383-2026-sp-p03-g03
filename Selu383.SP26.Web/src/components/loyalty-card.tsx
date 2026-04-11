@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import { LOGO } from "../styles/tokens";
+import "./loyalty-card.css";
 
 export const LoyaltyCard = ({
   user,

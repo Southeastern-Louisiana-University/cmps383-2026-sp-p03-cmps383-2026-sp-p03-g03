@@ -3,6 +3,7 @@ import { T } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import type { LocationDto } from "../../api/interfaces";
+import "./reservations.css";
 
 export function ReservationPage() {
   const [res, setRes] = useState({ date: "", time: "08:00", party: 2 });
