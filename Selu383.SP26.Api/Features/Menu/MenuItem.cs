@@ -1,3 +1,5 @@
+using Selu383.SP26.Api.Features.Auth;
+
 namespace Selu383.SP26.Api.Features.Menu;
 
 public class MenuItem
@@ -13,4 +15,8 @@ public class MenuItem
     public decimal BasePrice { get; set; }
 
     public bool IsAvailable { get; set; } = true;
+    public string? UnavailableReason { get; set; }
+    public DateTime? DisabledAt { get; set; }
+    public int? DisabledByUserId { get; set; }
+    public virtual User? DisabledByUser { get; set; }
 }

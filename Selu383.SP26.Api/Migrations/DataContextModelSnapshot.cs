@@ -22,21 +22,6 @@ namespace Selu383.SP26.Api.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("LocationMenuCategory", b =>
-                {
-                    b.Property<int>("LocationsId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MenuCategoriesId")
-                        .HasColumnType("int");
-
-                    b.HasKey("LocationsId", "MenuCategoriesId");
-
-                    b.HasIndex("MenuCategoriesId");
-
-                    b.ToTable("LocationMenuCategory");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
                 {
                     b.Property<int>("Id")
@@ -349,6 +334,12 @@ namespace Selu383.SP26.Api.Migrations
                     b.Property<int>("PointsRedeemed")
                         .HasColumnType("int");
 
+                    b.Property<int?>("RewardId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RewardName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -359,6 +350,33 @@ namespace Selu383.SP26.Api.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("LoyaltyLedgers");
+                });
+
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Loyalty.Reward", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PointsCost")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Rewards");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuCategory", b =>
@@ -379,9 +397,6 @@ namespace Selu383.SP26.Api.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.PrimitiveCollection<string>("LocationIds")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(120)
@@ -390,6 +405,21 @@ namespace Selu383.SP26.Api.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("menu_categories", (string)null);
+                });
+
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuCategoryLocation", b =>
+                {
+                    b.Property<int>("MenuCategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.HasKey("MenuCategoryId", "LocationId");
+
+                    b.HasIndex("LocationId");
+
+                    b.ToTable("menu_category_locations", (string)null);
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuItem", b =>
@@ -410,6 +440,12 @@ namespace Selu383.SP26.Api.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<DateTime?>("DisabledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DisabledByUserId")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsAvailable")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -420,9 +456,15 @@ namespace Selu383.SP26.Api.Migrations
                         .HasMaxLength(120)
                         .HasColumnType("nvarchar(120)");
 
+                    b.Property<string>("UnavailableReason")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("DisabledByUserId");
 
                     b.ToTable("menu_items", (string)null);
                 });
@@ -434,6 +476,12 @@ namespace Selu383.SP26.Api.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("CreatedByUserId")
                         .HasColumnType("int");
@@ -475,6 +523,12 @@ namespace Selu383.SP26.Api.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<decimal>("Subtotal")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("Tax")
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<decimal>("Total")
                         .HasColumnType("decimal(10,2)");
 
@@ -504,6 +558,11 @@ namespace Selu383.SP26.Api.Migrations
 
                     b.Property<int>("MenuItemId")
                         .HasColumnType("int");
+
+                    b.Property<string>("MenuItemName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("nvarchar(120)");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
@@ -537,7 +596,7 @@ namespace Selu383.SP26.Api.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<string>("ReceiptText")
+                    b.Property<string>("ReceiptUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -557,26 +616,95 @@ namespace Selu383.SP26.Api.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(10, 2)");
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("PaymentDate")
+                    b.Property<string>("PaymentMethodType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime?>("RemovedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PaymentMethod")
+                    b.Property<string>("RemovedReason")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Status")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("TransactionId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("Payments");
+                    b.ToTable("payments", (string)null);
+                });
+
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Payments.PaymentMethod", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Brand")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("CardholderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("ExpMonth")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ExpYear")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Last4")
+                        .IsRequired()
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<string>("StripePaymentMethodId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("payment_methods", (string)null);
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Reservations.Reservation", b =>
@@ -620,9 +748,9 @@ namespace Selu383.SP26.Api.Migrations
 
                     b.HasIndex("LocationId");
 
-                    b.HasIndex("TableId");
-
                     b.HasIndex("UserId");
+
+                    b.HasIndex("TableId", "ReservedFor");
 
                     b.ToTable("reservations", (string)null);
                 });
@@ -658,22 +786,10 @@ namespace Selu383.SP26.Api.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("LocationId", "TableNumber")
+                        .IsUnique();
+
                     b.ToTable("tables", (string)null);
-                });
-
-            modelBuilder.Entity("LocationMenuCategory", b =>
-                {
-                    b.HasOne("Selu383.SP26.Api.Features.Locations.Location", null)
-                        .WithMany()
-                        .HasForeignKey("LocationsId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Selu383.SP26.Api.Features.Menu.MenuCategory", null)
-                        .WithMany()
-                        .HasForeignKey("MenuCategoriesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -758,6 +874,25 @@ namespace Selu383.SP26.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuCategoryLocation", b =>
+                {
+                    b.HasOne("Selu383.SP26.Api.Features.Locations.Location", "Location")
+                        .WithMany("MenuCategoryLocations")
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Selu383.SP26.Api.Features.Menu.MenuCategory", "MenuCategory")
+                        .WithMany("MenuCategoryLocations")
+                        .HasForeignKey("MenuCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Location");
+
+                    b.Navigation("MenuCategory");
+                });
+
             modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuItem", b =>
                 {
                     b.HasOne("Selu383.SP26.Api.Features.Menu.MenuCategory", "Category")
@@ -766,7 +901,14 @@ namespace Selu383.SP26.Api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Selu383.SP26.Api.Features.Auth.User", "DisabledByUser")
+                        .WithMany()
+                        .HasForeignKey("DisabledByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("Category");
+
+                    b.Navigation("DisabledByUser");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Orders.Order", b =>
@@ -821,12 +963,23 @@ namespace Selu383.SP26.Api.Migrations
             modelBuilder.Entity("Selu383.SP26.Api.Features.Payments.Payment", b =>
                 {
                     b.HasOne("Selu383.SP26.Api.Features.Orders.Order", "Order")
-                        .WithMany()
+                        .WithMany("Payments")
                         .HasForeignKey("OrderId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Payments.PaymentMethod", b =>
+                {
+                    b.HasOne("Selu383.SP26.Api.Features.Auth.User", "User")
+                        .WithMany("PaymentMethods")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Reservations.Reservation", b =>
@@ -863,17 +1016,28 @@ namespace Selu383.SP26.Api.Migrations
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Auth.User", b =>
                 {
+                    b.Navigation("PaymentMethods");
+
                     b.Navigation("UserRoles");
+                });
+
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Locations.Location", b =>
+                {
+                    b.Navigation("MenuCategoryLocations");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuCategory", b =>
                 {
+                    b.Navigation("MenuCategoryLocations");
+
                     b.Navigation("MenuItems");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Orders.Order", b =>
                 {
                     b.Navigation("OrderItems");
+
+                    b.Navigation("Payments");
 
                     b.Navigation("Receipt");
                 });

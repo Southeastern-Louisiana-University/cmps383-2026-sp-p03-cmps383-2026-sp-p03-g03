@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using Selu383.SP26.Api.Data;
+using Selu383.SP26.Api.Features.Orders;
 
 namespace Selu383.SP26.Api.Features.Payments;
 
@@ -18,9 +19,9 @@ public class StripePaymentService
 
     public async Task<string> CreateCheckoutSessionAsync(int orderId)
     {
-        var secretKey = _configuration["Stripe:SecretKey"];
-        var successUrl = _configuration["Stripe:SuccessUrl"];
-        var cancelUrl = _configuration["Stripe:CancelUrl"];
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        var successUrl = _configuration["Stripe:SuccessUrl"]?.Trim();
+        var cancelUrl = _configuration["Stripe:CancelUrl"]?.Trim();
 
         if (string.IsNullOrWhiteSpace(secretKey))
             throw new Exception("Stripe secret key is missing.");
@@ -38,23 +39,50 @@ public class StripePaymentService
         if (order == null)
             throw new Exception("Order not found.");
 
-        if (order.OrderItems == null || order.OrderItems.Count == 0)
-            throw new Exception("Order has no items.");
+        List<SessionLineItemOptions> lineItems;
 
-        var lineItems = order.OrderItems.Select(item => new SessionLineItemOptions
+        if (order.OrderItems.Count == 0)
         {
-            Quantity = item.Quantity,
-            PriceData = new SessionLineItemPriceDataOptions
+            if (order.Total <= 0)
+                throw new Exception("Order has no billable amount.");
+
+            lineItems = new List<SessionLineItemOptions>
             {
-                Currency = "usd",
-                UnitAmount = (long)(item.UnitPrice * 100m),
-                ProductData = new SessionLineItemPriceDataProductDataOptions
+                new()
                 {
-                    Name = item.MenuItem?.Name ?? $"Item {item.MenuItemId}",
-                    Description = string.IsNullOrWhiteSpace(item.ItemNote) ? null : item.ItemNote
+                    Quantity = 1,
+                    PriceData = new SessionLineItemPriceDataOptions
+                    {
+                        Currency = "usd",
+                        UnitAmount = (long)(order.Total * 100m),
+                        ProductData = new SessionLineItemPriceDataProductDataOptions
+                        {
+                            Name = string.Equals(order.OrderType, OrderTypes.CoverCharge, StringComparison.OrdinalIgnoreCase)
+                                ? "Reservation Cover Charge"
+                                : "Order Charge",
+                            Description = string.IsNullOrWhiteSpace(order.Note) ? null : order.Note
+                        }
+                    }
                 }
-            }
-        }).ToList();
+            };
+        }
+        else
+        {
+            lineItems = order.OrderItems.Select(item => new SessionLineItemOptions
+            {
+                Quantity = item.Quantity,
+                PriceData = new SessionLineItemPriceDataOptions
+                {
+                    Currency = "usd",
+                    UnitAmount = (long)(item.UnitPrice * 100m),
+                    ProductData = new SessionLineItemPriceDataProductDataOptions
+                    {
+                        Name = item.MenuItemName,
+                        Description = string.IsNullOrWhiteSpace(item.ItemNote) ? null : item.ItemNote
+                    }
+                }
+            }).ToList();
+        }
 
         var options = new SessionCreateOptions
         {
@@ -75,4 +103,195 @@ public class StripePaymentService
 
         return session.Url!;
     }
+
+    public async Task<PaymentMethodCreateResult> CreatePaymentMethodAsync(string cardholderName, string cardNumber, int expMonth, int expYear, string cvc)
+    {
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        if (string.IsNullOrWhiteSpace(secretKey))
+            throw new Exception("Stripe secret key is missing.");
+
+        StripeConfiguration.ApiKey = secretKey;
+
+        try
+        {
+            var options = new PaymentMethodCreateOptions
+            {
+                Type = "card",
+                Card = new PaymentMethodCardOptions
+                {
+                    Number = cardNumber,
+                    ExpMonth = (long)expMonth,
+                    ExpYear = (long)expYear,
+                    Cvc = cvc
+                }
+            };
+
+            var service = new PaymentMethodService();
+            var paymentMethod = await service.CreateAsync(options);
+
+            return new PaymentMethodCreateResult
+            {
+                StripePaymentMethodId = paymentMethod.Id,
+                Brand = paymentMethod.Card?.Brand ?? "Card",
+                Last4 = paymentMethod.Card?.Last4 ?? "0000",
+                ExpMonth = expMonth,
+                ExpYear = expYear
+            };
+        }
+        catch (StripeException ex)
+        {
+            throw new Exception($"Stripe API error: {ex.Message}", ex);
+        }
+    }
+
+    public async Task<bool> SyncOrderPaymentStatusFromStripeAsync(int orderId)
+    {
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        if (string.IsNullOrWhiteSpace(secretKey))
+            throw new Exception("Stripe secret key is missing.");
+
+        StripeConfiguration.ApiKey = secretKey;
+
+        var order = await _context.Orders
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order == null)
+            throw new Exception("Order not found.");
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+            return false;
+
+        var sessionService = new SessionService();
+        var sessions = await sessionService.ListAsync(new SessionListOptions { Limit = 100 });
+        var targetOrderId = orderId.ToString();
+
+        var paidSession = sessions.Data.FirstOrDefault(s =>
+        {
+            var matchesOrder =
+                (!string.IsNullOrWhiteSpace(s.ClientReferenceId) && s.ClientReferenceId == targetOrderId) ||
+                (s.Metadata != null && s.Metadata.TryGetValue("orderId", out var metadataOrderId) && metadataOrderId == targetOrderId);
+
+            if (!matchesOrder)
+                return false;
+
+            return string.Equals(s.PaymentStatus, "paid", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(s.Status, "complete", StringComparison.OrdinalIgnoreCase);
+        });
+
+        if (paidSession == null)
+            return false;
+
+        var transactionId = paidSession.PaymentIntentId ?? paidSession.Id;
+        var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == transactionId);
+
+        if (existingPayment == null)
+        {
+            order.Payments.Add(new Payment
+            {
+                OrderId = order.Id,
+                Provider = "Stripe",
+                PaymentMethodType = "CheckoutSession",
+                TransactionId = transactionId,
+                Amount = order.Total,
+                Status = PaymentStatuses.Paid,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            existingPayment.Status = PaymentStatuses.Paid;
+        }
+
+        order.PaymentStatus = PaymentStatuses.Paid;
+        order.Status = OrderStatuses.Confirmed;
+
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<string> ChargeOrderWithSavedMethodAsync(int orderId, string stripePaymentMethodId)
+    {
+        var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
+        if (string.IsNullOrWhiteSpace(secretKey))
+            throw new Exception("Stripe secret key is missing.");
+
+        StripeConfiguration.ApiKey = secretKey;
+
+        var order = await _context.Orders
+            .Include(o => o.Payments)
+            .FirstOrDefaultAsync(o => o.Id == orderId);
+
+        if (order == null)
+            throw new Exception("Order not found.");
+
+        if (order.PaymentStatus == PaymentStatuses.Paid)
+            return "Order is already paid.";
+
+        var intentService = new PaymentIntentService();
+
+        var createOptions = new PaymentIntentCreateOptions
+        {
+            Amount = (long)(order.Total * 100m),
+            Currency = "usd",
+            Confirm = true,
+            PaymentMethod = stripePaymentMethodId,
+            OffSession = true,
+            Description = $"Order {order.OrderCode}",
+            Metadata = new Dictionary<string, string>
+            {
+                ["orderId"] = order.Id.ToString(),
+                ["orderCode"] = order.OrderCode
+            }
+        };
+
+        PaymentIntent intent;
+        try
+        {
+            intent = await intentService.CreateAsync(createOptions);
+        }
+        catch (StripeException ex) when (string.Equals(ex.StripeError?.Code, "authentication_required", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Saved card requires authentication. Please complete checkout flow.");
+        }
+
+        if (!string.Equals(intent.Status, "succeeded", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Saved card payment did not complete. Please use checkout.");
+
+        var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == intent.Id);
+        if (existingPayment == null)
+        {
+            order.Payments.Add(new Payment
+            {
+                OrderId = order.Id,
+                Provider = "Stripe",
+                PaymentMethodType = "SavedPaymentMethod",
+                TransactionId = intent.Id,
+                Amount = order.Total,
+                Status = PaymentStatuses.Paid,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            existingPayment.Status = PaymentStatuses.Paid;
+        }
+
+        order.PaymentStatus = PaymentStatuses.Paid;
+        order.Status = OrderStatuses.Confirmed;
+
+        await _context.SaveChangesAsync();
+
+        return intent.Id;
+    }
+}
+
+public class PaymentMethodCreateResult
+{
+    public string StripePaymentMethodId { get; set; } = string.Empty;
+    public string Brand { get; set; } = string.Empty;
+    public string Last4 { get; set; } = string.Empty;
+    public int ExpMonth { get; set; }
+    public int ExpYear { get; set; }
 }

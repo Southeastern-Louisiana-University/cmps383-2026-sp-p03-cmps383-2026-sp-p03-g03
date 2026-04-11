@@ -24,9 +24,17 @@ public class MenuItemConfiguration : IEntityTypeConfiguration<MenuItem>
         builder.Property(x => x.IsAvailable)
             .HasDefaultValue(true);
 
+        builder.Property(x => x.UnavailableReason)
+            .HasMaxLength(250);
+
         builder.HasOne(x => x.Category)
             .WithMany(x => x.MenuItems)
             .HasForeignKey(x => x.CategoryId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(x => x.DisabledByUser)
+            .WithMany()
+            .HasForeignKey(x => x.DisabledByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

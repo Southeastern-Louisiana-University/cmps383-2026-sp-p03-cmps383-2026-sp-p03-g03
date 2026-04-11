@@ -9,7 +9,7 @@ public class LocationConfiguration : IEntityTypeConfiguration<Location>
     {
         builder.ToTable("locations");
 
-         builder.HasKey(x => x.Id);
+        builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Name)
             .IsRequired()

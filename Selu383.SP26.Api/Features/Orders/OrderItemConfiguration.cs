@@ -11,6 +11,10 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.HasKey(x => x.Id);
 
+        builder.Property(x => x.MenuItemName)
+            .HasMaxLength(120)
+            .IsRequired();
+
         builder.Property(x => x.Quantity)
             .IsRequired();
 

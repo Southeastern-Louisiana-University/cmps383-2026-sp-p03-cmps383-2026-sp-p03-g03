@@ -8,11 +8,13 @@ import {
   Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { AnimatedButton } from "@/components/animated-button";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { MenuItemCard } from "@/components/menu-item-card";
+import { useCart } from "@/hooks/useCart";
 import * as api from "@/services/api";
 import type { MenuItemDto, MenuCategoryDto } from "@/services/api";
 import { CommonStyles, getColors } from "@/constants/styles";
@@ -22,6 +24,9 @@ export default function MenuScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = getColors(isDark);
+  const router = useRouter();
+  const { addItem } = useCart();
+
   const [items, setItems] = useState<MenuItemDto[]>([]);
   const [categories, setCategories] = useState<MenuCategoryDto[]>([]);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(
@@ -38,20 +43,19 @@ export default function MenuScreen() {
     try {
       setLoading(true);
       setError(null);
-      console.log("[Menu] Fetching menu items and categories...");
+
       const [menuCategories, menuItems] = await Promise.all([
         api.getMenuCategories(),
         api.getMenuItems(),
       ]);
-      console.log("[Menu] Got categories:", menuCategories);
-      console.log("[Menu] Got items:", menuItems);
+
       setCategories(menuCategories);
       setItems(menuItems);
+
       if (menuCategories.length > 0) {
         setSelectedCategoryId(menuCategories[0].id);
       }
     } catch (err: any) {
-      console.log("[Menu] Error fetching data:", err.message);
       setError(err.message || "Failed to load menu");
     } finally {
       setLoading(false);
@@ -59,7 +63,25 @@ export default function MenuScreen() {
   };
 
   const handleSelectItem = (item: MenuItemDto) => {
-    Alert.alert(item.name, "Ordering is coming soon.");
+    if (!item.isAvailable) {
+      Alert.alert(
+        "Unavailable",
+        item.unavailableReason || "This item is currently unavailable.",
+      );
+      return;
+    }
+
+    addItem(
+      {
+        id: item.id,
+        name: item.name,
+        price: item.basePrice,
+        quantity: 1,
+      },
+      1,
+    );
+
+    router.push("/(tabs)/cart");
   };
 
   if (loading) {
@@ -106,6 +128,7 @@ export default function MenuScreen() {
       <ScrollView contentContainerStyle={CommonStyles.scrollContent}>
         <ThemedView style={CommonStyles.container}>
           <PageHeaderActions />
+
           <View style={styles.titleRow}>
             <Image
               source={require("@/assets/images/ConceptLogo2-FpjOWRtT.png")}
@@ -115,7 +138,6 @@ export default function MenuScreen() {
             <ThemedText style={CommonStyles.title}>Menu</ThemedText>
           </View>
 
-          {/* Category Filter Buttons */}
           {categories.length > 0 && (
             <View style={styles.categoryContainer}>
               <ScrollView
@@ -176,6 +198,7 @@ export default function MenuScreen() {
                 {filteredItems.length} item
                 {filteredItems.length !== 1 ? "s" : ""} in this category
               </ThemedText>
+
               {filteredItems.map((item) => (
                 <MenuItemCard
                   key={item.id}

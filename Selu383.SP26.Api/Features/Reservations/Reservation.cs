@@ -18,12 +18,9 @@ public class Reservation
     public virtual Table? Table { get; set; }
 
     public DateTime ReservedFor { get; set; }
-
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
     public int PartySize { get; set; }
-
-    public string Status { get; set; } = "Pending";
-
+    public string Status { get; set; } = ReservationStatuses.Pending;
     public string? SpecialRequests { get; set; }
 }
