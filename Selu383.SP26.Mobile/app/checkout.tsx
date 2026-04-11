@@ -7,7 +7,6 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
-  Platform,
   Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -93,16 +92,62 @@ export default function CheckoutScreen() {
       try {
         const stripeUrl = await createStripeCheckoutSession(order.id);
         clearCart();
-        await WebBrowser.openBrowserAsync(stripeUrl);
-        // After browser closes, send user to orders
-        router.replace('/(tabs)/orders');
+        
+        // Show receipt if available
+        if (order.receiptUrl) {
+          Alert.alert(
+            'Order Placed!',
+            `Your order #${order.orderCode} is confirmed.\n\nYour receipt is ready.`,
+            [
+              {
+                text: 'View Receipt',
+                onPress: () => {
+                  WebBrowser.openBrowserAsync(order.receiptUrl!);
+                  router.replace('/(tabs)/orders');
+                },
+              },
+              {
+                text: 'Continue to Payment',
+                onPress: () => {
+                  WebBrowser.openBrowserAsync(stripeUrl);
+                  router.replace('/(tabs)/orders');
+                },
+              },
+            ],
+          );
+        } else {
+          await WebBrowser.openBrowserAsync(stripeUrl);
+          router.replace('/(tabs)/orders');
+        }
       } catch {
         // Stripe not configured — still confirm the order
         clearCart();
-        router.replace('/(tabs)/orders');
-        setTimeout(() => {
-          Alert.alert('Order Placed!', `Your order #${order.orderCode} is confirmed.\nPayment can be completed at the counter.`);
-        }, 300);
+        
+        // Show receipt if available
+        if (order.receiptUrl) {
+          Alert.alert(
+            'Order Placed!',
+            `Your order #${order.orderCode} is confirmed.\nPayment can be completed at the counter.`,
+            [
+              {
+                text: 'View Receipt',
+                onPress: () => {
+                  WebBrowser.openBrowserAsync(order.receiptUrl!);
+                  router.replace('/(tabs)/orders');
+                },
+              },
+              {
+                text: 'Done',
+                onPress: () => router.replace('/(tabs)/orders'),
+              },
+            ],
+          );
+        } else {
+          router.replace('/(tabs)/orders');
+          setTimeout(() => {
+            Alert.alert('Order Placed!', `Your order #${order.orderCode} is confirmed.\nPayment can be completed at the counter.`);
+          }, 300);
+        }
       }
     } catch (err: any) {
       Alert.alert('Order Failed', err.message || 'Could not place order. Please try again.');
@@ -147,7 +192,7 @@ export default function CheckoutScreen() {
               </ThemedText>
             ) : (
               cart.map((item) => (
-                <View key={item.id} style={[styles.cartRow, { borderTopColor: colors.border }]}>
+                <View key={item.id} style={[styles.cartRow, { borderTopColor: colors.border }]}> 
                   <View style={styles.cartItemInfo}>
                     <ThemedText style={[styles.cartItemName, { color: colors.text }]}>{item.name}</ThemedText>
                     {item.customizationNotes ? (
