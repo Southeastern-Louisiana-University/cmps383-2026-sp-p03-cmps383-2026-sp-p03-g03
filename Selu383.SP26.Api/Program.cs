@@ -36,7 +36,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReceiptPdfService>();
@@ -118,34 +117,25 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+app.UseHttpsRedirection();
 
-app.UseRouting();
-
-app.UseCors("AllowFrontendApps");
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-
-    await next();
-});
-
-app.UseAuthentication();
-app.UseAuthorization();
+app
+    .UseRouting()
+    .UseCors("AllowFrontendApps")
+    .UseAuthentication()
+    .UseAuthorization()
+    .UseEndpoints(e => e.MapControllers());
 
 app.UseStaticFiles();
-app.MapControllers();
 
-if (!app.Environment.IsDevelopment())
+if(app.Environment.IsDevelopment())
+{
+    app.UseSpa(x =>
+    {
+        x.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+    });
+}
+else
 {
     app.MapFallbackToFile("/index.html");
 }

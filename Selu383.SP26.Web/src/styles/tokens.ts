@@ -47,6 +47,41 @@ export const T = {
 
 export const LOGO = logoImg;
 
+export const CSS_TOKENS = {
+  "--cream": T.cream,
+  "--sand": T.sand,
+  "--warm-tan": T.warmTan,
+  "--caramel": T.caramel,
+  "--mocha": T.mocha,
+  "--espresso": T.espresso,
+  "--dark-brew": T.darkBrew,
+  "--green": T.green,
+  "--green-light": T.greenLight,
+  "--green-dark": T.greenDark,
+  "--green-muted": T.greenMuted,
+  "--green-vibrant": T.greenVibrant,
+  "--lime": T.lime,
+  "--white": T.white,
+  "--bg-green-muted": T.greenMuted,
+  "--bg-warm-tan": T.warmTan,
+  "--shadow": T.shadow,
+  "--shadow-md": T.shadowMd,
+  "--shadow-lg": T.shadowLg,
+  "--shadow-hover": T.shadowHover,
+  "--radius": T.r,
+  "--radius-sm": T.rSm,
+  "--radius-lg": T.rLg,
+  "--radius-xl": T.rXl,
+} as const;
+
+export const applyCssTokens = (
+  root: HTMLElement = document.documentElement,
+): void => {
+  Object.entries(CSS_TOKENS).forEach(([name, value]) => {
+    root.style.setProperty(name, value);
+  });
+};
+
 export const card = (extra?: React.CSSProperties): React.CSSProperties => ({
   background: T.white,
   borderRadius: T.r,
@@ -115,183 +150,6 @@ export const selSt: React.CSSProperties = {
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right 16px center",
 };
-
-export interface MenuItem {
-  id: number;
-  name: string;
-  price: number;
-  desc: string;
-}
-export interface CartItem extends MenuItem {
-  qty: number;
-  note: string;
-}
-
-export const MENU: Record<string, MenuItem[]> = {
-  Drinks: [
-    {
-      id: 1,
-      name: "Iced Latte",
-      price: 5.5,
-      desc: "Espresso and milk served over ice for a refreshing coffee drink.",
-    },
-    {
-      id: 2,
-      name: "Supernova",
-      price: 7.95,
-      desc: "A unique coffee blend with a complex, balanced profile and subtle sweetness.",
-    },
-    {
-      id: 3,
-      name: "Roaring Frappe",
-      price: 6.2,
-      desc: "Cold brew, milk, and ice blended with a signature syrup, topped with whipped cream.",
-    },
-    {
-      id: 4,
-      name: "Black & White Cold Brew",
-      price: 5.15,
-      desc: "Cold brew made with dark and light roast beans, finished with condensed milk.",
-    },
-    {
-      id: 5,
-      name: "Strawberry Limeade",
-      price: 5.0,
-      desc: "Fresh lime juice blended with strawberry purée for a refreshing, tangy drink.",
-    },
-    {
-      id: 6,
-      name: "Shaken Lemonade",
-      price: 5.0,
-      desc: "Fresh lemon juice and simple syrup vigorously shaken for a bright lemonade.",
-    },
-  ],
-  "Sweet Crepes": [
-    {
-      id: 7,
-      name: "Mannino Honey Crepe",
-      price: 10.0,
-      desc: "A sweet crepe drizzled with Mannino honey and topped with mixed berries.",
-    },
-    {
-      id: 8,
-      name: "Downtowner",
-      price: 10.75,
-      desc: "Strawberries and bananas in a crepe, finished with Nutella and chocolate sauce.",
-    },
-    {
-      id: 9,
-      name: "Funky Monkey",
-      price: 10.0,
-      desc: "Nutella and bananas wrapped in a crepe, served with whipped cream.",
-    },
-    {
-      id: 10,
-      name: "Le S'mores",
-      price: 9.5,
-      desc: "Marshmallow cream and chocolate inside a crepe, topped with graham cracker crumbs.",
-    },
-    {
-      id: 11,
-      name: "Strawberry Fields",
-      price: 10.0,
-      desc: "Fresh strawberries with chocolate drizzle and powdered sugar.",
-    },
-    {
-      id: 12,
-      name: "Bonjour",
-      price: 8.5,
-      desc: "A sweet crepe filled with syrup and cinnamon, finished with powdered sugar.",
-    },
-    {
-      id: 13,
-      name: "Banana Foster",
-      price: 8.95,
-      desc: "Bananas with cinnamon in a crepe, topped with caramel sauce.",
-    },
-  ],
-  "Savory Crepes": [
-    {
-      id: 14,
-      name: "Matt's Scrambled Eggs",
-      price: 5.0,
-      desc: "Scrambled eggs and melted mozzarella cheese wrapped in a crepe.",
-    },
-    {
-      id: 15,
-      name: "Meanie Mushroom",
-      price: 10.5,
-      desc: "Sautéed mushrooms, mozzarella, tomato, and bacon inside a crepe.",
-    },
-    {
-      id: 16,
-      name: "Turkey Club",
-      price: 10.5,
-      desc: "Sliced turkey, bacon, spinach, and tomato wrapped in a savory crepe.",
-    },
-    {
-      id: 17,
-      name: "Green Machine",
-      price: 10.0,
-      desc: "Spinach, artichokes, and mozzarella cheese inside a fresh crepe.",
-    },
-    {
-      id: 18,
-      name: "Perfect Pair",
-      price: 10.0,
-      desc: "A unique combination of bacon and Nutella wrapped in a crepe.",
-    },
-    {
-      id: 19,
-      name: "Crepe Fromage",
-      price: 8.0,
-      desc: "A savory crepe filled with a blend of cheeses.",
-    },
-    {
-      id: 20,
-      name: "Farmers Market Crepe",
-      price: 10.5,
-      desc: "Turkey, spinach, and mozzarella wrapped in a savory crepe.",
-    },
-  ],
-  Bagels: [
-    {
-      id: 21,
-      name: "Travis Special",
-      price: 14.0,
-      desc: "Cream cheese, salmon, spinach, and a fried egg on a toasted bagel.",
-    },
-    {
-      id: 22,
-      name: "Crème Brulagel",
-      price: 8.0,
-      desc: "A toasted bagel with caramelized sugar crust, served with cream cheese.",
-    },
-    {
-      id: 23,
-      name: "The Fancy One",
-      price: 13.0,
-      desc: "Smoked salmon, cream cheese, and fresh dill on a toasted bagel.",
-    },
-    {
-      id: 24,
-      name: "Breakfast Bagel",
-      price: 9.5,
-      desc: "Ham, bacon, or sausage with a fried egg and cheddar on a bagel.",
-    },
-    {
-      id: 25,
-      name: "The Classic",
-      price: 5.25,
-      desc: "A toasted bagel with cream cheese.",
-    },
-  ],
-};
-
-export const getCat = (id: number) =>
-  Object.entries(MENU).find(([, items]) =>
-    items.some((i) => i.id === id),
-  )?.[0] || "Drinks";
 
 export const noiseOverlay: React.CSSProperties = {
   position: "absolute",

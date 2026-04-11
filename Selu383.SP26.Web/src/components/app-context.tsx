@@ -1,5 +1,26 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { CartItem, MenuItem } from "./tokens";
+import { useLocation, useNavigate } from "react-router-dom";
+import type { CartItem, MenuItem } from "../services/interfaces";
+
+const TAB_ROUTES = {
+  home: "/",
+  order: "/menu",
+  orders: "/orders",
+  cart: "/cart",
+  reserve: "/reservations",
+  auth: "/auth",
+  profile: "/profile",
+} as const;
+
+function getTabFromPath(pathname: string) {
+  if (pathname === "/auth") return "auth";
+  if (pathname === "/cart") return "cart";
+  if (pathname === "/orders") return "orders";
+  if (pathname === "/menu" || pathname === "/order") return "order";
+  if (pathname === "/reservations" || pathname === "/reserve") return "reserve";
+  if (pathname === "/profile") return "profile";
+  return "home";
+}
 
 export interface UserProfile {
   name: string;
@@ -38,7 +59,11 @@ interface AppContextType {
   addToCart: () => void;
   isLoggedIn: boolean;
   login: (email: string, password: string) => { ok: boolean; error?: string };
-  signup: (name: string, email: string, password: string) => { ok: boolean; error?: string };
+  signup: (
+    name: string,
+    email: string,
+    password: string,
+  ) => { ok: boolean; error?: string };
   logout: () => void;
 }
 
@@ -63,6 +88,8 @@ const accounts: Map<string, { name: string; password: string }> = new Map();
 accounts.set("bob@email.com", { name: "Bob", password: "password123" });
 
 export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [sel, setSel] = useState<MenuItem | null>(null);
   const [showCO, setShowCO] = useState(false);
@@ -70,41 +97,72 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [note, setNote] = useState("");
   const [qty, setQty] = useState(1);
   const [rcpt, setRcpt] = useState("email");
-  const [tab, setTab] = useState("home");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<UserProfile>(DEFAULT_USER);
+
+  const tab = getTabFromPath(location.pathname);
+
+  const setTab = (nextTab: string) => {
+    const targetRoute =
+      TAB_ROUTES[nextTab as keyof typeof TAB_ROUTES] ?? TAB_ROUTES.home;
+    if (targetRoute !== location.pathname) {
+      navigate(targetRoute);
+    }
+  };
 
   const total = cart.reduce((s, i) => s + i.price * i.qty, 0);
   const count = cart.reduce((s, i) => s + i.qty, 0);
 
   const addToCart = () => {
     if (!sel) return;
-    const ex = cart.find(c => c.id === sel.id && c.note === note);
-    if (ex) setCart(cart.map(c => c === ex ? { ...c, qty: c.qty + qty } : c));
+    const ex = cart.find((c) => c.id === sel.id && c.note === note);
+    if (ex)
+      setCart(cart.map((c) => (c === ex ? { ...c, qty: c.qty + qty } : c)));
     else setCart([...cart, { ...sel, qty, note }]);
-    setSel(null); setNote(""); setQty(1);
+    setSel(null);
+    setNote("");
+    setQty(1);
   };
 
-  const login = (email: string, password: string): { ok: boolean; error?: string } => {
+  const login = (
+    email: string,
+    password: string,
+  ): { ok: boolean; error?: string } => {
     const trimEmail = email.trim().toLowerCase();
-    if (!trimEmail || !password) return { ok: false, error: "Please fill in all fields." };
+    if (!trimEmail || !password)
+      return { ok: false, error: "Please fill in all fields." };
     const acct = accounts.get(trimEmail);
     if (!acct) return { ok: false, error: "No account found with this email." };
-    if (acct.password !== password) return { ok: false, error: "Incorrect password." };
+    if (acct.password !== password)
+      return { ok: false, error: "Incorrect password." };
     setUser({ ...DEFAULT_USER, name: acct.name, email: trimEmail });
     setIsLoggedIn(true);
     setTab("home");
     return { ok: true };
   };
 
-  const signup = (name: string, email: string, password: string): { ok: boolean; error?: string } => {
+  const signup = (
+    name: string,
+    email: string,
+    password: string,
+  ): { ok: boolean; error?: string } => {
     const trimName = name.trim();
     const trimEmail = email.trim().toLowerCase();
-    if (!trimName || !trimEmail || !password) return { ok: false, error: "Please fill in all fields." };
-    if (password.length < 6) return { ok: false, error: "Password must be at least 6 characters." };
-    if (accounts.has(trimEmail)) return { ok: false, error: "An account with this email already exists." };
+    if (!trimName || !trimEmail || !password)
+      return { ok: false, error: "Please fill in all fields." };
+    if (password.length < 6)
+      return { ok: false, error: "Password must be at least 6 characters." };
+    if (accounts.has(trimEmail))
+      return { ok: false, error: "An account with this email already exists." };
     accounts.set(trimEmail, { name: trimName, password });
-    setUser({ ...DEFAULT_USER, name: trimName, email: trimEmail, points: 0, memberSince: "March 2026", tier: "Bronze" });
+    setUser({
+      ...DEFAULT_USER,
+      name: trimName,
+      email: trimEmail,
+      points: 0,
+      memberSince: "March 2026",
+      tier: "Bronze",
+    });
     setIsLoggedIn(true);
     setTab("home");
     return { ok: true };
@@ -117,12 +175,35 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AppContext.Provider value={{
-      cart, setCart, sel, setSel, showCO, setShowCO, showOK, setShowOK,
-      note, setNote, qty, setQty, rcpt, setRcpt, tab, setTab,
-      user, setUser, total, count, addToCart,
-      isLoggedIn, login, signup, logout,
-    }}>
+    <AppContext.Provider
+      value={{
+        cart,
+        setCart,
+        sel,
+        setSel,
+        showCO,
+        setShowCO,
+        showOK,
+        setShowOK,
+        note,
+        setNote,
+        qty,
+        setQty,
+        rcpt,
+        setRcpt,
+        tab,
+        setTab,
+        user,
+        setUser,
+        total,
+        count,
+        addToCart,
+        isLoggedIn,
+        login,
+        signup,
+        logout,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
