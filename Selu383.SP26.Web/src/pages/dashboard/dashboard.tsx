@@ -20,26 +20,26 @@ export function DashboardPage() {
 
   return (
     <div className="dashboard-page">
-      <section className="dashboard-hero">
+      <section className="hero">
         <ImageWithFallback
           src={T.heroImg}
           alt="Caffeinated Lions coffee shop"
-          className="dashboard-hero-image"
+          className="hero-image"
         />
-        <div className="dashboard-hero-overlay" />
+        <div className="hero-overlay" />
         <div className="noise-overlay" />
 
-        <div className="dashboard-hero-content">
-          <p className="dashboard-hero-kicker">Welcome back, {user.name}</p>
-          <h1 className="dashboard-hero-title">
+        <div className="hero-content">
+          <p className="hero-kicker">Welcome back, {user.name}</p>
+          <h1 className="hero-title">
             Every cup is
             <br />a moment worth savoring.
           </h1>
-          <p className="dashboard-hero-subtitle">
+          <p className="hero-subtitle">
             Handcrafted drinks, delicate crepes, fresh bagels, all made with
             love.
           </p>
-          <div className="dashboard-hero-actions">
+          <div className="hero-actions">
             <button
               onClick={() => navigate(APP_ROUTES.menu)}
               className="btn-primary focus-ring btn-primary-base"
@@ -48,17 +48,17 @@ export function DashboardPage() {
             </button>
             <button
               onClick={() => navigate(APP_ROUTES.reservations)}
-              className="btn-outline focus-ring btn-outline-base dashboard-hero-outline-btn"
+              className="btn-outline focus-ring btn-outline-base hero-outline-btn"
             >
               Reserve a Table
             </button>
           </div>
         </div>
 
-        <img src={LOGO} alt="" className="dashboard-hero-logo" />
+        <img src={LOGO} alt="" className="hero-logo" />
       </section>
 
-      <section className="dashboard-feature-grid">
+      <section className="feature-grid">
         {[
           {
             icon: "menu",
@@ -78,21 +78,21 @@ export function DashboardPage() {
         ].map((v, i) => (
           <div
             key={v.title}
-            className={`fade-in dashboard-feature-item ${i === 0 ? "delay-0" : i === 1 ? "delay-1" : "delay-2"}`}
+            className={`fade-in feature-item ${i === 0 ? "delay-0" : i === 1 ? "delay-1" : "delay-2"}`}
           >
-            <div className="dashboard-feature-icon-wrap">
+            <div className="feature-icon-wrap">
               <Ic name={v.icon} size={24} color={T.green} />
             </div>
-            <h3 className="dashboard-feature-title">{v.title}</h3>
-            <p className="dashboard-feature-desc">{v.desc}</p>
+            <h3 className="feature-title">{v.title}</h3>
+            <p className="feature-desc">{v.desc}</p>
           </div>
         ))}
       </section>
 
-      <section className="dashboard-popular-section">
-        <div className="dashboard-popular-header">
-          <p className="dashboard-section-kicker">Popular Right Now</p>
-          <h2 className="dashboard-section-title">What our regulars love</h2>
+      <section className="popular-section">
+        <div className="popular-header">
+          <p className="section-kicker">Popular Right Now</p>
+          <h2 className="section-title">What our regulars love</h2>
         </div>
 
         {loading ? (
@@ -108,33 +108,33 @@ export function DashboardPage() {
             No menu items are available yet.
           </div>
         ) : (
-          <div className="dashboard-popular-grid">
+          <div className="popular-grid">
             <div
               onClick={() => {
                 setSel(featured[0]);
                 setQty(1);
                 setNote("");
               }}
-              className="card-base card-hover img-zoom dashboard-featured-card"
+              className="card-base card-hover img-zoom featured-card"
             >
-              <div className="dashboard-featured-media">
+              <div className="featured-media">
                 <ImageWithFallback
                   src={T.icedImg}
                   alt={featured[0].name}
-                  className="dashboard-featured-image"
+                  className="featured-image"
                 />
-                <div className="dashboard-featured-overlay" />
-                <span className="dashboard-staff-pick">Staff Pick</span>
+                <div className="featured-overlay" />
+                <span className="staff-pick">Staff Pick</span>
               </div>
-              <div className="dashboard-featured-content">
-                <p className="dashboard-item-kicker">{featured[0].category}</p>
-                <h3 className="dashboard-featured-title">{featured[0].name}</h3>
-                <p className="dashboard-featured-desc">{featured[0].desc}</p>
-                <div className="dashboard-item-footer">
-                  <span className="dashboard-featured-price">
+              <div className="featured-content">
+                <p className="item-kicker">{featured[0].category}</p>
+                <h3 className="featured-title">{featured[0].name}</h3>
+                <p className="featured-desc">{featured[0].desc}</p>
+                <div className="item-footer">
+                  <span className="featured-price">
                     ${featured[0].price.toFixed(2)}
                   </span>
-                  <span className="dashboard-item-cta">Add to order →</span>
+                  <span className="item-cta">Add to order →</span>
                 </div>
               </div>
             </div>
@@ -147,26 +147,26 @@ export function DashboardPage() {
                   setQty(1);
                   setNote("");
                 }}
-                className="card-base card-hover dashboard-secondary-card"
+                className="card-base card-hover secondary-card"
               >
-                <div className="dashboard-secondary-media">
+                <div className="secondary-media">
                   <ImageWithFallback
                     src={index === 0 ? T.crepeImg : T.cafeImg}
                     alt={item.name}
-                    className="dashboard-secondary-image"
+                    className="secondary-image"
                   />
                 </div>
-                <div className="dashboard-secondary-content">
-                  <p className="dashboard-item-kicker dashboard-item-kicker-tight">
+                <div className="secondary-content">
+                  <p className="item-kicker item-kicker-tight">
                     {item.category}
                   </p>
-                  <h3 className="dashboard-secondary-title">{item.name}</h3>
-                  <p className="dashboard-secondary-desc">{item.desc}</p>
-                  <div className="dashboard-item-footer">
-                    <span className="dashboard-secondary-price">
+                  <h3 className="secondary-title">{item.name}</h3>
+                  <p className="secondary-desc">{item.desc}</p>
+                  <div className="item-footer">
+                    <span className="secondary-price">
                       ${item.price.toFixed(2)}
                     </span>
-                    <span className="dashboard-item-cta">View →</span>
+                    <span className="item-cta">View →</span>
                   </div>
                 </div>
               </div>
@@ -175,22 +175,22 @@ export function DashboardPage() {
         )}
       </section>
 
-      <section className="dashboard-lower-grid">
+      <section className="lower-grid">
         <div>
-          <div className="card-base dashboard-reorder-card">
-            <div className="dashboard-reorder-media">
+          <div className="card-base reorder-card">
+            <div className="reorder-media">
               <ImageWithFallback
                 src={T.latteImg}
                 alt="Iced Latte"
-                className="dashboard-fill-image"
+                className="fill-image"
               />
             </div>
-            <div className="dashboard-flex-1">
-              <p className="dashboard-item-kicker dashboard-item-kicker-xs">
+            <div className="flex-1">
+              <p className="item-kicker item-kicker-xs">
                 Order Again
               </p>
-              <h4 className="dashboard-reorder-title">Iced Latte</h4>
-              <p className="dashboard-reorder-copy">
+              <h4 className="reorder-title">Iced Latte</h4>
+              <p className="reorder-copy">
                 {reorderItem
                   ? `Your most ordered drink — $${reorderItem.price.toFixed(2)}`
                   : "Menu item unavailable right now"}
@@ -211,17 +211,17 @@ export function DashboardPage() {
             </button>
           </div>
 
-          <div className="dashboard-roast-banner">
+          <div className="roast-banner">
             <ImageWithFallback
               src={T.beansImg}
               alt="Fresh roasted beans"
-              className="dashboard-fill-image"
+              className="fill-image"
             />
-            <div className="dashboard-roast-overlay" />
+            <div className="roast-overlay" />
             <div className="noise-overlay" />
-            <div className="dashboard-roast-content">
-              <h3 className="dashboard-roast-title">Freshly roasted daily</h3>
-              <p className="dashboard-roast-copy">
+            <div className="roast-content">
+              <h3 className="roast-title">Freshly roasted daily</h3>
+              <p className="roast-copy">
                 Single-origin beans from Guatemala, Ethiopia & Colombia
               </p>
             </div>
@@ -231,8 +231,8 @@ export function DashboardPage() {
         <div>
           <LoyaltyCard user={user} />
 
-          <div className="card-base dashboard-activity-card">
-            <h4 className="dashboard-activity-title">Your Activity</h4>
+          <div className="card-base activity-card">
+            <h4 className="activity-title">Your Activity</h4>
             {[
               { l: "Last Order", v: "Mar 21 — Iced Latte" },
               { l: "Reservation", v: "None upcoming" },
@@ -240,10 +240,10 @@ export function DashboardPage() {
             ].map((r, i, arr) => (
               <div
                 key={r.l}
-                className={`dashboard-activity-row ${i < arr.length - 1 ? "dashboard-activity-row-divided" : ""}`}
+                className={`activity-row ${i < arr.length - 1 ? "activity-row-divided" : ""}`}
               >
-                <span className="dashboard-activity-label">{r.l}</span>
-                <span className="dashboard-activity-value">{r.v}</span>
+                <span className="activity-label">{r.l}</span>
+                <span className="activity-value">{r.v}</span>
               </div>
             ))}
           </div>
