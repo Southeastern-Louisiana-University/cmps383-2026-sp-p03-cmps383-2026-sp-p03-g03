@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
-import { useAppContext } from "../../api/contexts/app-context";
+import { useAppContext } from "../../api/context-providers/app-context";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../navigation/routes";
@@ -12,34 +12,32 @@ export function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [credential, setCredential] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
-    setTimeout(() => {
-      const result =
-        mode === "login"
-          ? login(email, password)
-          : signup(name, email, password);
+    const result =
+      mode === "login"
+        ? await login(credential, password)
+        : await signup(name, credential, password);
 
-      if (!result.ok) setError(result.error || "Something went wrong.");
-      if (result.ok) navigate(APP_ROUTES.home);
-      setLoading(false);
-    }, 600);
+    if (!result.ok) setError(result.error || "Something went wrong.");
+    if (result.ok) navigate(APP_ROUTES.home);
+    setLoading(false);
   };
 
   const switchMode = () => {
     setMode(mode === "login" ? "signup" : "login");
     setError("");
     setName("");
-    setEmail("");
+    setCredential("");
     setPassword("");
   };
 
@@ -125,16 +123,21 @@ export function AuthPage() {
             )}
 
             <div className="auth-field-block">
-              <label className="label-base">Email Address</label>
+              <label className="label-base">
+                {mode === "login" ? "Username" : "Email Address"}
+              </label>
               <div className="auth-input-wrap">
                 <div className="auth-input-icon">
                   <Ic name="mail" size={18} color={Tokens.caramel} />
                 </div>
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@email.com"
+                  type={mode === "login" ? "text" : "email"}
+                  value={credential}
+                  onChange={(e) => setCredential(e.target.value)}
+                  placeholder={
+                    mode === "login" ? "Your username" : "you@email.com"
+                  }
+                  autoComplete={mode === "login" ? "username" : "email"}
                   className="input-base auth-input-with-left-icon"
                 />
               </div>
@@ -178,9 +181,9 @@ export function AuthPage() {
 
             {mode === "login" && (
               <div className="auth-demo-box">
-                <p className="auth-demo-title">Demo credentials</p>
+                <p className="auth-demo-title">Demo login</p>
                 <p className="auth-demo-copy">
-                  Email: <strong>bob@email.com</strong> &nbsp;·&nbsp; Password:{" "}
+                  Username: <strong>bob</strong> &nbsp;·&nbsp; Password:{" "}
                   <strong>password123</strong>
                 </p>
               </div>

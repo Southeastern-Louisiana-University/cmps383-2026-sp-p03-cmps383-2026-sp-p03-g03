@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic, ItemIcon } from "../../components/icons";
 import { LoyaltyCard } from "../../components/loyalty-card";
-import { useAppContext } from "../../api/contexts/app-context";
+import { useAppContext } from "../../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../navigation/routes";
 import "./profile.css";
@@ -48,11 +48,30 @@ export function ProfilePage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [editing, setEditing] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const [signOutError, setSignOutError] = useState("");
   const [editForm, setEditForm] = useState({
     name: user.name,
     phone: user.phone,
     birthday: user.birthday,
   });
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    setSignOutError("");
+
+    const result = await logout();
+
+    if (!result.ok) {
+      setSignOutError(
+        result.error ??
+          "Unable to reach server, but you are signed out locally.",
+      );
+    }
+
+    navigate(APP_ROUTES.auth, { replace: true });
+    setSigningOut(false);
+  };
 
   const handleSave = () => {
     setUser((prev) => ({
@@ -102,16 +121,16 @@ export function ProfilePage() {
         </div>
 
         <button
-          onClick={() => {
-            logout();
-            navigate(APP_ROUTES.home);
-          }}
+          onClick={handleSignOut}
+          disabled={signingOut}
           className="btn-outline focus-ring btn-outline-base profile-signout"
         >
           <Ic name="logout" size={16} color={Tokens.mocha} />
-          Sign Out
+          {signingOut ? "Signing Out..." : "Sign Out"}
         </button>
       </section>
+
+      {signOutError ? <p className="profile-meta">{signOutError}</p> : null}
 
       <div className="profile-tabs">
         {tabs.map((t) => (

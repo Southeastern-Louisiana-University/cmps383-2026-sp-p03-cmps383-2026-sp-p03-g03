@@ -21,6 +21,7 @@
   height: 140px;
   object-fit: contain;
   opacity: 0.04;
+  z-index: -1;
 }
 
 .profile-avatar-wrap {

@@ -14,7 +14,7 @@ import {
   CheckoutDialog,
   SuccessDialog,
 } from "../components/dialogs";
-import { useAppContext } from "../api/contexts/app-context";
+import { useAppContext } from "../api/context-providers/app-context";
 import { APP_ROUTES, normalizeRoute } from "./routes";
 
 function AppLayout() {
@@ -44,7 +44,11 @@ function AppLayout() {
 }
 
 function ProtectedProfileRoute() {
-  const { isLoggedIn } = useAppContext();
+  const { isLoggedIn, authReady } = useAppContext();
+
+  if (!authReady) {
+    return null;
+  }
 
   if (!isLoggedIn) {
     return <Navigate to={APP_ROUTES.auth} replace />;
@@ -54,7 +58,11 @@ function ProtectedProfileRoute() {
 }
 
 function ProtectedOrdersRoute() {
-  const { isLoggedIn } = useAppContext();
+  const { isLoggedIn, authReady } = useAppContext();
+
+  if (!authReady) {
+    return null;
+  }
 
   if (!isLoggedIn) {
     return <Navigate to={APP_ROUTES.auth} replace />;

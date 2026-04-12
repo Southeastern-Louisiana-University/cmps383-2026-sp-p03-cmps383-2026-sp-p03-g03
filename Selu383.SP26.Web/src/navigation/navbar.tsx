@@ -1,6 +1,6 @@
 import { Tokens, LOGO } from "../styles/tokens";
 import { Ic } from "../components/icons";
-import { useAppContext } from "../api/contexts/app-context";
+import { useAppContext } from "../api/context-providers/app-context";
 import { useLocation, useNavigate } from "react-router-dom";
 import { APP_ROUTES, isActiveRoute } from "./routes";
 import "./navbar.css";
@@ -21,15 +21,8 @@ export function Navbar({ cartCount }: { cartCount: number }) {
   return (
     <header className="navbar">
       <div className="nav-container">
-        <button
-          onClick={() => navigate(APP_ROUTES.home)}
-          className="nav-brand"
-        >
-          <img
-            src={LOGO}
-            alt="Caffeinated Lions"
-            className="nav-brand-logo"
-          />
+        <button onClick={() => navigate(APP_ROUTES.home)} className="nav-brand">
+          <img src={LOGO} alt="Caffeinated Lions" className="nav-brand-logo" />
           <span className="nav-brand-text">Caffeinated Lions</span>
         </button>
 

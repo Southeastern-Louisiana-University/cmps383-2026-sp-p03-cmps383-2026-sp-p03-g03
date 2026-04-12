@@ -1,9 +1,13 @@
 import { useState, useEffect } from "react";
 
-const useApi = <inputDto = unknown>(method: string, controller: string) => {
+const useApiOut = <outputDto = unknown,>(
+  method: string,
+  controller: string,
+  input?: unknown,
+) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<inputDto | null>(null);
+  const [data, setData] = useState<outputDto | null>(null);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -15,8 +19,16 @@ const useApi = <inputDto = unknown>(method: string, controller: string) => {
       try {
         const normalizedMethod = method.toUpperCase();
 
+        if (!["POST", "PUT", "PATCH"].includes(normalizedMethod)) {
+          throw new Error(
+            "useApiOut only supports POST, PUT, and PATCH methods",
+          );
+        }
+
         const response = await fetch(`/api/${controller}`, {
           method: normalizedMethod,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(input),
           signal: abortController.signal,
         });
 
@@ -33,14 +45,20 @@ const useApi = <inputDto = unknown>(method: string, controller: string) => {
           );
         }
 
-        setData(payload as inputDto);
-
+        setData(payload as outputDto);
       } catch (requestError) {
-        if (requestError instanceof Error && requestError.name === "AbortError") {
+        if (
+          requestError instanceof Error &&
+          requestError.name === "AbortError"
+        ) {
           return;
         }
 
-        setError(requestError instanceof Error ? requestError.message : "Unknown request error");
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unknown request error",
+        );
       } finally {
         setLoading(false);
       }
@@ -51,9 +69,9 @@ const useApi = <inputDto = unknown>(method: string, controller: string) => {
     return () => {
       abortController.abort();
     };
-  }, [controller, method]);
+  }, [controller, input, method]);
 
   return { data, loading, error };
 };
 
-export default useApi;
+export default useApiOut;

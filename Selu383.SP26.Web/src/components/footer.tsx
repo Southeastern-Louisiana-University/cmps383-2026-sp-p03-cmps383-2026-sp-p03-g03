@@ -1,5 +1,5 @@
 import { LOGO } from "../styles/tokens";
-import { useAppContext } from "../api/contexts/app-context";
+import { useAppContext } from "../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../navigation/routes";
 import "./footer.css";

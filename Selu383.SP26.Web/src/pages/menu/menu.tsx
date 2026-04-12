@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Tokens } from "../../styles/tokens.ts";
 import { ItemIcon } from "../../components/icons";
-import { useAppContext } from "../../api/contexts/app-context.tsx";
+import { useAppContext } from "../../api/context-providers/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import { useMenuCatalog } from "../../api/menu.ts";
 import "./menu.css";
@@ -39,9 +39,7 @@ export function MenuPage() {
     <div className="menu-page">
       <section className="menu-header">
         <p className="menu-kicker">Our Menu</p>
-        <h1 className="menu-title">
-          Menu
-        </h1>
+        <h1 className="menu-title">Menu</h1>
         {/* <p className="menu-subtitle">
           From bold espresso to sweet crepes, every item is made fresh to order.
         </p> */}

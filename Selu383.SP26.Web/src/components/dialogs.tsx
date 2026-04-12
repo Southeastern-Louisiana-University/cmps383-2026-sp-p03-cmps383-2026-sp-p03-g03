@@ -1,7 +1,7 @@
 import { Tokens, card, btnP, lbl, inp } from "../styles/tokens";
 import { Ic, ItemIcon } from "./icons";
 import { Dialog } from "./dialog";
-import { useAppContext } from "../api/contexts/app-context";
+import { useAppContext } from "../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../navigation/routes";
 
