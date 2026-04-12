@@ -1,19 +1,16 @@
 .footer-root {
   background: var(--dark-brew);
   color: var(--caramel);
-  position: relative;
-  overflow: hidden;
-  margin-top: 96px;
-}
-
-.footer-noise {
-  opacity: 0.04;
+  width: stretch;
+  height: stretch;
+  margin-top: 48px;
 }
 
 .footer-inner {
   max-width: 1320px;
   margin: 0 auto;
   padding: 64px 48px 0;
+  height: stretch;
 }
 
 .footer-grid {
@@ -37,7 +34,7 @@
 }
 
 .footer-brand-text {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   color: var(--white);
@@ -48,11 +45,7 @@
   font-size: 15px;
   line-height: 1.7;
   color: var(--caramel);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   margin: 0;
   max-width: 300px;
 }
@@ -75,21 +68,13 @@
   transition: border-color 0.2s;
   font-size: 13px;
   color: var(--caramel);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
   text-transform: capitalize;
 }
 
 .footer-col-title {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 11px;
   letter-spacing: 1.5px;
@@ -103,11 +88,7 @@
   background: none;
   border: none;
   color: var(--caramel);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   padding: 6px 0;
   cursor: pointer;
@@ -121,11 +102,7 @@
 }
 
 .footer-visit-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--caramel);
   margin: 0 0 4px;
@@ -144,11 +121,7 @@
 }
 
 .footer-fineprint {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   color: rgba(var(--palette-caramel-rgb), 0.5);
   margin: 0;

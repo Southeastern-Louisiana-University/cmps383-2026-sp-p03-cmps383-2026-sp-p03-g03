@@ -102,7 +102,7 @@
     0 20px 48px rgba(var(--palette-dialog-shadow-rgb), 0.24),
     0 8px 18px rgba(var(--palette-dialog-shadow-rgb), 0.1);
   --font-size: 16px;
-  --background: var(--white);
+  --background: var(--cream);
   --foreground: var(--palette-black);
   --card: var(--white);
   --card-foreground: var(--foreground);
@@ -229,6 +229,11 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  background: var(--background);
+}
+
+#root {
+  height: max(100dvh, fit-content);
 }
 
 * {
@@ -236,9 +241,38 @@
   outline-color: color-mix(in srgb, var(--color-ring) 50%, transparent);
 }
 
+.app-shell {
+  font-family: var(--font-body);
+  color: var(--dark-brew);
+  background: var(--cream);
+  position: relative;
+  display: block;
+  height: max(fit-content, 100vh);
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+.app-main-auth {
+  position: relative;
+  z-index: 1;
+}
+
+.app-main {
+  z-index: 1;
+  padding: 48px 36px 0;
+  min-width: 400px;
+  max-width: min(2560px, 90vw);
+  margin: 0 auto;
+  height: fit-content;
+  min-height: 80vh;
+  box-sizing: border-box;
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
+  min-height: 100vh;
+  height: stretch;
 }
 
 html {
@@ -302,11 +336,6 @@ input {
 .btn-outline:hover {
   background: var(--btn-outline-hover-bg);
   color: var(--btn-outline-hover-fg);
-}
-
-.nav-link:hover {
-  color: var(--white);
-  background: var(--nav-link-hover-bg);
 }
 
 .focus-ring:focus-visible {
@@ -427,42 +456,6 @@ input {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%235C4A32' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 16px center;
-}
-
-.noise-overlay {
-  position: absolute;
-  inset: 0;
-  opacity: 0.03;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-size: 128px 128px;
-}
-
-@keyframes clSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.app-shell {
-  font-family: var(--font-body);
-  color: var(--dark-brew);
-  min-height: 100vh;
-  background: var(--cream);
-  position: relative;
-}
-
-.app-main-auth {
-  position: relative;
-  z-index: 1;
-}
-
-.app-main {
-  position: relative;
-  z-index: 1;
-  padding: 48px 48px 0;
-  max-width: 1320px;
-  margin: 0 auto;
 }
 
 .dialog-root {

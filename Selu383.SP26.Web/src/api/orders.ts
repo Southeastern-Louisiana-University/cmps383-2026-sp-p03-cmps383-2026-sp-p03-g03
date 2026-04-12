@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { ApiOrderDto, OrderSummary } from "./interfaces";
+import type { ApiOrderDto, OrderSummary } from "./dto-interfaces";
 
 class HttpError extends Error {
   status: number;

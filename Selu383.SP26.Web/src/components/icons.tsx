@@ -1,10 +1,10 @@
-import { T } from "../styles/tokens";
+import { Tokens } from "../styles/tokens";
 
 export const CatIcon = ({ cat, size = 40 }: { cat: string; size?: number }) => {
   const s = { width: size, height: size, display: "block" };
-  const f = T.green,
-    l = T.greenMuted,
-    sk = T.greenDark;
+  const f = Tokens.green,
+    l = Tokens.greenMuted,
+    sk = Tokens.greenDark;
   if (cat === "Drinks")
     return (
       <svg style={s} viewBox="0 0 40 40" fill="none">
@@ -107,7 +107,7 @@ export const CatIcon = ({ cat, size = 40 }: { cat: string; size?: number }) => {
           cy="21"
           rx="5"
           ry="4"
-          fill={T.cream}
+          fill={Tokens.cream}
           stroke={sk}
           strokeWidth="1.2"
         />
@@ -141,7 +141,7 @@ export const ItemIcon = ({
 export const Ic = ({
   name,
   size = 20,
-  color = T.espresso,
+  color = Tokens.espresso,
 }: {
   name: string;
   size?: number;

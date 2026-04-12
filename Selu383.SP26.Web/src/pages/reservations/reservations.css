@@ -1,4 +1,4 @@
-.res-page {
+.reservation-page {
   display: block;
 }
 
@@ -6,7 +6,7 @@
   border-radius: 16px;
   overflow: hidden;
   position: relative;
-  height: 320px;
+  height: 240px;
   margin-bottom: 64px;
 }
 
@@ -36,11 +36,7 @@
 }
 
 .res-hero-kicker {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -50,7 +46,7 @@
 }
 
 .res-hero-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 48px;
   font-weight: 700;
   color: var(--white);
@@ -59,11 +55,7 @@
 }
 
 .res-hero-subtitle {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 16px;
   color: rgba(var(--palette-white-rgb), 0.65);
   margin: 0;
@@ -88,7 +80,7 @@
 }
 
 .res-success-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 700;
   margin: 0 0 12px;
@@ -99,22 +91,14 @@
   font-size: 18px;
   color: var(--mocha);
   margin: 0 0 8px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .res-success-copy {
   font-size: 15px;
   color: var(--caramel);
   margin: 0 0 48px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .res-grid {
@@ -148,11 +132,7 @@
   flex: 1;
   padding: 14px 0;
   border-radius: 8px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-weight: 600;
   font-size: 16px;
   cursor: pointer;
@@ -182,11 +162,7 @@
 }
 
 .res-side-title {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -218,11 +194,7 @@
 .res-tip-text {
   font-size: 14px;
   color: var(--espresso);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .res-walkin-card {
@@ -239,7 +211,7 @@
 }
 
 .res-walkin-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -248,11 +220,7 @@
 }
 
 .res-walkin-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   color: var(--mocha);
   margin: 0;

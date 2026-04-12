@@ -1,4 +1,4 @@
-import { T, LOGO } from "../styles/tokens";
+import { Tokens, LOGO } from "../styles/tokens";
 import { Ic } from "../components/icons";
 import { useAppContext } from "../api/contexts/app-context";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -19,65 +19,65 @@ export function Navbar({ cartCount }: { cartCount: number }) {
   const initials = user.name.charAt(0).toUpperCase();
 
   return (
-    <header className="topnav-root">
-      <div className="topnav-inner">
+    <header className="navbar">
+      <div className="nav-container">
         <button
           onClick={() => navigate(APP_ROUTES.home)}
-          className="topnav-brand"
+          className="nav-brand"
         >
           <img
             src={LOGO}
             alt="Caffeinated Lions"
-            className="topnav-brand-logo"
+            className="nav-brand-logo"
           />
-          <span className="topnav-brand-text">Caffeinated Lions</span>
+          <span className="nav-brand-text">Caffeinated Lions</span>
         </button>
 
-        <nav className="topnav-nav">
+        <nav className="navlink-container">
           {navItems.map((n) => (
             <button
               key={n.route}
               onClick={() => navigate(n.route)}
-              className={`cl-nav-link focus-ring topnav-nav-item ${isActiveRoute(pathname, n.route) ? "topnav-nav-item-active" : "topnav-nav-item-idle"}`}
+              className={`navlink focus-ring navlink-item ${isActiveRoute(pathname, n.route) ? "navlink-active" : "navlink-idle"}`}
             >
               {n.label}
               {isActiveRoute(pathname, n.route) && (
-                <span className="topnav-nav-indicator" />
+                <span className="navlink-indicator" />
               )}
             </button>
           ))}
         </nav>
 
-        <div className="topnav-actions">
+        <div className="nav-actions">
           <button
             onClick={() => navigate(APP_ROUTES.cart)}
-            className="focus-ring topnav-cart"
+            className="focus-ring nav-cart"
           >
-            <Ic name="cart" size={22} color={T.darkBrew} />
+            <Ic name="cart" size={22} color={Tokens.darkBrew} />
             {cartCount > 0 && (
-              <span className="topnav-cart-badge">{cartCount}</span>
+              <span className="nav-cart-badge">{cartCount}</span>
             )}
           </button>
 
-          <div className="topnav-divider" />
+          <div className="nav-divider" />
 
           {isLoggedIn ? (
             <button
               onClick={() => navigate(APP_ROUTES.profile)}
-              className={`cl-focus-ring topnav-profile ${isActiveRoute(pathname, APP_ROUTES.profile) ? "topnav-profile-active" : ""}`}
+              className={`cl-focus-ring nav-profile ${isActiveRoute(pathname, APP_ROUTES.profile) ? "nav-profile-active" : ""}`}
             >
-              <div className="topnav-avatar">
-                <span className="topnav-avatar-initial">{initials}</span>
+              <div className="nav-avatar">
+                <span className="nav-avatar-initial">{initials}</span>
               </div>
-              <div className="topnav-user-meta">
-                <p className="topnav-user-name">{user.name}</p>
-                <p className="topnav-user-points">{user.points} pts</p>
+              <div className="nav-user-meta">
+                <p className="nav-user-name">{user.name}</p>
+                <p className="nav-user-points">{user.points} pts</p>
               </div>
             </button>
           ) : (
             <button
               onClick={() => navigate(APP_ROUTES.auth)}
-              className="btn-primary focus-ring topnav-signin"
+              className="btn-primary focus-ring nav-signin"
             >
               Sign In
             </button>

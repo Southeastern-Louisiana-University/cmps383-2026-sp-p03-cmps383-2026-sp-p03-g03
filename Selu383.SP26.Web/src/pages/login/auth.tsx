@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { T, LOGO } from "../../styles/tokens";
+import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
 import { useAppContext } from "../../api/contexts/app-context";
 import { ImageWithFallback } from "../../components/image-with-fallback";
@@ -47,7 +47,7 @@ export function AuthPage() {
     <div className="auth-page">
       <div className="auth-hero">
         <ImageWithFallback
-          src={T.heroImg}
+          src={Tokens.heroImg}
           alt="Coffee shop ambiance"
           className="auth-hero-image"
         />
@@ -111,7 +111,7 @@ export function AuthPage() {
                 <label className="label-base">Full Name</label>
                 <div className="auth-input-wrap">
                   <div className="auth-input-icon">
-                    <Ic name="user" size={18} color={T.caramel} />
+                    <Ic name="user" size={18} color={Tokens.caramel} />
                   </div>
                   <input
                     type="text"
@@ -128,7 +128,7 @@ export function AuthPage() {
               <label className="label-base">Email Address</label>
               <div className="auth-input-wrap">
                 <div className="auth-input-icon">
-                  <Ic name="mail" size={18} color={T.caramel} />
+                  <Ic name="mail" size={18} color={Tokens.caramel} />
                 </div>
                 <input
                   type="email"
@@ -144,7 +144,7 @@ export function AuthPage() {
               <label className="label-base">Password</label>
               <div className="auth-input-wrap">
                 <div className="auth-input-icon">
-                  <Ic name="lock" size={18} color={T.caramel} />
+                  <Ic name="lock" size={18} color={Tokens.caramel} />
                 </div>
                 <input
                   type={showPw ? "text" : "password"}
@@ -165,7 +165,7 @@ export function AuthPage() {
                   <Ic
                     name={showPw ? "eyeoff" : "eye"}
                     size={18}
-                    color={T.caramel}
+                    color={Tokens.caramel}
                   />
                 </button>
               </div>

@@ -2,7 +2,7 @@ import conceptLogo from "./assets/ConceptLogo2.png";
 
 const cssVar = (name: string): string => `var(--${name})`;
 
-export const T = {
+export const Tokens = {
   cream: cssVar("cream"),
   sand: cssVar("sand"),
   warmTan: cssVar("warm-tan"),
@@ -50,21 +50,21 @@ export const T = {
 export const LOGO = conceptLogo;
 
 export const card = (extra?: React.CSSProperties): React.CSSProperties => ({
-  background: T.white,
-  borderRadius: T.r,
-  border: `1px solid ${T.sand}`,
-  boxShadow: T.shadow,
+  background: Tokens.white,
+  borderRadius: Tokens.r,
+  border: `1px solid ${Tokens.sand}`,
+  boxShadow: Tokens.shadow,
   transition: "box-shadow 0.2s ease, transform 0.2s ease",
   ...extra,
 });
 
 export const btnP: React.CSSProperties = {
-  background: T.green,
-  color: T.white,
+  background: Tokens.green,
+  color: Tokens.white,
   border: "none",
-  borderRadius: T.rSm,
+  borderRadius: Tokens.rSm,
   padding: "14px 32px",
-  fontFamily: T.font,
+  fontFamily: Tokens.font,
   fontWeight: 600,
   fontSize: 15,
   cursor: "pointer",
@@ -74,11 +74,11 @@ export const btnP: React.CSSProperties = {
 
 export const btnO: React.CSSProperties = {
   background: "transparent",
-  color: T.green,
-  border: `1.5px solid ${T.green}`,
-  borderRadius: T.rSm,
+  color: Tokens.green,
+  border: `1.5px solid ${Tokens.green}`,
+  borderRadius: Tokens.rSm,
   padding: "12px 24px",
-  fontFamily: T.font,
+  fontFamily: Tokens.font,
   fontWeight: 600,
   fontSize: 14,
   cursor: "pointer",
@@ -89,22 +89,22 @@ export const lbl: React.CSSProperties = {
   display: "block",
   fontSize: 11,
   fontWeight: 600,
-  color: T.mocha,
+  color: Tokens.mocha,
   marginBottom: 8,
   letterSpacing: "1.2px",
   textTransform: "uppercase",
-  fontFamily: T.font,
+  fontFamily: Tokens.font,
 };
 
 export const inp: React.CSSProperties = {
   width: "100%",
   padding: "12px 16px",
-  borderRadius: T.rSm,
-  border: `1px solid ${T.warmTan}`,
-  fontFamily: T.font,
+  borderRadius: Tokens.rSm,
+  border: `1px solid ${Tokens.warmTan}`,
+  fontFamily: Tokens.font,
   fontSize: 15,
-  color: T.darkBrew,
-  background: T.white,
+  color: Tokens.darkBrew,
+  background: Tokens.white,
   outline: "none",
   boxSizing: "border-box",
   transition: "border-color 0.2s",

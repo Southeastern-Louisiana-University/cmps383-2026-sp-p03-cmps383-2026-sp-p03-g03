@@ -1,4 +1,4 @@
-import { T, card, btnP, lbl, inp } from "../styles/tokens";
+import { Tokens, card, btnP, lbl, inp } from "../styles/tokens";
 import { Ic, ItemIcon } from "./icons";
 import { Dialog } from "./dialog";
 import { useAppContext } from "../api/contexts/app-context";
@@ -15,13 +15,13 @@ export function ItemDialog() {
         <div style={{ display: "grid", gridTemplateColumns: "280px 1fr" }}>
           <div
             style={{
-              background: T.cream,
+              background: Tokens.cream,
               padding: "48px 32px",
               display: "flex",
               flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              borderRadius: `${T.rLg} 0 0 ${T.rLg}`,
+              borderRadius: `${Tokens.rLg} 0 0 ${Tokens.rLg}`,
               position: "relative",
               overflow: "hidden",
             }}
@@ -31,12 +31,12 @@ export function ItemDialog() {
                 position: "absolute",
                 top: 20,
                 left: 20,
-                fontFamily: T.font,
+                fontFamily: Tokens.font,
                 fontSize: 10,
                 fontWeight: 600,
                 letterSpacing: "1.5px",
                 textTransform: "uppercase",
-                color: T.mocha,
+                color: Tokens.mocha,
               }}
             >
               {sel.category}
@@ -47,10 +47,10 @@ export function ItemDialog() {
             <div style={{ marginTop: 32, textAlign: "center" }}>
               <span
                 style={{
-                  fontFamily: T.fontDisplay,
+                  fontFamily: Tokens.fontDisplay,
                   fontSize: 36,
                   fontWeight: 700,
-                  color: T.darkBrew,
+                  color: Tokens.darkBrew,
                 }}
               >
                 ${sel.price.toFixed(2)}
@@ -61,10 +61,10 @@ export function ItemDialog() {
           <div style={{ padding: "40px 36px 36px" }}>
             <h2
               style={{
-                fontFamily: T.fontDisplay,
+                fontFamily: Tokens.fontDisplay,
                 fontSize: 32,
                 fontWeight: 700,
-                color: T.darkBrew,
+                color: Tokens.darkBrew,
                 margin: "0 0 12px",
                 lineHeight: 1.15,
                 paddingRight: 40,
@@ -75,9 +75,9 @@ export function ItemDialog() {
 
             <p
               style={{
-                fontFamily: T.font,
+                fontFamily: Tokens.font,
                 fontSize: 16,
-                color: T.mocha,
+                color: Tokens.mocha,
                 lineHeight: 1.65,
                 margin: "0 0 32px",
               }}
@@ -95,8 +95,8 @@ export function ItemDialog() {
                   ...inp,
                   resize: "vertical",
                   minHeight: 72,
-                  background: T.cream,
-                  border: `1px solid ${T.sand}`,
+                  background: Tokens.cream,
+                  border: `1px solid ${Tokens.sand}`,
                 }}
               />
             </div>
@@ -116,8 +116,8 @@ export function ItemDialog() {
                     fontWeight: 600,
                     letterSpacing: "1px",
                     textTransform: "uppercase",
-                    color: T.mocha,
-                    fontFamily: T.font,
+                    color: Tokens.mocha,
+                    fontFamily: Tokens.font,
                   }}
                 >
                   Qty
@@ -127,8 +127,8 @@ export function ItemDialog() {
                     display: "flex",
                     alignItems: "center",
                     gap: 0,
-                    border: `1px solid ${T.warmTan}`,
-                    borderRadius: T.rSm,
+                    border: `1px solid ${Tokens.warmTan}`,
+                    borderRadius: Tokens.rSm,
                     overflow: "hidden",
                   }}
                 >
@@ -139,13 +139,13 @@ export function ItemDialog() {
                       width: 44,
                       height: 44,
                       border: "none",
-                      background: T.white,
+                      background: Tokens.white,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       cursor: "pointer",
                       transition: "background 0.15s",
-                      borderRight: `1px solid ${T.warmTan}`,
+                      borderRight: `1px solid ${Tokens.warmTan}`,
                     }}
                   >
                     <Ic name="minus" size={14} />
@@ -156,8 +156,8 @@ export function ItemDialog() {
                       textAlign: "center",
                       fontSize: 18,
                       fontWeight: 600,
-                      fontFamily: T.font,
-                      background: T.white,
+                      fontFamily: Tokens.font,
+                      background: Tokens.white,
                       lineHeight: "44px",
                     }}
                   >
@@ -170,13 +170,13 @@ export function ItemDialog() {
                       width: 44,
                       height: 44,
                       border: "none",
-                      background: T.white,
+                      background: Tokens.white,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       cursor: "pointer",
                       transition: "background 0.15s",
-                      borderLeft: `1px solid ${T.warmTan}`,
+                      borderLeft: `1px solid ${Tokens.warmTan}`,
                     }}
                   >
                     <Ic name="plus" size={14} />
@@ -208,12 +208,12 @@ export function CheckoutDialog() {
       <div style={{ padding: "40px" }}>
         <p
           style={{
-            fontFamily: T.font,
+            fontFamily: Tokens.font,
             fontSize: 11,
             fontWeight: 600,
             letterSpacing: "1.5px",
             textTransform: "uppercase",
-            color: T.mocha,
+            color: Tokens.mocha,
             margin: "0 0 4px",
           }}
         >
@@ -221,11 +221,11 @@ export function CheckoutDialog() {
         </p>
         <h2
           style={{
-            fontFamily: T.fontDisplay,
+            fontFamily: Tokens.fontDisplay,
             fontSize: 32,
             fontWeight: 700,
             margin: "0 0 32px",
-            color: T.darkBrew,
+            color: Tokens.darkBrew,
             lineHeight: 1.15,
           }}
         >
@@ -250,14 +250,14 @@ export function CheckoutDialog() {
                   style={{
                     flex: 1,
                     padding: 12,
-                    borderRadius: T.rSm,
+                    borderRadius: Tokens.rSm,
                     border:
                       i === 0
-                        ? `1.5px solid ${T.green}`
-                        : `1px solid ${T.warmTan}`,
-                    background: i === 0 ? T.green : T.white,
-                    color: i === 0 ? T.white : T.espresso,
-                    fontFamily: T.font,
+                        ? `1.5px solid ${Tokens.green}`
+                        : `1px solid ${Tokens.warmTan}`,
+                    background: i === 0 ? Tokens.green : Tokens.white,
+                    color: i === 0 ? Tokens.white : Tokens.espresso,
+                    fontFamily: Tokens.font,
                     fontWeight: 600,
                     fontSize: 14,
                     cursor: "pointer",
@@ -285,16 +285,18 @@ export function CheckoutDialog() {
                   className="focus-ring"
                   style={{
                     padding: 10,
-                    borderRadius: T.rSm,
+                    borderRadius: Tokens.rSm,
                     border:
                       rcpt === o.toLowerCase()
-                        ? `1.5px solid ${T.green}`
-                        : `1px solid ${T.warmTan}`,
-                    background: rcpt === o.toLowerCase() ? T.cream : T.white,
-                    fontFamily: T.font,
+                        ? `1.5px solid ${Tokens.green}`
+                        : `1px solid ${Tokens.warmTan}`,
+                    background:
+                      rcpt === o.toLowerCase() ? Tokens.cream : Tokens.white,
+                    fontFamily: Tokens.font,
                     fontWeight: 500,
                     fontSize: 13,
-                    color: rcpt === o.toLowerCase() ? T.green : T.espresso,
+                    color:
+                      rcpt === o.toLowerCase() ? Tokens.green : Tokens.espresso,
                     cursor: "pointer",
                     transition: "all 0.15s",
                   }}
@@ -330,10 +332,10 @@ export function CheckoutDialog() {
             >
               <span
                 style={{
-                  color: T.white,
+                  color: Tokens.white,
                   fontSize: 10,
                   fontWeight: 700,
-                  fontFamily: T.font,
+                  fontFamily: Tokens.font,
                 }}
               >
                 VISA
@@ -345,8 +347,8 @@ export function CheckoutDialog() {
                   margin: 0,
                   fontSize: 15,
                   fontWeight: 600,
-                  fontFamily: T.font,
-                  color: T.darkBrew,
+                  fontFamily: Tokens.font,
+                  color: Tokens.darkBrew,
                 }}
               >
                 •••• 4242
@@ -355,24 +357,24 @@ export function CheckoutDialog() {
                 style={{
                   margin: "2px 0 0",
                   fontSize: 13,
-                  color: T.mocha,
-                  fontFamily: T.font,
+                  color: Tokens.mocha,
+                  fontFamily: Tokens.font,
                 }}
               >
                 Exp 12/27
               </p>
             </div>
-            <Ic name="check" size={18} color={T.green} />
+            <Ic name="check" size={18} color={Tokens.green} />
           </div>
         </div>
 
         <div
           style={{
-            background: T.cream,
-            borderRadius: T.rSm,
+            background: Tokens.cream,
+            borderRadius: Tokens.rSm,
             padding: "24px",
             marginBottom: 28,
-            border: `1px solid ${T.sand}`,
+            border: `1px solid ${Tokens.sand}`,
           }}
         >
           {[
@@ -388,7 +390,11 @@ export function CheckoutDialog() {
               }}
             >
               <span
-                style={{ fontSize: 15, color: T.mocha, fontFamily: T.font }}
+                style={{
+                  fontSize: 15,
+                  color: Tokens.mocha,
+                  fontFamily: Tokens.font,
+                }}
               >
                 {l}
               </span>
@@ -396,32 +402,38 @@ export function CheckoutDialog() {
                 style={{
                   fontSize: 15,
                   fontWeight: 500,
-                  fontFamily: T.font,
-                  color: T.darkBrew,
+                  fontFamily: Tokens.font,
+                  color: Tokens.darkBrew,
                 }}
               >
                 {v}
               </span>
             </div>
           ))}
-          <div style={{ height: 1, background: T.sand, margin: "16px 0" }} />
+          <div
+            style={{
+              height: 1,
+              background: Tokens.sand,
+              margin: "16px 0",
+            }}
+          />
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <span
               style={{
-                fontFamily: T.fontDisplay,
+                fontFamily: Tokens.fontDisplay,
                 fontSize: 22,
                 fontWeight: 700,
-                color: T.darkBrew,
+                color: Tokens.darkBrew,
               }}
             >
               Total
             </span>
             <span
               style={{
-                fontFamily: T.fontDisplay,
+                fontFamily: Tokens.fontDisplay,
                 fontSize: 22,
                 fontWeight: 700,
-                color: T.darkBrew,
+                color: Tokens.darkBrew,
               }}
             >
               ${(total * 1.09).toFixed(2)}
@@ -464,22 +476,22 @@ export function SuccessDialog() {
             height: 72,
             borderRadius: "50%",
             margin: "0 auto 24px",
-            background: T.cream,
-            border: `1px solid ${T.sand}`,
+            background: Tokens.cream,
+            border: `1px solid ${Tokens.sand}`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
           }}
         >
-          <Ic name="check" size={32} color={T.green} />
+          <Ic name="check" size={32} color={Tokens.green} />
         </div>
         <h2
           style={{
-            fontFamily: T.fontDisplay,
+            fontFamily: Tokens.fontDisplay,
             fontSize: 32,
             fontWeight: 700,
             margin: "0 0 8px",
-            color: T.darkBrew,
+            color: Tokens.darkBrew,
           }}
         >
           Order Confirmed
@@ -487,43 +499,43 @@ export function SuccessDialog() {
         <p
           style={{
             fontSize: 16,
-            color: T.mocha,
+            color: Tokens.mocha,
             margin: "0 0 8px",
-            fontFamily: T.font,
+            fontFamily: Tokens.font,
           }}
         >
           You earned{" "}
-          <strong style={{ color: T.green }}>
+          <strong style={{ color: Tokens.green }}>
             +{Math.round(total * 10)} points
           </strong>
         </p>
         <div
           style={{
-            background: T.cream,
-            borderRadius: T.rSm,
+            background: Tokens.cream,
+            borderRadius: Tokens.rSm,
             padding: "20px 28px",
             margin: "28px 0 36px",
-            border: `1px solid ${T.sand}`,
+            border: `1px solid ${Tokens.sand}`,
             display: "inline-block",
           }}
         >
           <p
             style={{
               fontSize: 13,
-              color: T.mocha,
+              color: Tokens.mocha,
               margin: "0 0 4px",
-              fontFamily: T.font,
+              fontFamily: Tokens.font,
             }}
           >
             Order #CL-00847
           </p>
           <p
             style={{
-              fontFamily: T.fontDisplay,
+              fontFamily: Tokens.fontDisplay,
               fontSize: 20,
               fontWeight: 700,
               margin: 0,
-              color: T.darkBrew,
+              color: Tokens.darkBrew,
             }}
           >
             Ready in 8–12 min

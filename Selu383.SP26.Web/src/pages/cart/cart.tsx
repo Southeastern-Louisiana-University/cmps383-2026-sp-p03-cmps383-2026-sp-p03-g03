@@ -1,4 +1,4 @@
-import { T, LOGO } from "../../styles/tokens";
+import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic, ItemIcon } from "../../components/icons";
 import { useAppContext } from "../../api/contexts/app-context";
 import { useNavigate } from "react-router-dom";
@@ -67,7 +67,7 @@ export function CartPage() {
                     }
                     className="btn-primary focus-ring cart-qty-btn cart-qty-btn-plus"
                   >
-                    <Ic name="plus" size={14} color={T.white} />
+                    <Ic name="plus" size={14} color={Tokens.white} />
                   </button>
                 </div>
                 <span className="cart-line-total">
@@ -77,7 +77,7 @@ export function CartPage() {
                   onClick={() => setCart(cart.filter((_, i) => i !== idx))}
                   className="focus-ring cart-remove-btn"
                 >
-                  <Ic name="x" size={18} color={T.caramel} />
+                  <Ic name="x" size={18} color={Tokens.caramel} />
                 </button>
               </div>
             ))}

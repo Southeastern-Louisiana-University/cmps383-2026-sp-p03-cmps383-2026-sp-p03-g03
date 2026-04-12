@@ -1,20 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
-import type { CartItem, MenuItem } from "../interfaces";
+import type { CartItem, MenuItem, UserProfile } from "../dto-interfaces";
 
-export interface UserProfile {
-  name: string;
-  email: string;
-  phone: string;
-  birthday: string;
-  points: number;
-  memberSince: string;
-  tier: "Bronze" | "Silver" | "Gold";
-  defaultLocation: string;
-  defaultOrderType: "Pickup" | "Drive-Thru";
-  receiptPref: string;
-}
-
-interface AppContextType {
+interface AppContext {
   cart: CartItem[];
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
   sel: MenuItem | null;
@@ -44,7 +31,7 @@ interface AppContextType {
   logout: () => void;
 }
 
-const AppContext = createContext<AppContextType>(null!);
+const AppContext = createContext<AppContext>(null!);
 
 export const useAppContext = () => useContext(AppContext);
 

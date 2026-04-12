@@ -9,8 +9,6 @@ export function Footer() {
   const navigate = useNavigate();
   return (
     <footer className="footer-root">
-      <div className="noise-overlay footer-noise" />
-
       <div className="footer-inner">
         <div className="footer-grid">
           <div>

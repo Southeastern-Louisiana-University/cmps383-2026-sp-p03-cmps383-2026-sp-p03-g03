@@ -6,8 +6,10 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  height: 480px;
-  margin-bottom: 96px;
+  height: fit-content;
+  min-height: 200px;
+  max-height: 500px;
+  margin-bottom: 24px;
 }
 
 .hero-image {
@@ -35,16 +37,12 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 64px;
+  justify-content: center;
+  padding: 36px;
 }
 
 .hero-kicker {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   color: var(--caramel);
@@ -54,8 +52,8 @@
 }
 
 .hero-title {
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 56px;
+  font-family: var(--font-display);
+  font-size: 50px;
   font-weight: 700;
   color: var(--white);
   margin: 0 0 16px;
@@ -65,14 +63,10 @@
 }
 
 .hero-subtitle {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
-  font-size: 18px;
+  font-family: var(--font-body);
+  font-size: 16px;
   color: rgba(var(--palette-white-rgb), 0.7);
-  margin: 0 0 36px;
+  margin: 0 0 24px;
   max-width: 440px;
   line-height: 1.6;
 }
@@ -84,6 +78,7 @@
 
 .hero-outline-btn {
   color: var(--white);
+  background-color: var(--);
   border-color: rgba(var(--palette-white-rgb), 0.35);
 }
 
@@ -101,7 +96,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 32px;
-  margin-bottom: 96px;
+  margin-bottom: 24px;
 }
 
 .feature-item {
@@ -122,20 +117,15 @@
 }
 
 .feature-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
-  margin: 0 0 8px;
   color: var(--dark-brew);
   line-height: 1.2;
 }
 
 .feature-desc {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--mocha);
   margin: 0;
@@ -143,29 +133,24 @@
 }
 
 .popular-section {
-  margin-bottom: 96px;
+  margin-bottom: 24px;
 }
 
 .popular-header {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 
 .section-kicker {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
   color: var(--green);
-  margin: 0 0 8px;
 }
 
 .section-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 40px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -219,11 +204,7 @@
   left: 16px;
   background: var(--green);
   color: var(--white);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -240,11 +221,7 @@
 }
 
 .item-kicker {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1px;
@@ -262,7 +239,7 @@
 }
 
 .featured-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -271,11 +248,7 @@
 }
 
 .featured-desc {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--mocha);
   line-height: 1.6;
@@ -290,18 +263,14 @@
 }
 
 .featured-price {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   color: var(--dark-brew);
 }
 
 .item-cta {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   font-weight: 600;
   color: var(--green);
@@ -336,7 +305,7 @@
 }
 
 .secondary-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -345,11 +314,7 @@
 }
 
 .secondary-desc {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   color: var(--mocha);
   line-height: 1.5;
@@ -358,7 +323,7 @@
 }
 
 .secondary-price {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -368,7 +333,7 @@
   display: grid;
   grid-template-columns: 1fr 400px;
   gap: 32px;
-  margin-bottom: 96px;
+  margin-bottom: 24px;
 }
 
 .reorder-card {
@@ -398,7 +363,7 @@
 }
 
 .reorder-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 20px;
   font-weight: 700;
   margin: 0 0 2px;
@@ -407,11 +372,7 @@
 }
 
 .reorder-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--mocha);
   margin: 0;
@@ -445,7 +406,7 @@
 }
 
 .roast-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   color: var(--white);
@@ -454,11 +415,7 @@
 }
 
 .roast-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--caramel);
   margin: 0;
@@ -470,11 +427,7 @@
 }
 
 .activity-title {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -497,20 +450,12 @@
 .activity-label {
   font-size: 14px;
   color: var(--mocha);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .activity-value {
   font-size: 14px;
   font-weight: 600;
   color: var(--dark-brew);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }

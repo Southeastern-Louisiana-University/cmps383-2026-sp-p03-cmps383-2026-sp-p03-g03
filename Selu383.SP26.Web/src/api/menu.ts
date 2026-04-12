@@ -5,7 +5,7 @@ import type {
   MenuCatalog,
   MenuCategory,
   MenuItem,
-} from "./interfaces";
+} from "./dto-interfaces";
 
 const CATEGORY_ORDER = ["Drinks", "Sweet Crepes", "Savory Crepes", "Bagels"];
 

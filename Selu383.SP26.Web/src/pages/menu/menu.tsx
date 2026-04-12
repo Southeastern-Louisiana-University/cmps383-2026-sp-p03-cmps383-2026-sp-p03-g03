@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { T } from "../../styles/tokens.ts";
+import { Tokens } from "../../styles/tokens.ts";
 import { ItemIcon } from "../../components/icons";
 import { useAppContext } from "../../api/contexts/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
@@ -7,10 +7,10 @@ import { useMenuCatalog } from "../../api/menu.ts";
 import "./menu.css";
 
 const catImages: Record<string, string> = {
-  Drinks: T.icedImg,
-  "Sweet Crepes": T.crepeImg,
-  "Savory Crepes": T.cafeImg,
-  Bagels: T.latteImg,
+  Drinks: Tokens.icedImg,
+  "Sweet Crepes": Tokens.crepeImg,
+  "Savory Crepes": Tokens.cafeImg,
+  Bagels: Tokens.latteImg,
 };
 
 export function MenuPage() {
@@ -40,13 +40,11 @@ export function MenuPage() {
       <section className="menu-header">
         <p className="menu-kicker">Our Menu</p>
         <h1 className="menu-title">
-          Handcrafted
-          <br />
-          with care
+          Menu
         </h1>
-        <p className="menu-subtitle">
+        {/* <p className="menu-subtitle">
           From bold espresso to sweet crepes, every item is made fresh to order.
-        </p>
+        </p> */}
       </section>
 
       <div className="menu-tabs">
@@ -63,7 +61,7 @@ export function MenuPage() {
 
       <div className="menu-banner">
         <ImageWithFallback
-          src={catImages[activeCategory?.name ?? "Drinks"] ?? T.icedImg}
+          src={catImages[activeCategory?.name ?? "Drinks"] ?? Tokens.icedImg}
           alt={activeCategory?.name ?? "Menu"}
           className="menu-banner-image"
         />
@@ -78,15 +76,15 @@ export function MenuPage() {
       </div>
 
       {loading ? (
-        <div className="card-base" style={{ padding: 24, color: T.mocha }}>
+        <div className="card-base" style={{ padding: 24, color: Tokens.mocha }}>
           Loading menu...
         </div>
       ) : error ? (
-        <div className="card-base" style={{ padding: 24, color: T.mocha }}>
+        <div className="card-base" style={{ padding: 24, color: Tokens.mocha }}>
           {error}
         </div>
       ) : items.length === 0 ? (
-        <div className="card-base" style={{ padding: 24, color: T.mocha }}>
+        <div className="card-base" style={{ padding: 24, color: Tokens.mocha }}>
           No items are available in this category.
         </div>
       ) : (

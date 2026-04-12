@@ -7,11 +7,7 @@
 }
 
 .cart-kicker {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -21,7 +17,7 @@
 }
 
 .cart-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 40px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -46,7 +42,7 @@
 }
 
 .cart-empty-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 8px;
@@ -57,11 +53,7 @@
   font-size: 16px;
   color: var(--mocha);
   margin: 0 0 32px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-grid {
@@ -84,7 +76,7 @@
 }
 
 .cart-item-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   margin: 0 0 2px;
@@ -97,22 +89,14 @@
   font-size: 13px;
   color: var(--green);
   font-style: italic;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-item-unit-price {
   margin: 4px 0 0;
   font-size: 13px;
   color: var(--mocha);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-qty-controls {
@@ -148,15 +132,11 @@
   font-weight: 600;
   min-width: 20px;
   text-align: center;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-line-total {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -180,11 +160,7 @@
 }
 
 .cart-summary-title {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.5px;
@@ -202,21 +178,13 @@
 .cart-summary-label {
   font-size: 15px;
   color: var(--mocha);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-summary-value {
   font-size: 15px;
   font-weight: 500;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   color: var(--dark-brew);
 }
 
@@ -234,22 +202,14 @@
   font-size: 13px;
   color: var(--green);
   font-weight: 600;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-points-value {
   font-size: 13px;
   font-weight: 700;
   color: var(--green);
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .cart-divider {
@@ -265,7 +225,7 @@
 }
 
 .cart-total-text {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 24px;
   font-weight: 700;
   color: var(--dark-brew);

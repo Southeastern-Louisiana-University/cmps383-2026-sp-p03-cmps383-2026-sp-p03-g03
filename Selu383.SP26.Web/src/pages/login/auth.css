@@ -47,7 +47,7 @@
 }
 
 .auth-hero-title {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 48px;
   font-weight: 700;
   color: var(--white);
@@ -58,11 +58,7 @@
 }
 
 .auth-hero-subtitle {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 18px;
   color: rgba(var(--palette-white-rgb), 0.65);
   margin: 0 0 48px;
@@ -76,7 +72,7 @@
 }
 
 .auth-stat-number {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 700;
   color: var(--white);
@@ -85,11 +81,7 @@
 }
 
 .auth-stat-label {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--caramel);
   margin: 0;
@@ -113,11 +105,7 @@
 }
 
 .auth-kicker {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 2px;
@@ -127,7 +115,7 @@
 }
 
 .auth-heading {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
   font-size: 36px;
   font-weight: 700;
   color: var(--dark-brew);
@@ -136,11 +124,7 @@
 }
 
 .auth-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--mocha);
   margin: 0;
@@ -159,11 +143,7 @@
 }
 
 .auth-error-text {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 14px;
   color: var(--palette-error-700);
 }
@@ -211,11 +191,7 @@
 .auth-forgot-button {
   background: none;
   border: none;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--green);
   font-weight: 600;
@@ -233,11 +209,7 @@
 }
 
 .auth-demo-title {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   color: var(--mocha);
   margin: 0 0 4px;
@@ -245,11 +217,7 @@
 }
 
 .auth-demo-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 13px;
   color: var(--espresso);
   margin: 0;
@@ -280,11 +248,7 @@
 }
 
 .auth-switch-copy {
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--mocha);
   margin: 28px 0 0;
@@ -294,11 +258,7 @@
 .auth-switch-button {
   background: none;
   border: none;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-size: 15px;
   color: var(--green);
   font-weight: 600;

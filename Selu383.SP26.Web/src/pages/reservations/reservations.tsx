@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { T } from "../../styles/tokens";
+import { Tokens } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
 import { ImageWithFallback } from "../../components/image-with-fallback";
-import type { LocationDto } from "../../api/interfaces";
+import type { LocationDto } from "../../api/dto-interfaces";
 import "./reservations.css";
 
 export function ReservationPage() {
@@ -24,10 +24,10 @@ export function ReservationPage() {
   }, []);
 
   return (
-    <div className="res-page">
+    <div className="reservation-page">
       <section className="res-hero">
         <ImageWithFallback
-          src={T.dineImg}
+          src={Tokens.dineImg}
           alt="Restaurant interior"
           className="res-hero-image"
         />
@@ -45,7 +45,7 @@ export function ReservationPage() {
       {resOK ? (
         <div className="res-success">
           <div className="res-success-icon-wrap">
-            <Ic name="check" size={36} color={T.green} />
+            <Ic name="check" size={36} color={Tokens.green} />
           </div>
           <h2 className="res-success-title">You're all set</h2>
           <p className="res-success-party">Party of {res.party} confirmed</p>
@@ -143,7 +143,7 @@ export function ReservationPage() {
               ].map((item) => (
                 <div key={item.t} className="res-tip-row">
                   <div className="res-tip-icon-wrap">
-                    <Ic name={item.i} size={16} color={T.green} />
+                    <Ic name={item.i} size={16} color={Tokens.green} />
                   </div>
                   <span className="res-tip-text">{item.t}</span>
                 </div>

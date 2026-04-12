@@ -36,11 +36,7 @@
   margin: 0 0 12px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .loyalty-points-row {
@@ -55,17 +51,13 @@
   font-size: 48px;
   font-weight: 700;
   line-height: 1;
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--font-display);
 }
 
 .loyalty-points-label {
   color: var(--caramel);
   font-size: 16px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
   font-weight: 500;
 }
 
@@ -92,19 +84,11 @@
 .loyalty-footer-copy {
   color: var(--caramel);
   font-size: 13px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }
 
 .loyalty-footer-muted {
   color: rgba(var(--palette-caramel-rgb), 0.5);
   font-size: 12px;
-  font-family:
-    "DM Sans",
-    -apple-system,
-    BlinkMacSystemFont,
-    sans-serif;
+  font-family: var(--font-body);
 }

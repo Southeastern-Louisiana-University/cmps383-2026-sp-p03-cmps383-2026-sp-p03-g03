@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { T, LOGO } from "../../styles/tokens";
+import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic, ItemIcon } from "../../components/icons";
 import { LoyaltyCard } from "../../components/loyalty-card";
 import { useAppContext } from "../../api/contexts/app-context";
@@ -108,7 +108,7 @@ export function ProfilePage() {
           }}
           className="btn-outline focus-ring btn-outline-base profile-signout"
         >
-          <Ic name="logout" size={16} color={T.mocha} />
+          <Ic name="logout" size={16} color={Tokens.mocha} />
           Sign Out
         </button>
       </section>
@@ -123,7 +123,7 @@ export function ProfilePage() {
             <Ic
               name={t.i}
               size={16}
-              color={activeTab === t.k ? T.green : T.caramel}
+              color={activeTab === t.k ? Tokens.green : Tokens.caramel}
             />
             {t.l}
           </button>
@@ -148,7 +148,7 @@ export function ProfilePage() {
                     }}
                     className="focus-ring profile-edit-btn"
                   >
-                    <Ic name="edit" size={14} color={T.green} />
+                    <Ic name="edit" size={14} color={Tokens.green} />
                     Edit
                   </button>
                 ) : (
@@ -228,7 +228,7 @@ export function ProfilePage() {
                       className={`profile-info-row ${i < arr.length - 2 ? "profile-info-row-divided" : ""}`}
                     >
                       <div className="profile-info-icon-wrap">
-                        <Ic name={f.icon} size={16} color={T.green} />
+                        <Ic name={f.icon} size={16} color={Tokens.green} />
                       </div>
                       <div>
                         <p className="profile-info-label">{f.label}</p>
@@ -255,7 +255,7 @@ export function ProfilePage() {
                 <span className="profile-default-badge">Default</span>
               </div>
               <button className="focus-ring profile-add-payment-btn">
-                <Ic name="plus" size={16} color={T.caramel} />
+                <Ic name="plus" size={16} color={Tokens.caramel} />
                 Add payment method
               </button>
             </div>
@@ -302,7 +302,7 @@ export function ProfilePage() {
                 className="card-base card-hover profile-order-card"
               >
                 <div className="profile-order-icon-wrap">
-                  <Ic name="menu" size={22} color={T.green} />
+                  <Ic name="menu" size={22} color={Tokens.green} />
                 </div>
                 <div className="profile-flex-1">
                   <div className="profile-order-head">
@@ -375,7 +375,7 @@ export function ProfilePage() {
           <div className="card-base profile-setting-card">
             <div className="profile-setting-head">
               <div className="profile-setting-icon-wrap">
-                <Ic name="mappin" size={16} color={T.green} />
+                <Ic name="mappin" size={16} color={Tokens.green} />
               </div>
               <h4 className="profile-setting-title">Default Location</h4>
             </div>
@@ -397,7 +397,7 @@ export function ProfilePage() {
           <div className="card-base profile-setting-card">
             <div className="profile-setting-head">
               <div className="profile-setting-icon-wrap">
-                <Ic name="cart" size={16} color={T.green} />
+                <Ic name="cart" size={16} color={Tokens.green} />
               </div>
               <h4 className="profile-setting-title">Default Order Type</h4>
             </div>
@@ -419,7 +419,7 @@ export function ProfilePage() {
           <div className="card-base profile-setting-card">
             <div className="profile-setting-head">
               <div className="profile-setting-icon-wrap">
-                <Ic name="mail" size={16} color={T.green} />
+                <Ic name="mail" size={16} color={Tokens.green} />
               </div>
               <h4 className="profile-setting-title">Receipt Preference</h4>
             </div>

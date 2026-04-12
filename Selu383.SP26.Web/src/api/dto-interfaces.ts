@@ -102,3 +102,15 @@ export interface OrderSummary {
   }>;
   receiptUrl: string | null;
 }
+export interface UserProfile {
+  name: string;
+  email: string;
+  phone: string;
+  birthday: string;
+  points: number;
+  memberSince: string;
+  tier: "Bronze" | "Silver" | "Gold";
+  defaultLocation: string;
+  defaultOrderType: "Pickup" | "Drive-Thru";
+  receiptPref: string;
+}

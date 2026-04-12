@@ -1,4 +1,4 @@
-import { T, LOGO } from "../../styles/tokens.ts";
+import { Tokens, LOGO } from "../../styles/tokens.ts";
 import { Ic } from "../../components/icons.tsx";
 import { LoyaltyCard } from "../../components/loyalty-card.tsx";
 import { useAppContext } from "../../api/contexts/app-context.tsx";
@@ -22,7 +22,7 @@ export function DashboardPage() {
     <div className="dashboard-page">
       <section className="hero">
         <ImageWithFallback
-          src={T.heroImg}
+          src={Tokens.heroImg}
           alt="Caffeinated Lions coffee shop"
           className="hero-image"
         />
@@ -30,14 +30,12 @@ export function DashboardPage() {
         <div className="noise-overlay" />
 
         <div className="hero-content">
-          <p className="hero-kicker">Welcome back, {user.name}</p>
+          {/* <p className="hero-kicker">Welcome back, {user.name}</p> */}
           <h1 className="hero-title">
-            Every cup is
-            <br />a moment worth savoring.
+            Bold brews to <br /> fuel the pride.
           </h1>
           <p className="hero-subtitle">
-            Handcrafted drinks, delicate crepes, fresh bagels, all made with
-            love.
+            Fresh coffee, crepes, and bagels, all made with love.
           </p>
           <div className="hero-actions">
             <button
@@ -81,7 +79,7 @@ export function DashboardPage() {
             className={`fade-in feature-item ${i === 0 ? "delay-0" : i === 1 ? "delay-1" : "delay-2"}`}
           >
             <div className="feature-icon-wrap">
-              <Ic name={v.icon} size={24} color={T.green} />
+              <Ic name={v.icon} size={24} color={Tokens.green} />
             </div>
             <h3 className="feature-title">{v.title}</h3>
             <p className="feature-desc">{v.desc}</p>
@@ -96,15 +94,24 @@ export function DashboardPage() {
         </div>
 
         {loading ? (
-          <div className="card-base" style={{ padding: 24, color: T.mocha }}>
+          <div
+            className="card-base"
+            style={{ padding: 24, color: Tokens.mocha }}
+          >
             Loading menu highlights...
           </div>
         ) : error ? (
-          <div className="card-base" style={{ padding: 24, color: T.mocha }}>
+          <div
+            className="card-base"
+            style={{ padding: 24, color: Tokens.mocha }}
+          >
             {error}
           </div>
         ) : featured.length === 0 ? (
-          <div className="card-base" style={{ padding: 24, color: T.mocha }}>
+          <div
+            className="card-base"
+            style={{ padding: 24, color: Tokens.mocha }}
+          >
             No menu items are available yet.
           </div>
         ) : (
@@ -119,7 +126,7 @@ export function DashboardPage() {
             >
               <div className="featured-media">
                 <ImageWithFallback
-                  src={T.icedImg}
+                  src={Tokens.icedImg}
                   alt={featured[0].name}
                   className="featured-image"
                 />
@@ -151,7 +158,7 @@ export function DashboardPage() {
               >
                 <div className="secondary-media">
                   <ImageWithFallback
-                    src={index === 0 ? T.crepeImg : T.cafeImg}
+                    src={index === 0 ? Tokens.crepeImg : Tokens.cafeImg}
                     alt={item.name}
                     className="secondary-image"
                   />
@@ -180,7 +187,7 @@ export function DashboardPage() {
           <div className="card-base reorder-card">
             <div className="reorder-media">
               <ImageWithFallback
-                src={T.latteImg}
+                src={Tokens.latteImg}
                 alt="Iced Latte"
                 className="fill-image"
               />
@@ -211,7 +218,7 @@ export function DashboardPage() {
 
           <div className="roast-banner">
             <ImageWithFallback
-              src={T.beansImg}
+              src={Tokens.beansImg}
               alt="Fresh roasted beans"
               className="fill-image"
             />
