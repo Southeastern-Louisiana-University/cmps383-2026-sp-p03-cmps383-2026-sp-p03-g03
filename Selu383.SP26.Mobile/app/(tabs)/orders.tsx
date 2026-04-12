@@ -1,5 +1,15 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Image, ActivityIndicator, RefreshControl, TouchableOpacity, Alert, Linking } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  ScrollView,
+  Image,
+  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+  Alert,
+  Linking,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -8,10 +18,10 @@ import { ThemedView } from '@/components/themed-view';
 import { PageHeaderActions } from '@/components/page-header-actions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { CommonStyles, getColors } from '@/constants/styles';
-import { getMyOrders, getReceiptPdfUrl, type OrderDto } from '@/services/api';
+import { getMyOrders, getReceiptPdfUrl, syncStripePaymentStatus, type OrderDto } from '@/services/api';
 
 const STATUS_COLORS: Record<string, string> = {
-  Pending: '#f59e0b',
+  Placed: '#f59e0b',
   Confirmed: '#3b82f6',
   Preparing: '#8b5cf6',
   Ready: '#10b981',
@@ -21,14 +31,24 @@ const STATUS_COLORS: Record<string, string> = {
 
 const PAYMENT_COLORS: Record<string, string> = {
   Unpaid: '#ef4444',
+  Pending: '#f59e0b',
   Paid: '#10b981',
+  Failed: '#ef4444',
   Refunded: '#6b7280',
+  Removed: '#6b7280',
 };
 
 function formatDate(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) +
-    ' · ' + d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  return (
+    d.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    }) +
+    ' · ' +
+    d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })
+  );
 }
 
 export default function OrdersScreen() {
@@ -41,14 +61,25 @@ export default function OrdersScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
+
     setError(null);
+
     try {
       const data = await getMyOrders();
-      setOrders(data);
+
+      // Sync stripe status for any unpaid orders so the UI reflects payment
+      const unpaid = data.filter((o) => o.paymentStatus === 'Unpaid');
+      if (unpaid.length > 0) {
+        await Promise.allSettled(unpaid.map((o) => syncStripePaymentStatus(o.id)));
+        // Reload orders with updated statuses
+        const refreshed = await getMyOrders();
+        setOrders(refreshed);
+      } else {
+        setOrders(data);
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to load orders.');
     } finally {
@@ -73,7 +104,9 @@ export default function OrdersScreen() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   return (
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
@@ -99,23 +132,54 @@ export default function OrdersScreen() {
             <ThemedText style={CommonStyles.title}>Orders</ThemedText>
           </View>
 
-          <View style={[styles.badge, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-            <ThemedText style={[styles.badgeText, { color: colors.primary }]}>Track every order in one place</ThemedText>
+          <View
+            style={[
+              styles.badge,
+              { backgroundColor: colors.cardBackground, borderColor: colors.border },
+            ]}
+          >
+            <ThemedText style={[styles.badgeText, { color: colors.primary }]}>
+              Track every order in one place
+            </ThemedText>
           </View>
 
           {loading ? (
             <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
           ) : error ? (
-            <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>{error}</ThemedText>
-              <TouchableOpacity onPress={() => load()} style={[styles.retryBtn, { borderColor: colors.primary }]}>
-                <ThemedText style={[styles.retryText, { color: colors.primary }]}>Retry</ThemedText>
+            <View
+              style={[
+                styles.emptyCard,
+                { backgroundColor: colors.cardBackground, borderColor: colors.border },
+              ]}
+            >
+              <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
+                {error}
+              </ThemedText>
+              <TouchableOpacity
+                onPress={() => load()}
+                style={[styles.retryBtn, { borderColor: colors.primary }]}
+              >
+                <ThemedText style={[styles.retryText, { color: colors.primary }]}>
+                  Retry
+                </ThemedText>
               </TouchableOpacity>
             </View>
           ) : orders.length === 0 ? (
-            <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-              <MaterialIcons name="receipt-long" size={40} color={colors.textSecondary} style={{ marginBottom: 10 }} />
-              <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>No orders yet</ThemedText>
+            <View
+              style={[
+                styles.emptyCard,
+                { backgroundColor: colors.cardBackground, borderColor: colors.border },
+              ]}
+            >
+              <MaterialIcons
+                name="receipt-long"
+                size={40}
+                color={colors.textSecondary}
+                style={{ marginBottom: 10 }}
+              />
+              <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>
+                No orders yet
+              </ThemedText>
               <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
                 Place your first order from the menu.
               </ThemedText>
@@ -128,57 +192,117 @@ export default function OrdersScreen() {
             </View>
           ) : (
             orders.map((order) => (
-              <View key={order.id} style={[styles.orderCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                {/* Order header */}
+              <View
+                key={order.id}
+                style={[
+                  styles.orderCard,
+                  { backgroundColor: colors.cardBackground, borderColor: colors.border },
+                ]}
+              >
                 <View style={styles.orderHeader}>
                   <View>
-                    <ThemedText style={[styles.orderCode, { color: colors.text }]}>#{order.orderCode}</ThemedText>
-                    <ThemedText style={[styles.orderDate, { color: colors.textSecondary }]}>{formatDate(order.orderTime)}</ThemedText>
+                    <ThemedText style={[styles.orderCode, { color: colors.text }]}>
+                      #{order.orderCode}
+                    </ThemedText>
+                    <ThemedText style={[styles.orderDate, { color: colors.textSecondary }]}>
+                      {formatDate(order.orderTime)}
+                    </ThemedText>
                   </View>
+
                   <View style={styles.badges}>
-                    <View style={[styles.statusBadge, { backgroundColor: (STATUS_COLORS[order.status] ?? '#6b7280') + '22', borderColor: STATUS_COLORS[order.status] ?? '#6b7280' }]}>
-                      <ThemedText style={[styles.statusText, { color: STATUS_COLORS[order.status] ?? '#6b7280' }]}>
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor:
+                            (STATUS_COLORS[order.status] ?? '#6b7280') + '22',
+                          borderColor: STATUS_COLORS[order.status] ?? '#6b7280',
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.statusText,
+                          { color: STATUS_COLORS[order.status] ?? '#6b7280' },
+                        ]}
+                      >
                         {order.status}
                       </ThemedText>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: (PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280') + '22', borderColor: PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280' }]}>
-                      <ThemedText style={[styles.statusText, { color: PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280' }]}>
+
+                    <View
+                      style={[
+                        styles.statusBadge,
+                        {
+                          backgroundColor:
+                            (PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280') + '22',
+                          borderColor: PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280',
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        style={[
+                          styles.statusText,
+                          {
+                            color: PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280',
+                          },
+                        ]}
+                      >
                         {order.paymentStatus}
                       </ThemedText>
                     </View>
                   </View>
                 </View>
 
-                {/* Meta row */}
                 <View style={[styles.metaRow, { borderTopColor: colors.border }]}>
                   <ThemedText style={[styles.metaText, { color: colors.textSecondary }]}>
                     {order.orderType === 'DineIn' ? 'Dine In' : 'Pickup'}
                     {order.pickupName ? ` · ${order.pickupName}` : ''}
                   </ThemedText>
-                  <ThemedText style={[styles.total, { color: colors.primary }]}>${order.total.toFixed(2)}</ThemedText>
+                  <ThemedText style={[styles.total, { color: colors.primary }]}>
+                    ${order.total.toFixed(2)}
+                  </ThemedText>
                 </View>
 
-                {/* Items */}
                 {order.items && order.items.length > 0 && (
                   <View style={[styles.itemsBlock, { borderTopColor: colors.border }]}>
                     {order.items.map((item) => (
                       <View key={item.id} style={styles.itemRow}>
-                        <ThemedText style={[styles.itemQty, { color: colors.textSecondary }]}>{item.quantity}×</ThemedText>
-                        <ThemedText style={[styles.itemName, { color: colors.text }]} numberOfLines={1}>
-                          Item #{item.menuItemId}
+                        <ThemedText style={[styles.itemQty, { color: colors.textSecondary }]}>
+                          {item.quantity}×
                         </ThemedText>
-                        <ThemedText style={[styles.itemPrice, { color: colors.textSecondary }]}>${item.lineTotal.toFixed(2)}</ThemedText>
+                        <ThemedText
+                          style={[styles.itemName, { color: colors.text }]}
+                          numberOfLines={1}
+                        >
+                          {item.menuItemName || `Item #${item.menuItemId}`}
+                        </ThemedText>
+                        <ThemedText style={[styles.itemPrice, { color: colors.textSecondary }]}>
+                          ${item.lineTotal.toFixed(2)}
+                        </ThemedText>
                       </View>
                     ))}
+
                     {order.note ? (
-                      <ThemedText style={[styles.orderNote, { color: colors.textSecondary }]}>Note: {order.note}</ThemedText>
+                      <ThemedText style={[styles.orderNote, { color: colors.textSecondary }]}>
+                        Note: {order.note}
+                      </ThemedText>
                     ) : null}
+
                     <TouchableOpacity
-                      style={[styles.receiptButton, { borderColor: colors.primary, backgroundColor: colors.primary + '14' }]}
+                      style={[
+                        styles.receiptButton,
+                        {
+                          borderColor: colors.primary,
+                          backgroundColor: colors.primary + '14',
+                        },
+                      ]}
                       onPress={() => openReceipt(order.id)}
                     >
                       <MaterialIcons name="receipt-long" size={18} color={colors.primary} />
-                      <ThemedText style={[styles.receiptButtonText, { color: colors.primary }]}>View Receipt</ThemedText>
+                      <ThemedText style={[styles.receiptButtonText, { color: colors.primary }]}>
+                        View Receipt
+                      </ThemedText>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -274,11 +398,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   badges: {
-    flexDirection: 'row',
-    gap: 6,
-    flexShrink: 1,
-    flexWrap: 'wrap',
-    justifyContent: 'flex-end',
+    flexDirection: 'column',
+    gap: 4,
+    alignItems: 'flex-end',
   },
   statusBadge: {
     borderWidth: 1,
