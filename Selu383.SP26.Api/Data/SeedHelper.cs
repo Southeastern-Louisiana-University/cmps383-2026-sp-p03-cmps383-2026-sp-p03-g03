@@ -21,17 +21,7 @@ public static class SeedHelper
     {
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
-        try
-        {
-            await dataContext.Database.MigrateAsync();
-        }
-        catch (SqlException ex) when (
-            ex.Number == 2705 &&
-            ex.Message.Contains("StripePaymentMethodId", StringComparison.OrdinalIgnoreCase))
-        {
-            // Azure may already have this column from a manual change; continue startup safely.
-        }
-        await EnsureLoyaltyLedgerRewardColumns(dataContext);
+        await dataContext.Database.MigrateAsync();
 
         await AddRoles(serviceProvider);
         await AddUsers(serviceProvider);
@@ -41,21 +31,6 @@ public static class SeedHelper
         await AddMenuCategoryLocations(dataContext);
         await AddMenuItems(dataContext);
         await AddRewards(dataContext);
-    }
-
-    private static async Task EnsureLoyaltyLedgerRewardColumns(DataContext dataContext)
-    {
-        await dataContext.Database.ExecuteSqlRawAsync(@"
-IF COL_LENGTH('LoyaltyLedgers', 'RewardId') IS NULL
-BEGIN
-    ALTER TABLE [LoyaltyLedgers] ADD [RewardId] int NULL;
-END
-
-IF COL_LENGTH('LoyaltyLedgers', 'RewardName') IS NULL
-BEGIN
-    ALTER TABLE [LoyaltyLedgers] ADD [RewardName] nvarchar(200) NULL;
-END
-");
     }
 
     private static async Task AddUsers(IServiceProvider serviceProvider)
