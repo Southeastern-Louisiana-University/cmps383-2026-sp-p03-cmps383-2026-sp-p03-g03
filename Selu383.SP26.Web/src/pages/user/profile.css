@@ -77,21 +77,21 @@
 }
 
 .profile-tier-badge-gold {
-  background: #d4a01718;
-  color: #d4a017;
-  border: 1px solid #d4a01730;
+  background: color-mix(in srgb, var(--palette-gold) 9%, transparent);
+  color: var(--palette-gold);
+  border: 1px solid color-mix(in srgb, var(--palette-gold) 19%, transparent);
 }
 
 .profile-tier-badge-silver {
-  background: #8b8b8b18;
-  color: #8b8b8b;
-  border: 1px solid #8b8b8b30;
+  background: color-mix(in srgb, var(--palette-silver) 9%, transparent);
+  color: var(--palette-silver);
+  border: 1px solid color-mix(in srgb, var(--palette-silver) 19%, transparent);
 }
 
 .profile-tier-badge-bronze {
-  background: #cd7f3218;
-  color: #cd7f32;
-  border: 1px solid #cd7f3230;
+  background: color-mix(in srgb, var(--palette-bronze) 9%, transparent);
+  color: var(--palette-bronze);
+  border: 1px solid color-mix(in srgb, var(--palette-bronze) 19%, transparent);
 }
 
 .profile-meta {
@@ -299,7 +299,7 @@
   width: 48px;
   height: 32px;
   border-radius: 6px;
-  background: #1a1f71;
+  background: var(--palette-visa-blue);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -688,7 +688,7 @@
 .profile-danger-card {
   padding: 28px 32px;
   margin-top: 32px;
-  border-color: #fed7d7;
+  border-color: var(--palette-error-200);
 }
 
 .profile-danger-title {
@@ -701,7 +701,7 @@
   font-weight: 600;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: #c53030;
+  color: var(--palette-error-700);
   margin: 0 0 8px;
 }
 
@@ -719,7 +719,7 @@
 
 .profile-danger-btn {
   background: none;
-  border: 1.5px solid #e53e3e;
+  border: 1.5px solid var(--palette-error-500);
   border-radius: 8px;
   padding: 10px 24px;
   font-family:
@@ -729,7 +729,7 @@
     sans-serif;
   font-weight: 600;
   font-size: 14px;
-  color: #e53e3e;
+  color: var(--palette-error-500);
   cursor: pointer;
   transition: background 0.2s;
 }

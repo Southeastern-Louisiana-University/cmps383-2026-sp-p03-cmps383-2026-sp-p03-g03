@@ -23,9 +23,9 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(58, 46, 31, 0.85) 0%,
-    rgba(58, 46, 31, 0.5) 50%,
-    rgba(74, 124, 89, 0.3) 100%
+    rgba(var(--palette-shadow-rgb), 0.85) 0%,
+    rgba(var(--palette-shadow-rgb), 0.5) 50%,
+    rgba(var(--palette-focus-ring-rgb), 0.3) 100%
   );
 }
 
@@ -71,7 +71,7 @@
     BlinkMacSystemFont,
     sans-serif;
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(var(--palette-white-rgb), 0.7);
   margin: 0 0 36px;
   max-width: 440px;
   line-height: 1.6;
@@ -84,7 +84,7 @@
 
 .hero-outline-btn {
   color: var(--white);
-  border-color: rgba(255, 255, 255, 0.35);
+  border-color: rgba(var(--palette-white-rgb), 0.35);
 }
 
 .hero-logo {
@@ -209,7 +209,7 @@
   background: linear-gradient(
     180deg,
     transparent 50%,
-    rgba(58, 46, 31, 0.08) 100%
+    rgba(var(--palette-shadow-rgb), 0.08) 100%
   );
 }
 
@@ -429,8 +429,8 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(58, 46, 31, 0.8),
-    rgba(58, 46, 31, 0.4)
+    rgba(var(--palette-shadow-rgb), 0.8),
+    rgba(var(--palette-shadow-rgb), 0.4)
   );
 }
 

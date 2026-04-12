@@ -21,9 +21,9 @@
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(58, 46, 31, 0.85) 0%,
-    rgba(58, 46, 31, 0.5) 60%,
-    rgba(74, 124, 89, 0.2) 100%
+    rgba(var(--palette-shadow-rgb), 0.85) 0%,
+    rgba(var(--palette-shadow-rgb), 0.5) 60%,
+    rgba(var(--palette-focus-ring-rgb), 0.2) 100%
   );
 }
 
@@ -65,7 +65,7 @@
     BlinkMacSystemFont,
     sans-serif;
   font-size: 16px;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--palette-white-rgb), 0.65);
   margin: 0;
   max-width: 420px;
 }

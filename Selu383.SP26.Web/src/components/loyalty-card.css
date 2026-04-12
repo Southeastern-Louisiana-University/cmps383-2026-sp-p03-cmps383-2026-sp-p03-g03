@@ -12,7 +12,7 @@
   right: -40px;
   width: 160px;
   height: 160px;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(var(--palette-white-rgb), 0.02);
   border-radius: 50%;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .loyalty-progress-track {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(var(--palette-white-rgb), 0.08);
   border-radius: 100px;
   height: 6px;
   overflow: hidden;
@@ -100,7 +100,7 @@
 }
 
 .loyalty-footer-muted {
-  color: rgba(196, 168, 130, 0.5);
+  color: rgba(var(--palette-caramel-rgb), 0.5);
   font-size: 12px;
   font-family:
     "DM Sans",

@@ -21,7 +21,6 @@
   grid-template-columns: 1.5fr 1fr 1fr 1fr;
   gap: 48px;
   padding-bottom: 48px;
-  border-bottom: 1px solid rgba(196, 168, 130, 0.15);
 }
 
 .footer-brand-row {
@@ -68,7 +67,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  border: 1px solid rgba(196, 168, 130, 0.25);
+  border: 1px solid rgba(var(--palette-caramel-rgb), 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -151,7 +150,7 @@
     BlinkMacSystemFont,
     sans-serif;
   font-size: 13px;
-  color: rgba(196, 168, 130, 0.5);
+  color: rgba(var(--palette-caramel-rgb), 0.5);
   margin: 0;
 }
 

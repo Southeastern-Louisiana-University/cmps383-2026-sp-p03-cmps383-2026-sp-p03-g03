@@ -97,8 +97,8 @@
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(58, 46, 31, 0.8) 0%,
-    rgba(58, 46, 31, 0.3) 60%,
+    rgba(var(--palette-shadow-rgb), 0.8) 0%,
+    rgba(var(--palette-shadow-rgb), 0.3) 60%,
     transparent 100%
   );
 }

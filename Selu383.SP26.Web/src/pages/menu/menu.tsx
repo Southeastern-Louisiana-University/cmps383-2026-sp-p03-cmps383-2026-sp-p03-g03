@@ -4,6 +4,7 @@ import { ItemIcon } from "../../components/icons";
 import { useAppContext } from "../../api/contexts/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import { useMenuCatalog } from "../../api/menu.ts";
+import "./menu.css";
 
 const catImages: Record<string, string> = {
   Drinks: T.icedImg,

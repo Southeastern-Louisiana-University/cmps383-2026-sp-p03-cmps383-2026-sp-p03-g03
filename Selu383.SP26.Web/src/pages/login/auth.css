@@ -23,9 +23,9 @@
   inset: 0;
   background: linear-gradient(
     160deg,
-    rgba(58, 46, 31, 0.92) 0%,
-    rgba(58, 46, 31, 0.7) 50%,
-    rgba(74, 124, 89, 0.4) 100%
+    rgba(var(--palette-shadow-rgb), 0.92) 0%,
+    rgba(var(--palette-shadow-rgb), 0.7) 50%,
+    rgba(var(--palette-focus-ring-rgb), 0.4) 100%
   );
 }
 
@@ -64,7 +64,7 @@
     BlinkMacSystemFont,
     sans-serif;
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(var(--palette-white-rgb), 0.65);
   margin: 0 0 48px;
   max-width: 360px;
   line-height: 1.6;
@@ -148,8 +148,8 @@
 }
 
 .auth-error {
-  background: #fff5f5;
-  border: 1px solid #fed7d7;
+  background: var(--palette-error-50);
+  border: 1px solid var(--palette-error-200);
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 24px;
@@ -165,7 +165,7 @@
     BlinkMacSystemFont,
     sans-serif;
   font-size: 14px;
-  color: #c53030;
+  color: var(--palette-error-700);
 }
 
 .auth-field-block {
@@ -273,7 +273,7 @@
   display: inline-block;
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  border: 2px solid rgba(var(--palette-white-rgb), 0.3);
   border-top-color: var(--white);
   border-radius: 50%;
   animation: clSpin 0.6s linear infinite;
