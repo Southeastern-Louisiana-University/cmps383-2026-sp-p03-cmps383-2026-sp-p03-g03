@@ -320,7 +320,8 @@ public class PaymentsController : ControllerBase
 
         try
         {
-            var url = await _stripePaymentService.CreateCheckoutSessionAsync(dto.OrderId);
+            var requestBaseUrl = $"{Request.Scheme}://{Request.Host.Value}";
+            var url = await _stripePaymentService.CreateCheckoutSessionAsync(dto.OrderId, requestBaseUrl);
 
             return Ok(new
             {
@@ -375,6 +376,39 @@ public class PaymentsController : ControllerBase
                 RequiresCheckout = true,
                 Message = "No saved payment method found.",
                 PaymentStatus = order.PaymentStatus
+            });
+        }
+
+        // Demo fallback: if the saved card is a demo card, mark the order as paid directly.
+        if (paymentMethod.StripePaymentMethodId.StartsWith("demo_pm_", StringComparison.OrdinalIgnoreCase))
+        {
+            var orderWithPayments = await _context.Orders
+                .Include(o => o.Payments)
+                .FirstOrDefaultAsync(x => x.Id == orderId);
+
+            if (orderWithPayments != null)
+            {
+                orderWithPayments.Payments.Add(new Payment
+                {
+                    OrderId = orderId,
+                    Provider = "Demo",
+                    PaymentMethodType = "SavedPaymentMethod",
+                    TransactionId = $"demo_txn_{Guid.NewGuid():N}",
+                    Amount = orderWithPayments.Total,
+                    Status = PaymentStatuses.Paid,
+                    CreatedAt = DateTime.UtcNow
+                });
+                orderWithPayments.PaymentStatus = PaymentStatuses.Paid;
+                orderWithPayments.Status = OrderStatuses.Confirmed;
+                await _context.SaveChangesAsync();
+            }
+
+            return Ok(new PayWithSavedMethodResultDto
+            {
+                Succeeded = true,
+                RequiresCheckout = false,
+                Message = "Payment completed using saved card.",
+                PaymentStatus = PaymentStatuses.Paid
             });
         }
 

@@ -19,7 +19,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { CommonStyles, getColors } from '@/constants/styles';
-import { getLocations, createOrder, createStripeCheckoutSession, type LocationDto } from '@/services/api';
+import { getLocations, createOrder, createStripeCheckoutSession, syncStripePaymentStatus, payOrderWithSavedMethod, type LocationDto } from '@/services/api';
 import * as WebBrowser from 'expo-web-browser';
 
 type OrderType = 'Pickup' | 'DineIn';
@@ -88,37 +88,39 @@ export default function CheckoutScreen() {
         })),
       });
 
+      // Try paying with saved card first (instant, no browser needed)
+      try {
+        const savedResult = await payOrderWithSavedMethod(order.id);
+        if (savedResult.succeeded) {
+          clearCart();
+          router.replace('/(tabs)/orders');
+          return;
+        }
+      } catch { /* no saved method — fall through to Stripe checkout */ }
+
       // Open Stripe checkout in the browser
       try {
         const stripeUrl = await createStripeCheckoutSession(order.id);
-        clearCart();
-        
-        // Show receipt if available
-        if (order.receiptUrl) {
-          Alert.alert(
-            'Order Placed!',
-            `Your order #${order.orderCode} is confirmed.\n\nYour receipt is ready.`,
-            [
-              {
-                text: 'View Receipt',
-                onPress: () => {
-                  WebBrowser.openBrowserAsync(order.receiptUrl!);
-                  router.replace('/(tabs)/orders');
-                },
-              },
-              {
-                text: 'Continue to Payment',
-                onPress: () => {
-                  WebBrowser.openBrowserAsync(stripeUrl);
-                  router.replace('/(tabs)/orders');
-                },
-              },
-            ],
-          );
-        } else {
-          await WebBrowser.openBrowserAsync(stripeUrl);
-          router.replace('/(tabs)/orders');
+        await WebBrowser.openBrowserAsync(stripeUrl);
+
+        // Stripe/webhook updates can lag briefly; retry sync a few times before returning to Orders.
+        for (let attempt = 0; attempt < 3; attempt++) {
+          try {
+            const syncResult = await syncStripePaymentStatus(order.id);
+            if (syncResult.paymentStatus === 'Paid') {
+              break;
+            }
+          } catch {
+            // best effort
+          }
+
+          if (attempt < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 900));
+          }
         }
+
+        clearCart();
+        router.replace('/(tabs)/orders');
       } catch {
         // Stripe not configured — still confirm the order
         clearCart();
