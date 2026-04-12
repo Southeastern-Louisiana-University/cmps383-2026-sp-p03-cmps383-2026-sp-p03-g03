@@ -1,3 +1,4 @@
+using System.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -20,27 +21,90 @@ public static class SeedHelper
     public static async Task MigrateAndSeed(IServiceProvider serviceProvider)
     {
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
+        var lockAcquired = false;
 
         try
         {
-            await dataContext.Database.MigrateAsync();
-        }
-        catch (SqlException ex) when (
-            ex.Number == 2705 &&
-            ex.Message.Contains("StripePaymentMethodId", StringComparison.OrdinalIgnoreCase))
-        {
-            // Azure may already have this column from a manual change; continue startup safely.
-        }
-        await EnsureLoyaltyLedgerRewardColumns(dataContext);
+            lockAcquired = await AcquireSeedLockAsync(dataContext);
 
-        await AddRoles(serviceProvider);
-        await AddUsers(serviceProvider);
-        await AddLocations(dataContext);
-        await AddTables(dataContext);
-        await AddMenuCategories(dataContext);
-        await AddMenuCategoryLocations(dataContext);
-        await AddMenuItems(dataContext);
-        await AddRewards(dataContext);
+            try
+            {
+                await dataContext.Database.MigrateAsync();
+            }
+            catch (SqlException ex) when (
+                ex.Number == 2705 &&
+                ex.Message.Contains("StripePaymentMethodId", StringComparison.OrdinalIgnoreCase))
+            {
+                // Azure may already have this column from a manual change; continue startup safely.
+            }
+
+            await EnsureLoyaltyLedgerRewardColumns(dataContext);
+            await AddRoles(serviceProvider);
+            await AddUsers(serviceProvider);
+            await AddLocations(dataContext);
+            await AddTables(dataContext);
+            await AddMenuCategories(dataContext);
+            await AddMenuCategoryLocations(dataContext);
+            await AddMenuItems(dataContext);
+            await AddRewards(dataContext);
+        }
+        finally
+        {
+            if (lockAcquired)
+            {
+                await ReleaseSeedLockAsync(dataContext);
+            }
+        }
+    }
+
+    private static async Task<bool> AcquireSeedLockAsync(DataContext dataContext)
+    {
+        if (!dataContext.Database.IsSqlServer())
+        {
+            return false;
+        }
+
+        await dataContext.Database.OpenConnectionAsync();
+
+        await using var command = dataContext.Database.GetDbConnection().CreateCommand();
+        command.CommandText = @"
+DECLARE @result int;
+EXEC @result = sp_getapplock
+    @Resource = 'Selu383.SP26.Api.SeedHelper',
+    @LockMode = 'Exclusive',
+    @LockOwner = 'Session',
+    @LockTimeout = 60000;
+SELECT @result;";
+        command.CommandType = CommandType.Text;
+
+        var scalar = await command.ExecuteScalarAsync();
+        var result = scalar is int value ? value : Convert.ToInt32(scalar);
+
+        if (result < 0)
+        {
+            throw new InvalidOperationException($"Failed to acquire database seed lock. sp_getapplock returned {result}.");
+        }
+
+        return true;
+    }
+
+    private static async Task ReleaseSeedLockAsync(DataContext dataContext)
+    {
+        try
+        {
+            await using var command = dataContext.Database.GetDbConnection().CreateCommand();
+            command.CommandText = @"
+EXEC sp_releaseapplock
+    @Resource = 'Selu383.SP26.Api.SeedHelper',
+    @LockOwner = 'Session';";
+            command.CommandType = CommandType.Text;
+
+            await command.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            await dataContext.Database.CloseConnectionAsync();
+        }
     }
 
     private static async Task EnsureLoyaltyLedgerRewardColumns(DataContext dataContext)
@@ -63,60 +127,62 @@ END
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-        if (!userManager.Users.Any())
+        await EnsureUserExistsAsync(userManager, "galkadi", 0, defaultPassword, RoleNames.Admin);
+        await EnsureUserExistsAsync(userManager, "manager1", 0, defaultPassword, RoleNames.Manager);
+        await EnsureUserExistsAsync(userManager, "staff1", 0, defaultPassword, RoleNames.Staff);
+        await EnsureUserExistsAsync(userManager, "sue", 300, defaultPassword, RoleNames.User);
+        await EnsureUserExistsAsync(userManager, "bob", BobTestPoints, defaultPassword, RoleNames.User);
+    }
+
+    private static async Task EnsureUserExistsAsync(
+        UserManager<User> userManager,
+        string userName,
+        int minimumLoyaltyPoints,
+        string password,
+        string roleName)
+    {
+        var user = await userManager.FindByNameAsync(userName);
+
+        if (user == null)
         {
-            var adminUser = new User
+            user = new User
             {
-                UserName = "galkadi",
-                LoyaltyPoints = 0
+                UserName = userName,
+                LoyaltyPoints = minimumLoyaltyPoints
             };
-            await userManager.CreateAsync(adminUser, defaultPassword);
-            await userManager.AddToRoleAsync(adminUser, RoleNames.Admin);
 
-            var managerUser = new User
+            var createResult = await userManager.CreateAsync(user, password);
+            if (!createResult.Succeeded)
             {
-                UserName = "manager1",
-                LoyaltyPoints = 0
-            };
-            await userManager.CreateAsync(managerUser, defaultPassword);
-            await userManager.AddToRoleAsync(managerUser, RoleNames.Manager);
-
-            var staffUser = new User
-            {
-                UserName = "staff1",
-                LoyaltyPoints = 0
-            };
-            await userManager.CreateAsync(staffUser, defaultPassword);
-            await userManager.AddToRoleAsync(staffUser, RoleNames.Staff);
-
-            var sue = new User
-            {
-                UserName = "sue",
-                LoyaltyPoints = 300
-            };
-            await userManager.CreateAsync(sue, defaultPassword);
-            await userManager.AddToRoleAsync(sue, RoleNames.User);
+                user = await userManager.FindByNameAsync(userName);
+                if (user == null)
+                {
+                    var errors = string.Join("; ", createResult.Errors.Select(x => $"{x.Code}:{x.Description}"));
+                    throw new InvalidOperationException($"Failed to create seed user '{userName}'. {errors}");
+                }
+            }
         }
 
-        var bob = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == "bob");
-        if (bob == null)
+        if (user.LoyaltyPoints < minimumLoyaltyPoints)
         {
-            bob = new User
+            user.LoyaltyPoints = minimumLoyaltyPoints;
+
+            var updateResult = await userManager.UpdateAsync(user);
+            if (!updateResult.Succeeded)
             {
-                UserName = "bob",
-                LoyaltyPoints = BobTestPoints
-            };
-            await userManager.CreateAsync(bob, defaultPassword);
-        }
-        else if (bob.LoyaltyPoints < BobTestPoints)
-        {
-            bob.LoyaltyPoints = BobTestPoints;
-            await userManager.UpdateAsync(bob);
+                var errors = string.Join("; ", updateResult.Errors.Select(x => $"{x.Code}:{x.Description}"));
+                throw new InvalidOperationException($"Failed to update seed user '{userName}'. {errors}");
+            }
         }
 
-        if (!await userManager.IsInRoleAsync(bob, RoleNames.User))
+        if (!await userManager.IsInRoleAsync(user, roleName))
         {
-            await userManager.AddToRoleAsync(bob, RoleNames.User);
+            var addToRoleResult = await userManager.AddToRoleAsync(user, roleName);
+            if (!addToRoleResult.Succeeded && !await userManager.IsInRoleAsync(user, roleName))
+            {
+                var errors = string.Join("; ", addToRoleResult.Errors.Select(x => $"{x.Code}:{x.Description}"));
+                throw new InvalidOperationException($"Failed to add seed user '{userName}' to role '{roleName}'. {errors}");
+            }
         }
     }
 
