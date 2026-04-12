@@ -23,9 +23,7 @@ public static class SeedHelper
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
         var lockAcquired = false;
 
-        try
-        {
-            lockAcquired = await AcquireSeedLockAsync(dataContext);
+        await dataContext.Database.MigrateAsync();
 
             try
             {
@@ -105,21 +103,6 @@ EXEC sp_releaseapplock
         {
             await dataContext.Database.CloseConnectionAsync();
         }
-    }
-
-    private static async Task EnsureLoyaltyLedgerRewardColumns(DataContext dataContext)
-    {
-        await dataContext.Database.ExecuteSqlRawAsync(@"
-IF COL_LENGTH('LoyaltyLedgers', 'RewardId') IS NULL
-BEGIN
-    ALTER TABLE [LoyaltyLedgers] ADD [RewardId] int NULL;
-END
-
-IF COL_LENGTH('LoyaltyLedgers', 'RewardName') IS NULL
-BEGIN
-    ALTER TABLE [LoyaltyLedgers] ADD [RewardName] nvarchar(200) NULL;
-END
-");
     }
 
     private static async Task AddUsers(IServiceProvider serviceProvider)

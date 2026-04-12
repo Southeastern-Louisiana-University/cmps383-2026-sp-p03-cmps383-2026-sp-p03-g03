@@ -136,7 +136,8 @@ public class ReservationsController : ControllerBase
             string? checkoutUrl = null;
             try
             {
-                checkoutUrl = await _stripePaymentService.CreateCheckoutSessionAsync(coverChargeOrder.Id);
+                var requestBaseUrl = $"{Request.Scheme}://{Request.Host.Value}";
+                checkoutUrl = await _stripePaymentService.CreateCheckoutSessionAsync(coverChargeOrder.Id, requestBaseUrl);
             }
             catch
             {
@@ -158,7 +159,7 @@ public class ReservationsController : ControllerBase
             TableId = dto.TableId,
             ReservedFor = dto.ReservedFor,
             PartySize = dto.PartySize,
-            Status = ReservationStatuses.Pending,
+            Status = ReservationStatuses.Confirmed,
             SpecialRequests = dto.SpecialRequests?.Trim()
         };
 

@@ -82,7 +82,7 @@ public class StripeWebhookController : ControllerBase
 
                 if (order == null)
                 {
-                    _logger.LogWarning("[Webhook] Order {OrderId} not found", orderId);
+                    _logger.LogInformation("[Webhook] Order {OrderId} not found in this environment; event may belong to a different database/app instance", orderId);
                     return Ok();
                 }
 
