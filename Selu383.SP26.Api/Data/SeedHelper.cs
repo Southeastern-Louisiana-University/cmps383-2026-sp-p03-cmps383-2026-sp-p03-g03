@@ -132,34 +132,64 @@ END
 
     private static async Task EnsureRoleExistsAsync(RoleManager<Role> roleManager, string roleName)
     {
-        if (await roleManager.RoleExistsAsync(roleName)) return;
+        var normalized = roleManager.NormalizeKey(roleName);
+
+        // Stronger existence check (handles casing / normalized-name uniqueness)
+        var existing = await roleManager.Roles
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.NormalizedName == normalized);
+
+        if (existing != null) return;
 
         try
         {
-            var result = await roleManager.CreateAsync(new Role { Name = roleName });
-            if (result.Succeeded) return;
-            if (await roleManager.RoleExistsAsync(roleName)) return;
+            var role = new Role
+            {
+                Name = roleName,
+                NormalizedName = normalized
+            };
 
-            var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Description}"));
-            throw new InvalidOperationException($"Failed to create role '{roleName}'. {errors}");
+            var result = await roleManager.CreateAsync(role);
+
+            // If another parallel init created it, treat as success
+            if (!result.Succeeded)
+            {
+                var nowExists = await roleManager.Roles
+                    .AsNoTracking()
+                    .AnyAsync(r => r.NormalizedName == normalized);
+
+                if (nowExists) return;
+
+                var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Description}"));
+                throw new InvalidOperationException($"Failed to create role '{roleName}'. {errors}");
+            }
         }
         catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
-            if (await roleManager.RoleExistsAsync(roleName)) return;
+            // Duplicate insert -> OK if it exists now
+            var nowExists = await roleManager.Roles
+                .AsNoTracking()
+                .AnyAsync(r => r.NormalizedName == normalized);
+
+            if (nowExists) return;
             throw;
         }
         catch (SqlException ex) when (ex.Number is 2601 or 2627)
         {
-            if (await roleManager.RoleExistsAsync(roleName)) return;
+            var nowExists = await roleManager.Roles
+                .AsNoTracking()
+                .AnyAsync(r => r.NormalizedName == normalized);
+
+            if (nowExists) return;
             throw;
         }
-}
+    }
 
-private static bool IsUniqueConstraintViolation(DbUpdateException ex)
-{
-    // SQL Server duplicate key / unique index violations
-    return ex.InnerException is SqlException sql && (sql.Number == 2601 || sql.Number == 2627);
-}
+    private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+    {
+        // SQL Server duplicate key / unique index violations
+        return ex.InnerException is SqlException sql && (sql.Number == 2601 || sql.Number == 2627);
+    }
 
     private static async Task AddLocations(DataContext dataContext)
     {
