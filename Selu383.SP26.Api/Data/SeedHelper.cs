@@ -132,12 +132,15 @@ END
 
     private static async Task EnsureRoleExistsAsync(RoleManager<Role> roleManager, string roleName)
     {
-        if (await roleManager.RoleExistsAsync(roleName))
-        {
-            return;
-        }
+    if (await roleManager.RoleExistsAsync(roleName)) return;
 
-        await roleManager.CreateAsync(new Role { Name = roleName });
+    var result = await roleManager.CreateAsync(new Role { Name = roleName });
+    if (result.Succeeded) return;
+
+    if (await roleManager.RoleExistsAsync(roleName)) return;
+    
+    var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Description}"));
+    throw new InvalidOperationException($"Failed to create role '{roleName}'. {errors}");
     }
 
     private static async Task AddLocations(DataContext dataContext)
