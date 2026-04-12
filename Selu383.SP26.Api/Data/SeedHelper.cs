@@ -132,16 +132,34 @@ END
 
     private static async Task EnsureRoleExistsAsync(RoleManager<Role> roleManager, string roleName)
     {
-    if (await roleManager.RoleExistsAsync(roleName)) return;
+        if (await roleManager.RoleExistsAsync(roleName)) return;
 
-    var result = await roleManager.CreateAsync(new Role { Name = roleName });
-    if (result.Succeeded) return;
+        try
+        {
+            var result = await roleManager.CreateAsync(new Role { Name = roleName });
+            if (result.Succeeded) return;
+            if (await roleManager.RoleExistsAsync(roleName)) return;
 
-    if (await roleManager.RoleExistsAsync(roleName)) return;
-    
-    var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Description}"));
-    throw new InvalidOperationException($"Failed to create role '{roleName}'. {errors}");
-    }
+            var errors = string.Join("; ", result.Errors.Select(e => $"{e.Code}:{e.Description}"));
+            throw new InvalidOperationException($"Failed to create role '{roleName}'. {errors}");
+        }
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
+        {
+            if (await roleManager.RoleExistsAsync(roleName)) return;
+            throw;
+        }
+        catch (SqlException ex) when (ex.Number is 2601 or 2627)
+        {
+            if (await roleManager.RoleExistsAsync(roleName)) return;
+            throw;
+        }
+}
+
+private static bool IsUniqueConstraintViolation(DbUpdateException ex)
+{
+    // SQL Server duplicate key / unique index violations
+    return ex.InnerException is SqlException sql && (sql.Number == 2601 || sql.Number == 2627);
+}
 
     private static async Task AddLocations(DataContext dataContext)
     {
