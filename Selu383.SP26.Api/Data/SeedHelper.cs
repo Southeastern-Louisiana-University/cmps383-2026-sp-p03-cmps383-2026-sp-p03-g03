@@ -27,99 +27,16 @@ public static class SeedHelper
         {
             lockAcquired = await AcquireSeedLockAsync(dataContext);
 
-            try
-            {
-                await dataContext.Database.MigrateAsync();
-            }
-            catch (SqlException ex) when (
-                ex.Number == 2705 &&
-                ex.Message.Contains("StripePaymentMethodId", StringComparison.OrdinalIgnoreCase))
-            {
-                // Azure may already have this column from a manual change; continue startup safely.
-            }
+        await dataContext.Database.MigrateAsync();
 
-            await EnsureLoyaltyLedgerRewardColumns(dataContext);
-            await AddRoles(serviceProvider);
-            await AddUsers(serviceProvider);
-            await AddLocations(dataContext);
-            await AddTables(dataContext);
-            await AddMenuCategories(dataContext);
-            await AddMenuCategoryLocations(dataContext);
-            await AddMenuItems(dataContext);
-            await AddRewards(dataContext);
-        }
-        finally
-        {
-            if (lockAcquired)
-            {
-                await ReleaseSeedLockAsync(dataContext);
-            }
-        }
-    }
-
-    private static async Task<bool> AcquireSeedLockAsync(DataContext dataContext)
-    {
-        if (!dataContext.Database.IsSqlServer())
-        {
-            return false;
-        }
-
-        await dataContext.Database.OpenConnectionAsync();
-
-        await using var command = dataContext.Database.GetDbConnection().CreateCommand();
-        command.CommandText = @"
-DECLARE @result int;
-EXEC @result = sp_getapplock
-    @Resource = 'Selu383.SP26.Api.SeedHelper',
-    @LockMode = 'Exclusive',
-    @LockOwner = 'Session',
-    @LockTimeout = 60000;
-SELECT @result;";
-        command.CommandType = CommandType.Text;
-
-        var scalar = await command.ExecuteScalarAsync();
-        var result = scalar is int value ? value : Convert.ToInt32(scalar);
-
-        if (result < 0)
-        {
-            throw new InvalidOperationException($"Failed to acquire database seed lock. sp_getapplock returned {result}.");
-        }
-
-        return true;
-    }
-
-    private static async Task ReleaseSeedLockAsync(DataContext dataContext)
-    {
-        try
-        {
-            await using var command = dataContext.Database.GetDbConnection().CreateCommand();
-            command.CommandText = @"
-EXEC sp_releaseapplock
-    @Resource = 'Selu383.SP26.Api.SeedHelper',
-    @LockOwner = 'Session';";
-            command.CommandType = CommandType.Text;
-
-            await command.ExecuteNonQueryAsync();
-        }
-        finally
-        {
-            await dataContext.Database.CloseConnectionAsync();
-        }
-    }
-
-    private static async Task EnsureLoyaltyLedgerRewardColumns(DataContext dataContext)
-    {
-        await dataContext.Database.ExecuteSqlRawAsync(@"
-IF COL_LENGTH('LoyaltyLedgers', 'RewardId') IS NULL
-BEGIN
-    ALTER TABLE [LoyaltyLedgers] ADD [RewardId] int NULL;
-END
-
-IF COL_LENGTH('LoyaltyLedgers', 'RewardName') IS NULL
-BEGIN
-    ALTER TABLE [LoyaltyLedgers] ADD [RewardName] nvarchar(200) NULL;
-END
-");
+        await AddRoles(serviceProvider);
+        await AddUsers(serviceProvider);
+        await AddLocations(dataContext);
+        await AddTables(dataContext);
+        await AddMenuCategories(dataContext);
+        await AddMenuCategoryLocations(dataContext);
+        await AddMenuItems(dataContext);
+        await AddRewards(dataContext);
     }
 
     private static async Task AddUsers(IServiceProvider serviceProvider)

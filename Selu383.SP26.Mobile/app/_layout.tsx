@@ -13,6 +13,7 @@ import { Oregano_400Regular } from "@expo-google-fonts/oregano";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeModeProvider } from "@/contexts/ThemeContext";
+import { CartProvider } from "@/contexts/CartContext";
 
 export const unstable_settings = {
   initialRouteName: "splash",
@@ -51,7 +52,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ThemeModeProvider>
-        <RootNavigator />
+        <CartProvider>
+          <RootNavigator />
+        </CartProvider>
       </ThemeModeProvider>
     </AuthProvider>
   );

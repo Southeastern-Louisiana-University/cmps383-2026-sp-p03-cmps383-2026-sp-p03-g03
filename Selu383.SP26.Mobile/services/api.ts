@@ -498,7 +498,7 @@ export const removeOrderPayment = async (
 };
 
 export const getReservations = async (): Promise<ReservationDto[]> => {
-  return apiCall("/api/reservations", "GET");
+  return apiCall("/api/reservations/my", "GET");
 };
 
 export const createReservation = async (

@@ -8,6 +8,7 @@ namespace Selu383.SP26.Api.Features.Payments;
 
 public class StripePaymentService
 {
+    private const string HostedCheckoutBaseUrl = "https://selu383-sp26-p03-g03.azurewebsites.net";
     private readonly IConfiguration _configuration;
     private readonly DataContext _context;
 
@@ -17,17 +18,27 @@ public class StripePaymentService
         _context = context;
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(int orderId)
+    public async Task<string> CreateCheckoutSessionAsync(int orderId, string? requestBaseUrl = null)
     {
         var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
-        var successUrl = _configuration["Stripe:SuccessUrl"]?.Trim();
-        var cancelUrl = _configuration["Stripe:CancelUrl"]?.Trim();
+        var configuredSuccessUrl = _configuration["Stripe:SuccessUrl"]?.Trim();
+        var configuredCancelUrl = _configuration["Stripe:CancelUrl"]?.Trim();
 
         if (string.IsNullOrWhiteSpace(secretKey))
             throw new Exception("Stripe secret key is missing.");
 
+        var successUrl = ResolveCheckoutUrl(
+            configuredSuccessUrl,
+            requestBaseUrl,
+            "/checkout/success.html?session_id={CHECKOUT_SESSION_ID}");
+
+        var cancelUrl = ResolveCheckoutUrl(
+            configuredCancelUrl,
+            requestBaseUrl,
+            "/checkout/cancel.html");
+
         if (string.IsNullOrWhiteSpace(successUrl) || string.IsNullOrWhiteSpace(cancelUrl))
-            throw new Exception("Stripe success/cancel URLs are missing.");
+            throw new Exception("Stripe success/cancel URLs are missing or invalid.");
 
         StripeConfiguration.ApiKey = secretKey;
 
@@ -102,6 +113,38 @@ public class StripePaymentService
         var session = await service.CreateAsync(options);
 
         return session.Url!;
+    }
+
+    private static string? ResolveCheckoutUrl(string? configuredUrl, string? requestBaseUrl, string fallbackPath)
+    {
+        if (Uri.TryCreate(configuredUrl, UriKind.Absolute, out var configuredUri) && !IsLocalHost(configuredUri.Host))
+        {
+            return configuredUri.ToString();
+        }
+
+        if (Uri.TryCreate(HostedCheckoutBaseUrl, UriKind.Absolute, out var hostedBaseUri))
+        {
+            return new Uri(hostedBaseUri, fallbackPath).ToString();
+        }
+
+        if (Uri.TryCreate(requestBaseUrl, UriKind.Absolute, out var requestBaseUri))
+        {
+            return new Uri(requestBaseUri, fallbackPath).ToString();
+        }
+
+        if (Uri.TryCreate(configuredUrl, UriKind.Absolute, out configuredUri))
+        {
+            return configuredUri.ToString();
+        }
+
+        return null;
+    }
+
+    private static bool IsLocalHost(string host)
+    {
+        return string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(host, "127.0.0.1", StringComparison.OrdinalIgnoreCase)
+               || string.Equals(host, "::1", StringComparison.OrdinalIgnoreCase);
     }
 
     public async Task<PaymentMethodCreateResult> CreatePaymentMethodAsync(string cardholderName, string cardNumber, int expMonth, int expYear, string cvc)
