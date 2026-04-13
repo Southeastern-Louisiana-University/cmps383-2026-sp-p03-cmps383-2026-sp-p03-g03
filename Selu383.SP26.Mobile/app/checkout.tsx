@@ -19,7 +19,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCart } from '@/hooks/useCart';
 import { useAuth } from '@/hooks/useAuth';
 import { CommonStyles, getColors } from '@/constants/styles';
-import { getLocations, getMenuItems, createOrder, createStripeCheckoutSession, syncStripePaymentStatus, payOrderWithSavedMethod, type LocationDto } from '@/services/api';
 import { getLocations, createOrder, createStripeCheckoutSession, syncStripePaymentStatus, payOrderWithSavedMethod, type LocationDto } from '@/services/api';
 import * as WebBrowser from 'expo-web-browser';
 
@@ -77,24 +76,6 @@ export default function CheckoutScreen() {
 
     setPlacing(true);
     try {
-      // Re-validate against live menu so stale cart items cannot be purchased after manager disables them.
-      const liveMenu = await getMenuItems();
-      const unavailableIds = new Set(
-        liveMenu
-          .filter((item) => !item.isAvailable)
-          .map((item) => item.id),
-      );
-
-      const staleUnavailable = cart.filter((item) => unavailableIds.has(item.id));
-      if (staleUnavailable.length > 0) {
-        staleUnavailable.forEach((item) => removeItem(item.id));
-        Alert.alert(
-          'Items Updated',
-          'One or more items in your cart are no longer available and were removed. Please review your cart and try again.',
-        );
-        return;
-      }
-
       const order = await createOrder({
         locationId: selectedLocationId,
         orderType,

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Alert,
   Image,
-  RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -34,23 +33,15 @@ export default function MenuScreen() {
     null,
   );
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [updatingItemId, setUpdatingItemId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const isManagerView = !!user?.roles?.some((role) => {
-    const normalized = role.toLowerCase();
-    return normalized === "admin" || normalized === "manager";
-  });
+  useEffect(() => {
+    fetchMenuData();
+  }, []);
 
-  const fetchMenuData = useCallback(async (isRefresh = false) => {
+  const fetchMenuData = async () => {
     try {
-      if (isRefresh) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
+      setLoading(true);
       setError(null);
 
       const [menuCategories, menuItems] = await Promise.all([
@@ -68,15 +59,8 @@ export default function MenuScreen() {
       setError(err.message || "Failed to load menu");
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      void fetchMenuData();
-    }, [fetchMenuData]),
-  );
+  };
 
   const handleSelectItem = (item: MenuItemDto) => {
     if (!item.isAvailable) {
@@ -124,9 +108,7 @@ export default function MenuScreen() {
           <ThemedText style={CommonStyles.errorText}>❌ {error}</ThemedText>
           <ThemedText
             style={[CommonStyles.retryText, { color: colors.primary }]}
-            onPress={() => {
-              void fetchMenuData();
-            }}
+            onPress={fetchMenuData}
           >
             Tap to retry
           </ThemedText>
@@ -143,18 +125,7 @@ export default function MenuScreen() {
     <SafeAreaView
       style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}
     >
-      <ScrollView
-        contentContainerStyle={CommonStyles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={() => {
-              void fetchMenuData(true);
-            }}
-            tintColor={colors.primary}
-          />
-        }
-      >
+      <ScrollView contentContainerStyle={CommonStyles.scrollContent}>
         <ThemedView style={CommonStyles.container}>
           <PageHeaderActions />
 
@@ -229,37 +200,11 @@ export default function MenuScreen() {
               </ThemedText>
 
               {filteredItems.map((item) => (
-                <View key={item.id} style={styles.itemBlock}>
-                  <MenuItemCard item={item} onPress={handleSelectItem} />
-
-                  {isManagerView ? (
-                    <View style={styles.managerRow}>
-                      {item.isAvailable ? (
-                        <AnimatedButton
-                          style={[
-                            styles.managerButton,
-                            { backgroundColor: "#ef4444", opacity: updatingItemId === item.id ? 0.7 : 1 },
-                          ]}
-                          onPress={() => handleDisableItem(item)}
-                          disabled={updatingItemId === item.id}
-                        >
-                          <ThemedText style={styles.managerButtonText}>Disable</ThemedText>
-                        </AnimatedButton>
-                      ) : (
-                        <AnimatedButton
-                          style={[
-                            styles.managerButton,
-                            { backgroundColor: "#10b981", opacity: updatingItemId === item.id ? 0.7 : 1 },
-                          ]}
-                          onPress={() => handleEnableItem(item)}
-                          disabled={updatingItemId === item.id}
-                        >
-                          <ThemedText style={styles.managerButtonText}>Enable</ThemedText>
-                        </AnimatedButton>
-                      )}
-                    </View>
-                  ) : null}
-                </View>
+                <MenuItemCard
+                  key={item.id}
+                  item={item}
+                  onPress={handleSelectItem}
+                />
               ))}
             </View>
           )}
@@ -308,25 +253,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     opacity: 0.8,
-  },
-  itemBlock: {
-    marginBottom: 2,
-  },
-  managerRow: {
-    alignItems: "flex-end",
-    marginTop: -4,
-    marginBottom: 10,
-  },
-  managerButton: {
-    borderRadius: 10,
-    minHeight: 40,
-    paddingHorizontal: 16,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  managerButtonText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
   },
 });

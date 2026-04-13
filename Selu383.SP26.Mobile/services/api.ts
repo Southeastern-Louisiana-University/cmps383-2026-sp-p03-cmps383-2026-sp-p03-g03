@@ -1,22 +1,14 @@
-const AZURE_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
-const LOCAL_API_BASE_URL = "https://localhost:7116";
+const DEFAULT_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
 const TIMEOUT = 30000;
 
 const getApiBaseUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-  const envTarget = process.env.EXPO_PUBLIC_API_TARGET?.trim().toLowerCase();
-  const azureEnvUrl = process.env.EXPO_PUBLIC_AZURE_API_BASE_URL?.trim();
-  const localEnvUrl = process.env.EXPO_PUBLIC_LOCAL_API_BASE_URL?.trim();
 
   if (envUrl) {
     return envUrl.replace(/\/$/, "");
   }
 
-  if (envTarget === "local") {
-    return (localEnvUrl || LOCAL_API_BASE_URL).replace(/\/$/, "");
-  }
-
-  return (azureEnvUrl || AZURE_API_BASE_URL).replace(/\/$/, "");
+  return DEFAULT_API_BASE_URL;
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -110,28 +102,6 @@ export interface CreateOrderDto {
   pickupName?: string;
   scheduledPickupTime?: string;
   items: CreateOrderItemDto[];
-}
-
-export interface RegisterUserDto {
-  userName: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-}
-
-export interface CreateUserAccountDto {
-  userName: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-  roles: string[];
-  locationId?: number;
 }
 
 export interface PaymentMethodDto {
@@ -419,32 +389,6 @@ export const login = async (username: string, password: string): Promise<any> =>
   });
 };
 
-export const register = async (dto: RegisterUserDto): Promise<any> => {
-  return apiCall("/api/authentication/register", "POST", {
-    UserName: dto.userName,
-    Password: dto.password,
-    FirstName: dto.firstName,
-    LastName: dto.lastName,
-    DisplayName: dto.displayName,
-    Email: dto.email,
-    PhoneNumber: dto.phoneNumber,
-  });
-};
-
-export const createUserAccount = async (dto: CreateUserAccountDto): Promise<any> => {
-  return apiCall("/api/users", "POST", {
-    UserName: dto.userName,
-    Password: dto.password,
-    FirstName: dto.firstName,
-    LastName: dto.lastName,
-    DisplayName: dto.displayName,
-    Email: dto.email,
-    PhoneNumber: dto.phoneNumber,
-    Roles: dto.roles,
-    LocationId: dto.locationId,
-  });
-};
-
 export const getCurrentUser = async (): Promise<any> => {
   return apiCall("/api/authentication/me", "GET");
 };
@@ -454,22 +398,11 @@ export const logout = async (): Promise<void> => {
 };
 
 export const getMenuItems = async (): Promise<MenuItemDto[]> => {
-  return apiCall(`/api/menu/items?ts=${Date.now()}`, "GET");
+  return apiCall("/api/menu/items", "GET");
 };
 
 export const getMenuCategories = async (): Promise<MenuCategoryDto[]> => {
-  return apiCall(`/api/menu/categories?ts=${Date.now()}`, "GET");
-};
-
-export const disableMenuItem = async (
-  id: number,
-  reason: string,
-): Promise<MenuItemDto> => {
-  return apiCall(`/api/menu/items/${id}/disable`, "POST", { reason });
-};
-
-export const enableMenuItem = async (id: number): Promise<MenuItemDto> => {
-  return apiCall(`/api/menu/items/${id}/enable`, "POST");
+  return apiCall("/api/menu/categories", "GET");
 };
 
 export const getMyOrders = async (): Promise<OrderDto[]> => {
@@ -601,14 +534,10 @@ export const redeemReward = async (
 
 export default {
   login,
-  register,
-  createUserAccount,
   getCurrentUser,
   logout,
   getMenuItems,
   getMenuCategories,
-  disableMenuItem,
-  enableMenuItem,
   getMyOrders,
   getOrderById,
   getReceiptPdfUrl,
