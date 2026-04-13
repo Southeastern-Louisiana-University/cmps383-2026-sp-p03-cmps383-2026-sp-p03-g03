@@ -1,13 +1,9 @@
 import { useState, useEffect } from "react";
 
-const useApiOut = <outputDto = unknown,>(
-  method: string,
-  controller: string,
-  input?: unknown,
-) => {
+const useApiReadOrDelete = <inputDto = unknown>(method: string, controller: string) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [data, setData] = useState<outputDto | null>(null);
+  const [data, setData] = useState<inputDto | null>(null);
 
   useEffect(() => {
     const abortController = new AbortController();
@@ -19,16 +15,8 @@ const useApiOut = <outputDto = unknown,>(
       try {
         const normalizedMethod = method.toUpperCase();
 
-        if (!["POST", "PUT", "PATCH"].includes(normalizedMethod)) {
-          throw new Error(
-            "useApiOut only supports POST, PUT, and PATCH methods",
-          );
-        }
-
         const response = await fetch(`/api/${controller}`, {
           method: normalizedMethod,
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(input),
           signal: abortController.signal,
         });
 
@@ -45,20 +33,14 @@ const useApiOut = <outputDto = unknown,>(
           );
         }
 
-        setData(payload as outputDto);
+        setData(payload as inputDto);
+
       } catch (requestError) {
-        if (
-          requestError instanceof Error &&
-          requestError.name === "AbortError"
-        ) {
+        if (requestError instanceof Error && requestError.name === "AbortError") {
           return;
         }
 
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : "Unknown request error",
-        );
+        setError(requestError instanceof Error ? requestError.message : "Unknown request error");
       } finally {
         setLoading(false);
       }
@@ -69,9 +51,9 @@ const useApiOut = <outputDto = unknown,>(
     return () => {
       abortController.abort();
     };
-  }, [controller, input, method]);
+  }, [controller, method]);
 
   return { data, loading, error };
 };
 
-export default useApiOut;
+export default useApiReadOrDelete;
