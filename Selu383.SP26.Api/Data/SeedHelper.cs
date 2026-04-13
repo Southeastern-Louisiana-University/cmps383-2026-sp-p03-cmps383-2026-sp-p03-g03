@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Locations;
@@ -38,40 +37,10 @@ public static class SeedHelper
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-        if (!userManager.Users.Any())
-        {
-            var adminUser = new User
-            {
-                UserName = "galkadi",
-                LoyaltyPoints = 0
-            };
-            await userManager.CreateAsync(adminUser, defaultPassword);
-            await userManager.AddToRoleAsync(adminUser, RoleNames.Admin);
-
-            var managerUser = new User
-            {
-                UserName = "manager1",
-                LoyaltyPoints = 0
-            };
-            await userManager.CreateAsync(managerUser, defaultPassword);
-            await userManager.AddToRoleAsync(managerUser, RoleNames.Manager);
-
-            var staffUser = new User
-            {
-                UserName = "staff1",
-                LoyaltyPoints = 0
-            };
-            await userManager.CreateAsync(staffUser, defaultPassword);
-            await userManager.AddToRoleAsync(staffUser, RoleNames.Staff);
-
-            var sue = new User
-            {
-                UserName = "sue",
-                LoyaltyPoints = 300
-            };
-            await userManager.CreateAsync(sue, defaultPassword);
-            await userManager.AddToRoleAsync(sue, RoleNames.User);
-        }
+        await EnsureSeedUserAsync(userManager, "galkadi", 0, RoleNames.Admin, defaultPassword);
+        await EnsureSeedUserAsync(userManager, "manager1", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, "staff1", 0, RoleNames.Staff, defaultPassword);
+        await EnsureSeedUserAsync(userManager, "sue", 300, RoleNames.User, defaultPassword);
 
         var bob = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == "bob");
         if (bob == null)
@@ -92,6 +61,54 @@ public static class SeedHelper
         if (!await userManager.IsInRoleAsync(bob, RoleNames.User))
         {
             await userManager.AddToRoleAsync(bob, RoleNames.User);
+        }
+    }
+
+    private static async Task EnsureSeedUserAsync(
+        UserManager<User> userManager,
+        string userName,
+        int loyaltyPoints,
+        string role,
+        string defaultPassword)
+    {
+        var user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == userName);
+        if (user == null)
+        {
+            user = new User
+            {
+                UserName = userName,
+                LoyaltyPoints = loyaltyPoints
+            };
+
+            await userManager.CreateAsync(user, defaultPassword);
+        }
+        else if (user.LoyaltyPoints < loyaltyPoints)
+        {
+            user.LoyaltyPoints = loyaltyPoints;
+            await userManager.UpdateAsync(user);
+        }
+
+        if (!await userManager.IsInRoleAsync(user, role))
+        {
+            await userManager.AddToRoleAsync(user, role);
+        }
+
+        if (user.AccessFailedCount > 0 || user.LockoutEnd.HasValue)
+        {
+            user.AccessFailedCount = 0;
+            user.LockoutEnd = null;
+            await userManager.UpdateAsync(user);
+        }
+
+        // Keep seeded dev credentials consistent across existing databases.
+        if (!await userManager.CheckPasswordAsync(user, defaultPassword))
+        {
+            if (await userManager.HasPasswordAsync(user))
+            {
+                await userManager.RemovePasswordAsync(user);
+            }
+
+            await userManager.AddPasswordAsync(user, defaultPassword);
         }
     }
 
