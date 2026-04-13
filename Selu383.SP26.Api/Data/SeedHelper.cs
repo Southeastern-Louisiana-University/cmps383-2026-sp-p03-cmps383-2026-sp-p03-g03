@@ -15,21 +15,30 @@ public static class SeedHelper
     private const int BobTestPoints = 10000;
     private static readonly TimeOnly SeedOpeningTime = new(6, 0);
     private static readonly TimeOnly SeedClosingTime = new(18, 0);
+    private static readonly SemaphoreSlim SeedGate = new(1, 1);
 
     public static async Task MigrateAndSeed(IServiceProvider serviceProvider)
     {
-        var dataContext = serviceProvider.GetRequiredService<DataContext>();
+        await SeedGate.WaitAsync();
+        try
+        {
+            var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
-        await dataContext.Database.MigrateAsync();
+            await dataContext.Database.MigrateAsync();
 
-        await AddRoles(serviceProvider);
-        await AddUsers(serviceProvider);
-        await AddLocations(dataContext);
-        await AddTables(dataContext);
-        await AddMenuCategories(dataContext);
-        await AddMenuCategoryLocations(dataContext);
-        await AddMenuItems(dataContext);
-        await AddRewards(dataContext);
+            await AddRoles(serviceProvider);
+            await AddUsers(serviceProvider);
+            await AddLocations(dataContext);
+            await AddTables(dataContext);
+            await AddMenuCategories(dataContext);
+            await AddMenuCategoryLocations(dataContext);
+            await AddMenuItems(dataContext);
+            await AddRewards(dataContext);
+        }
+        finally
+        {
+            SeedGate.Release();
+        }
     }
 
     private static async Task AddUsers(IServiceProvider serviceProvider)
@@ -41,27 +50,7 @@ public static class SeedHelper
         await EnsureSeedUserAsync(userManager, "manager1", 0, RoleNames.Manager, defaultPassword);
         await EnsureSeedUserAsync(userManager, "staff1", 0, RoleNames.Staff, defaultPassword);
         await EnsureSeedUserAsync(userManager, "sue", 300, RoleNames.User, defaultPassword);
-
-        var bob = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == "bob");
-        if (bob == null)
-        {
-            bob = new User
-            {
-                UserName = "bob",
-                LoyaltyPoints = BobTestPoints
-            };
-            await userManager.CreateAsync(bob, defaultPassword);
-        }
-        else if (bob.LoyaltyPoints < BobTestPoints)
-        {
-            bob.LoyaltyPoints = BobTestPoints;
-            await userManager.UpdateAsync(bob);
-        }
-
-        if (!await userManager.IsInRoleAsync(bob, RoleNames.User))
-        {
-            await userManager.AddToRoleAsync(bob, RoleNames.User);
-        }
+        await EnsureSeedUserAsync(userManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
     }
 
     private static async Task EnsureSeedUserAsync(
@@ -80,7 +69,12 @@ public static class SeedHelper
                 LoyaltyPoints = loyaltyPoints
             };
 
-            await userManager.CreateAsync(user, defaultPassword);
+            var createResult = await userManager.CreateAsync(user, defaultPassword);
+            if (!createResult.Succeeded)
+            {
+                user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == userName)
+                    ?? throw new InvalidOperationException($"Failed to seed user '{userName}'.");
+            }
         }
         else if (user.LoyaltyPoints < loyaltyPoints)
         {
@@ -90,7 +84,11 @@ public static class SeedHelper
 
         if (!await userManager.IsInRoleAsync(user, role))
         {
-            await userManager.AddToRoleAsync(user, role);
+            var addRoleResult = await userManager.AddToRoleAsync(user, role);
+            if (!addRoleResult.Succeeded && !await userManager.IsInRoleAsync(user, role))
+            {
+                throw new InvalidOperationException($"Failed to add user '{userName}' to role '{role}'.");
+            }
         }
 
         if (user.AccessFailedCount > 0 || user.LockoutEnd.HasValue)
@@ -129,7 +127,11 @@ public static class SeedHelper
             return;
         }
 
-        await roleManager.CreateAsync(new Role { Name = roleName });
+        var createRoleResult = await roleManager.CreateAsync(new Role { Name = roleName });
+        if (!createRoleResult.Succeeded && !await roleManager.RoleExistsAsync(roleName))
+        {
+            throw new InvalidOperationException($"Failed to seed role '{roleName}'.");
+        }
     }
 
     private static async Task AddLocations(DataContext dataContext)

@@ -1,0 +1,236 @@
+.menu-page {
+  display: block;
+}
+
+.menu-header {
+  margin-bottom: 24px;
+}
+
+.menu-kicker {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin: 0 0 8px;
+}
+
+.menu-title {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0 0 12px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.menu-subtitle {
+  font-family: var(--font-body);
+  font-size: 18px;
+  color: var(--mocha);
+  margin: 0;
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+.menu-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--sand);
+}
+
+.menu-tab {
+  padding: 12px 28px;
+  border: none;
+  background: none;
+  font-family: var(--font-body);
+  font-size: 15px;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+  margin-bottom: -1px;
+}
+
+.menu-tab-active {
+  font-weight: 600;
+  color: var(--dark-brew);
+  border-bottom: 2px solid var(--green);
+}
+
+.menu-tab-inactive {
+  font-weight: 500;
+  color: var(--mocha);
+  border-bottom: 2px solid transparent;
+}
+
+.menu-banner {
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  height: 200px;
+  margin-bottom: 24px;
+}
+
+.menu-banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.menu-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--palette-shadow-rgb), 0.8) 0%,
+    rgba(var(--palette-shadow-rgb), 0.3) 60%,
+    transparent 100%
+  );
+}
+
+.menu-banner-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 36px 40px;
+  z-index: 1;
+}
+
+.menu-banner-title {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--white);
+  margin: 0 0 4px;
+  line-height: 1.1;
+}
+
+.menu-banner-copy {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--caramel);
+  margin: 0;
+}
+
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.menu-featured-card {
+  grid-column: 1 / -1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  overflow: hidden;
+}
+
+.menu-featured-icon-wrap {
+  width: 220px;
+  height: 180px;
+  flex-shrink: 0;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-featured-content {
+  padding: 32px 36px;
+  flex: 1;
+}
+
+.menu-featured-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.menu-featured-title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.menu-featured-price {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--green);
+}
+
+.menu-featured-badge {
+  background: var(--cream);
+  color: var(--green);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--sand);
+}
+
+.menu-featured-desc {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--mocha);
+  line-height: 1.6;
+  margin: 12px 0 0;
+  max-width: 500px;
+}
+
+.menu-item-card {
+  cursor: pointer;
+  padding: 24px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.menu-flex-1 {
+  flex: 1;
+}
+
+.menu-item-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+
+.menu-item-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.menu-item-price {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--dark-brew);
+  flex-shrink: 0;
+  margin-left: 12px;
+}
+
+.menu-item-desc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--mocha);
+  line-height: 1.55;
+  margin: 0;
+}

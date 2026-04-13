@@ -1,0 +1,137 @@
+.footer-root {
+  background: var(--dark-brew);
+  color: var(--caramel);
+  width: stretch;
+  height: stretch;
+  margin-top: 48px;
+}
+
+.footer-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 64px 48px 0;
+  height: stretch;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 48px;
+  padding-bottom: 48px;
+}
+
+.footer-brand-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.footer-brand-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.footer-brand-text {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--white);
+  line-height: 1.1;
+}
+
+.footer-brand-copy {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--caramel);
+  font-family: var(--font-body);
+  margin: 0;
+  max-width: 300px;
+}
+
+.footer-social-row {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.footer-social-dot {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--palette-caramel-rgb), 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  font-size: 13px;
+  color: var(--caramel);
+  font-family: var(--font-body);
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.footer-col-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--warm-tan);
+  margin: 0 0 20px;
+}
+
+.footer-link {
+  display: block;
+  background: none;
+  border: none;
+  color: var(--caramel);
+  font-family: var(--font-body);
+  font-size: 15px;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: color 0.2s;
+  text-align: left;
+  margin: 0;
+}
+
+.footer-link-text {
+  display: block;
+}
+
+.footer-visit-copy {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--caramel);
+  margin: 0 0 4px;
+  line-height: 1.6;
+}
+
+.footer-visit-copy-late {
+  margin-top: 16px;
+}
+
+.footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+}
+
+.footer-fineprint {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: rgba(var(--palette-caramel-rgb), 0.5);
+  margin: 0;
+}
+
+.footer-bottom-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-fineprint-link {
+  cursor: pointer;
+}

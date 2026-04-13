@@ -1,0 +1,238 @@
+.cart-page {
+  display: block;
+}
+
+.cart-header {
+  margin-bottom: 40px;
+}
+
+.cart-kicker {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--green);
+  margin: 0 0 8px;
+}
+
+.cart-title {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.cart-empty-state {
+  text-align: center;
+  padding: 96px 40px 80px;
+  border: 1px dashed var(--warm-tan);
+  border-radius: 16px;
+}
+
+.cart-empty-logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin: 0 auto 24px;
+  display: block;
+  opacity: 0.25;
+}
+
+.cart-empty-title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--dark-brew);
+}
+
+.cart-empty-copy {
+  font-size: 16px;
+  color: var(--mocha);
+  margin: 0 0 32px;
+  font-family: var(--font-body);
+}
+
+.cart-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
+  align-items: start;
+}
+
+.cart-item-card {
+  padding: 24px 28px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.cart-flex-1 {
+  flex: 1;
+}
+
+.cart-item-title {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 2px;
+  color: var(--dark-brew);
+  line-height: 1.2;
+}
+
+.cart-item-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--green);
+  font-style: italic;
+  font-family: var(--font-body);
+}
+
+.cart-item-unit-price {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--mocha);
+  font-family: var(--font-body);
+}
+
+.cart-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.cart-qty-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cart-qty-btn-minus {
+  border: 1px solid var(--warm-tan);
+  background: var(--white);
+  transition: border-color 0.2s;
+}
+
+.cart-qty-btn-plus {
+  border: none;
+  background: var(--green);
+  transition: background 0.2s;
+}
+
+.cart-qty-value {
+  font-size: 17px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+.cart-line-total {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  min-width: 70px;
+  text-align: right;
+}
+
+.cart-remove-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.cart-summary-card {
+  padding: 32px;
+  position: sticky;
+  top: 96px;
+}
+
+.cart-summary-title {
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--mocha);
+  margin: 0 0 24px;
+}
+
+.cart-summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.cart-summary-label {
+  font-size: 15px;
+  color: var(--mocha);
+  font-family: var(--font-body);
+}
+
+.cart-summary-value {
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--font-body);
+  color: var(--dark-brew);
+}
+
+.cart-points-box {
+  background: var(--cream);
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  margin: 16px 0;
+  border: 1px solid var(--sand);
+}
+
+.cart-points-label {
+  font-size: 13px;
+  color: var(--green);
+  font-weight: 600;
+  font-family: var(--font-body);
+}
+
+.cart-points-value {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  font-family: var(--font-body);
+}
+
+.cart-divider {
+  height: 1px;
+  background: var(--sand);
+  margin: 20px 0;
+}
+
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.cart-total-text {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dark-brew);
+}
+
+.cart-checkout-btn {
+  width: 100%;
+  padding: 16px 28px;
+  font-size: 16px;
+}

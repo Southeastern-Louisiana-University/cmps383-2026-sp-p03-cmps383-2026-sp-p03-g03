@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import conceptLogo from "../assets/ConceptLogo2.png";
+import conceptLogo from "../styles/assets/ConceptLogo2.png";
 
 function Success() {
   return (
