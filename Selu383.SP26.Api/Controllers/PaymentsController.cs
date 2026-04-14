@@ -517,7 +517,7 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpDelete("orders/{orderId:int}/{paymentId:int}")]
-    [Authorize]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
     public async Task<ActionResult> RemoveOrderPayment(int orderId, int paymentId, [FromBody] RemovePaymentDto dto)
     {
         var currentUserId = User.GetCurrentUserId();
@@ -536,19 +536,19 @@ public class PaymentsController : ControllerBase
         if (payment == null)
             return NotFound("Payment not found.");
 
-        if (payment.Status == PaymentStatuses.Removed)
-            return BadRequest("Payment is already removed.");
+        if (payment.Status == PaymentStatuses.Refunded)
+            return BadRequest("Payment is already refunded.");
 
-        payment.Status = PaymentStatuses.Removed;
+        payment.Status = PaymentStatuses.Refunded;
         payment.RemovedAt = DateTime.UtcNow;
-        payment.RemovedReason = dto.Reason.Trim();
+        payment.RemovedReason = string.IsNullOrWhiteSpace(dto.Reason) ? "Refund issued by manager." : dto.Reason.Trim();
 
         if (order.PaymentStatus == PaymentStatuses.Paid)
-            order.PaymentStatus = PaymentStatuses.Removed;
+            order.PaymentStatus = PaymentStatuses.Refunded;
 
         await _context.SaveChangesAsync();
 
-        return Ok();
+        return Ok(new { message = "Refund issued successfully." });
     }
 
 }
