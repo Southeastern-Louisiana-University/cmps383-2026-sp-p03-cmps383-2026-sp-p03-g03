@@ -123,7 +123,7 @@ async function readPayload(response: Response): Promise<unknown> {
   return response.text();
 }
 
-async function requestApi(
+export async function requestApi(
   url: string,
   init: RequestInit,
 ): Promise<{ response: Response; payload: unknown }> {

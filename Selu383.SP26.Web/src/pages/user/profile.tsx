@@ -1,8 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic, ItemIcon } from "../../components/icons";
 import { LoyaltyCard } from "../../components/loyalty-card";
-import { useAppContext } from "../../api/context-providers/app-context";
+import { Dialog } from "../../components/dialog";
+import {
+  useAppContext,
+  requestApi,
+} from "../../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../navigation/routes";
 import "./profile.css";
@@ -43,6 +47,25 @@ const FAVORITE_ITEMS = [
 
 type ProfileTab = "overview" | "orders" | "favorites" | "settings";
 
+interface PaymentMethodDto {
+  id: number;
+  cardholderName: string;
+  brand: string;
+  last4: string;
+  expMonth: number;
+  expYear: number;
+  isDefault: boolean;
+}
+
+function detectBrand(cardNumber: string): string {
+  const n = cardNumber.replace(/\s/g, "");
+  if (n.startsWith("4")) return "Visa";
+  if (/^5[1-5]/.test(n)) return "Mastercard";
+  if (/^3[47]/.test(n)) return "Amex";
+  if (/^6(?:011|5)/.test(n)) return "Discover";
+  return "Card";
+}
+
 export function ProfilePage() {
   const { user, setUser, logout, setSel, setQty, setNote } = useAppContext();
   const navigate = useNavigate();
@@ -55,6 +78,111 @@ export function ProfilePage() {
     phone: user.phone,
     birthday: user.birthday,
   });
+  const [pmList, setPmList] = useState<PaymentMethodDto[]>([]);
+  const [pmLoading, setPmLoading] = useState(true);
+  const [pmError, setPmError] = useState("");
+  const [showAddCard, setShowAddCard] = useState(false);
+  const [addForm, setAddForm] = useState({
+    cardholderName: "",
+    cardNumber: "",
+    expMonth: "",
+    expYear: "",
+    cvc: "",
+    isDefault: false,
+  });
+  const [addError, setAddError] = useState("");
+  const [addBusy, setAddBusy] = useState(false);
+
+  const fetchMethods = useCallback(async () => {
+    setPmLoading(true);
+    setPmError("");
+    try {
+      const { response, payload } = await requestApi(
+        "/api/payments/methods",
+        { method: "GET" },
+      );
+      if (!response.ok) {
+        setPmError("Couldn't load payment methods. Try again.");
+        return;
+      }
+      setPmList(payload as PaymentMethodDto[]);
+    } catch {
+      setPmError("Couldn't load payment methods. Try again.");
+    } finally {
+      setPmLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchMethods();
+  }, [fetchMethods]);
+
+  const deleteMethod = async (id: number) => {
+    if (!window.confirm("Remove this card?")) return;
+    try {
+      const { response } = await requestApi(
+        `/api/payments/methods/${id}`,
+        { method: "DELETE" },
+      );
+      if (response.ok) fetchMethods();
+    } catch {
+      /* network error — ignore */
+    }
+  };
+
+  const handleAddCard = async () => {
+    setAddError("");
+    const num = addForm.cardNumber.replace(/\s/g, "");
+    const last4 = num.slice(-4);
+    const brand = detectBrand(num);
+
+    setAddBusy(true);
+    try {
+      const { response, payload } = await requestApi(
+        "/api/payments/methods",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cardholderName: addForm.cardholderName,
+            cardNumber: num,
+            cvc: addForm.cvc,
+            brand,
+            last4,
+            expMonth: parseInt(addForm.expMonth, 10),
+            expYear: parseInt(addForm.expYear, 10),
+            isDefault: addForm.isDefault,
+          }),
+        },
+      );
+      if (!response.ok) {
+        let msg = "Failed to add card.";
+        if (typeof payload === "string" && payload.trim()) {
+          msg = payload;
+        } else if (payload && typeof payload === "object") {
+          const p = payload as Record<string, unknown>;
+          if (typeof p.error === "string") msg = p.error;
+          else if (typeof p.message === "string") msg = p.message;
+        }
+        setAddError(msg);
+        return;
+      }
+      setShowAddCard(false);
+      setAddForm({
+        cardholderName: "",
+        cardNumber: "",
+        expMonth: "",
+        expYear: "",
+        cvc: "",
+        isDefault: false,
+      });
+      fetchMethods();
+    } catch {
+      setAddError("Unable to reach server.");
+    } finally {
+      setAddBusy(false);
+    }
+  };
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -263,17 +391,50 @@ export function ProfilePage() {
               <h3 className="profile-section-title profile-title-mb20">
                 Payment Methods
               </h3>
-              <div className="card-base profile-visa-card">
-                <div className="profile-visa-logo-wrap">
-                  <span className="profile-visa-logo-text">VISA</span>
-                </div>
-                <div className="profile-flex-1">
-                  <p className="profile-visa-primary">Visa •••• 4242</p>
-                  <p className="profile-visa-secondary">Expires 12/27</p>
-                </div>
-                <span className="profile-default-badge">Default</span>
-              </div>
-              <button className="focus-ring profile-add-payment-btn">
+              {pmLoading ? (
+                <p className="profile-pm-status">Loading saved cards...</p>
+              ) : pmError ? (
+                <p className="profile-pm-status">{pmError}</p>
+              ) : pmList.length === 0 ? (
+                <p className="profile-pm-status">
+                  No saved payment methods yet.
+                </p>
+              ) : (
+                pmList.map((pm) => (
+                  <div
+                    key={pm.id}
+                    className="card-base profile-visa-card profile-pm-item"
+                  >
+                    <div className="profile-visa-logo-wrap">
+                      <span className="profile-visa-logo-text">
+                        {pm.brand.slice(0, 4).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="profile-flex-1">
+                      <p className="profile-visa-primary">
+                        {pm.brand} •••• {pm.last4}
+                      </p>
+                      <p className="profile-visa-secondary">
+                        Expires {String(pm.expMonth).padStart(2, "0")}/
+                        {String(pm.expYear).slice(-2)}
+                      </p>
+                    </div>
+                    {pm.isDefault && (
+                      <span className="profile-default-badge">Default</span>
+                    )}
+                    <button
+                      onClick={() => deleteMethod(pm.id)}
+                      className="focus-ring profile-pm-delete"
+                    >
+                      <Ic name="x" size={16} color={Tokens.caramel} />
+                    </button>
+                  </div>
+                ))
+              )}
+              <button
+                onClick={() => setShowAddCard(true)}
+                className="focus-ring profile-add-payment-btn"
+              >
                 <Ic name="plus" size={16} color={Tokens.caramel} />
                 Add payment method
               </button>
@@ -472,6 +633,107 @@ export function ProfilePage() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={showAddCard}
+        onClose={() => setShowAddCard(false)}
+        width={480}
+      >
+        <div className="profile-add-card-dialog">
+          <p className="profile-section-title" style={{ marginBottom: 4 }}>
+            Payment
+          </p>
+          <h2
+            className="profile-block-title"
+            style={{ marginBottom: 28, fontSize: 24 }}
+          >
+            Add a card
+          </h2>
+          <div className="profile-add-form">
+            <div className="profile-col-full">
+              <label className="label-base">Cardholder Name</label>
+              <input
+                value={addForm.cardholderName}
+                onChange={(e) =>
+                  setAddForm((p) => ({ ...p, cardholderName: e.target.value }))
+                }
+                className="input-base"
+              />
+            </div>
+            <div className="profile-col-full">
+              <label className="label-base">Card Number</label>
+              <input
+                value={addForm.cardNumber}
+                onChange={(e) =>
+                  setAddForm((p) => ({ ...p, cardNumber: e.target.value }))
+                }
+                className="input-base"
+                inputMode="numeric"
+              />
+            </div>
+            <div>
+              <label className="label-base">Exp Month</label>
+              <input
+                value={addForm.expMonth}
+                onChange={(e) =>
+                  setAddForm((p) => ({ ...p, expMonth: e.target.value }))
+                }
+                className="input-base"
+                placeholder="MM"
+                inputMode="numeric"
+              />
+            </div>
+            <div>
+              <label className="label-base">Exp Year</label>
+              <input
+                value={addForm.expYear}
+                onChange={(e) =>
+                  setAddForm((p) => ({ ...p, expYear: e.target.value }))
+                }
+                className="input-base"
+                placeholder="YYYY"
+                inputMode="numeric"
+              />
+            </div>
+            <div>
+              <label className="label-base">CVV</label>
+              <input
+                value={addForm.cvc}
+                onChange={(e) =>
+                  setAddForm((p) => ({ ...p, cvc: e.target.value }))
+                }
+                className="input-base"
+                inputMode="numeric"
+              />
+            </div>
+            <div className="profile-add-default-row">
+              <input
+                type="checkbox"
+                checked={addForm.isDefault}
+                onChange={(e) =>
+                  setAddForm((p) => ({ ...p, isDefault: e.target.checked }))
+                }
+                id="set-default-cb"
+              />
+              <label
+                htmlFor="set-default-cb"
+                className="profile-add-default-label"
+              >
+                Set as default
+              </label>
+            </div>
+          </div>
+          {addError && <p className="profile-pm-error">{addError}</p>}
+          <button
+            onClick={handleAddCard}
+            disabled={addBusy}
+            className="btn-primary focus-ring btn-primary-base"
+            style={{ width: "100%", marginTop: 24 }}
+          >
+            {addBusy ? "Saving..." : "Add Card"}
+          </button>
+        </div>
+      </Dialog>
     </div>
   );
 }
