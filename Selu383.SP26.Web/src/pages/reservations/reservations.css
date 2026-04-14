@@ -226,3 +226,116 @@
   margin: 0;
   line-height: 1.6;
 }
+
+.res-cover-info {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--mocha);
+  margin: 0 0 28px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--cream);
+  border: 1px solid var(--sand);
+  border-radius: 8px;
+  line-height: 1.5;
+}
+
+.res-tables-status {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--mocha);
+  margin: 4px 0 0;
+}
+
+.res-table-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.res-table-btn {
+  padding: 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.15s;
+}
+
+.res-table-btn-active {
+  border: 2px solid var(--green);
+  background: var(--cream);
+  color: var(--green);
+}
+
+.res-table-btn-inactive {
+  border: 1px solid var(--warm-tan);
+  background: var(--white);
+  color: var(--espresso);
+}
+
+.res-table-num {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.res-table-seats {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.res-special-input {
+  resize: vertical;
+  min-height: 64px;
+}
+
+.res-success-detail {
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--mocha);
+  margin: 0 0 8px;
+}
+
+.res-validation {
+  margin-bottom: 16px;
+}
+
+.res-validation-msg {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--palette-error-500);
+  margin: 0 0 4px;
+}
+
+.res-error {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--palette-error-500);
+  margin: 0 0 16px;
+}
+
+.res-cover-notice {
+  padding: 20px;
+  background: var(--cream);
+  border: 1px solid var(--sand);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.res-cover-notice-text {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--espresso);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+
+.res-cover-notice-actions {
+  display: flex;
+  gap: 12px;
+}
