@@ -5,6 +5,21 @@ import { useAppContext } from "../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../navigation/routes";
 
+function getInstructionsPlaceholder(category: string): string {
+  const c = (category ?? "").toLowerCase();
+  if (c.includes("drink") || c.includes("coffee") || c.includes("tea"))
+    return "Extra shot, oat milk, light ice...";
+  if (c.includes("crepe"))
+    return "No powdered sugar, extra fruit, warm please...";
+  if (c.includes("bagel"))
+    return "Toasted, extra cream cheese, everything seasoning...";
+  if (c.includes("pastry") || c.includes("bakery"))
+    return "Warmed, cut in half...";
+  if (c.includes("food") || c.includes("breakfast") || c.includes("lunch"))
+    return "Allergy notes, temperature, sides...";
+  return "Any special requests...";
+}
+
 export function ItemDialog() {
   const { sel, setSel, note, setNote, qty, setQty, addToCart } =
     useAppContext();
@@ -90,7 +105,7 @@ export function ItemDialog() {
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                placeholder="Extra shot, oat milk, light ice..."
+                placeholder={getInstructionsPlaceholder(sel.category)}
                 style={{
                   ...inp,
                   resize: "vertical",
@@ -509,39 +524,7 @@ export function SuccessDialog() {
             +{Math.round(total * 10)} points
           </strong>
         </p>
-        <div
-          style={{
-            background: Tokens.cream,
-            borderRadius: Tokens.rSm,
-            padding: "20px 28px",
-            margin: "28px 0 36px",
-            border: `1px solid ${Tokens.sand}`,
-            display: "inline-block",
-          }}
-        >
-          <p
-            style={{
-              fontSize: 13,
-              color: Tokens.mocha,
-              margin: "0 0 4px",
-              fontFamily: Tokens.font,
-            }}
-          >
-            Order #CL-00847
-          </p>
-          <p
-            style={{
-              fontFamily: Tokens.fontDisplay,
-              fontSize: 20,
-              fontWeight: 700,
-              margin: 0,
-              color: Tokens.darkBrew,
-            }}
-          >
-            Ready in 8–12 min
-          </p>
-        </div>
-        <br />
+        <div style={{ margin: "28px 0 36px" }} />
         <button
           onClick={() => {
             setShowOK(false);
