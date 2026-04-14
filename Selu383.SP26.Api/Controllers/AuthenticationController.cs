@@ -52,6 +52,44 @@ public class AuthenticationController : ControllerBase
         return Ok(resultDto);
     }
 
+    [HttpPost("register")]
+    [AllowAnonymous]
+    public async Task<ActionResult<UserDto>> Register([FromBody] RegisterDto dto)
+    {
+        var userName = dto.UserName.Trim();
+
+        var existingUser = await userManager.FindByNameAsync(userName);
+        if (existingUser != null)
+            return BadRequest(new { message = "Username is already taken." });
+
+        var user = new User
+        {
+            UserName = userName,
+            FirstName = dto.FirstName?.Trim(),
+            LastName = dto.LastName?.Trim(),
+            DisplayName = dto.DisplayName?.Trim(),
+            Email = dto.Email?.Trim(),
+            PhoneNumber = dto.PhoneNumber?.Trim()
+        };
+
+        var createResult = await userManager.CreateAsync(user, dto.Password);
+        if (!createResult.Succeeded)
+        {
+            return BadRequest(new
+            {
+                errors = createResult.Errors.Select(x => x.Description).ToArray()
+            });
+        }
+
+        await userManager.AddToRoleAsync(user, RoleNames.User);
+        await signInManager.SignInAsync(user, false);
+
+        var resultDto = await GetUserDto(userManager.Users)
+            .SingleAsync(x => x.UserName == user.UserName);
+
+        return Ok(resultDto);
+    }
+
     [HttpPost("logout")]
     [Authorize]
     public async Task<ActionResult> Logout()
@@ -71,6 +109,7 @@ public class AuthenticationController : ControllerBase
             DisplayName = x.DisplayName,
             Email = x.Email,
             PhoneNumber = x.PhoneNumber,
+            LocationId = x.LocationId,
             Roles = x.UserRoles.Select(y => y.Role.Name!).ToArray(),
             LoyaltyPoints = x.LoyaltyPoints
         });

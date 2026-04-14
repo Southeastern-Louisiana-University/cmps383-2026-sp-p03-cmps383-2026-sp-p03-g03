@@ -29,6 +29,7 @@ public static class SeedHelper
             await AddRoles(serviceProvider);
             await AddUsers(serviceProvider);
             await AddLocations(dataContext);
+            await EnsureSeedAssignments(dataContext);
             await AddTables(dataContext);
             await AddMenuCategories(dataContext);
             await AddMenuCategoryLocations(dataContext);
@@ -46,8 +47,10 @@ public static class SeedHelper
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-        await EnsureSeedUserAsync(userManager, "galkadi", 0, RoleNames.Admin, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "manager1", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, "Elora", 0, RoleNames.Admin, defaultPassword, "galkadi");
+        await EnsureSeedUserAsync(userManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
+        await EnsureSeedUserAsync(userManager, "rylie", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, "robert", 0, RoleNames.Manager, defaultPassword);
         await EnsureSeedUserAsync(userManager, "staff1", 0, RoleNames.Staff, defaultPassword);
         await EnsureSeedUserAsync(userManager, "sue", 300, RoleNames.User, defaultPassword);
         await EnsureSeedUserAsync(userManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
@@ -58,14 +61,21 @@ public static class SeedHelper
         string userName,
         int loyaltyPoints,
         string role,
-        string defaultPassword)
+        string defaultPassword,
+        params string[] legacyUserNames)
     {
-        var user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == userName);
+        var candidateUserNames = new[] { userName }
+            .Concat(legacyUserNames)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+        var user = await userManager.Users.FirstOrDefaultAsync(x => candidateUserNames.Contains(x.UserName!));
         if (user == null)
         {
             user = new User
             {
                 UserName = userName,
+                DisplayName = userName,
                 LoyaltyPoints = loyaltyPoints
             };
 
@@ -76,10 +86,33 @@ public static class SeedHelper
                     ?? throw new InvalidOperationException($"Failed to seed user '{userName}'.");
             }
         }
-        else if (user.LoyaltyPoints < loyaltyPoints)
+        else
         {
-            user.LoyaltyPoints = loyaltyPoints;
-            await userManager.UpdateAsync(user);
+            var needsUpdate = false;
+
+            if (!string.Equals(user.UserName, userName, StringComparison.OrdinalIgnoreCase))
+            {
+                user.UserName = userName;
+                user.NormalizedUserName = userName.ToUpperInvariant();
+                needsUpdate = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(user.DisplayName))
+            {
+                user.DisplayName = userName;
+                needsUpdate = true;
+            }
+
+            if (user.LoyaltyPoints < loyaltyPoints)
+            {
+                user.LoyaltyPoints = loyaltyPoints;
+                needsUpdate = true;
+            }
+
+            if (needsUpdate)
+            {
+                await userManager.UpdateAsync(user);
+            }
         }
 
         if (!await userManager.IsInRoleAsync(user, role))
@@ -203,6 +236,44 @@ public static class SeedHelper
         );
 
         await dataContext.SaveChangesAsync();
+    }
+
+    private static async Task EnsureSeedAssignments(DataContext dataContext)
+    {
+        var locations = await dataContext.Locations.OrderBy(x => x.Id).Take(3).ToListAsync();
+        var terri = await dataContext.Users.FirstOrDefaultAsync(x => x.UserName == "terri");
+        var rylie = await dataContext.Users.FirstOrDefaultAsync(x => x.UserName == "rylie");
+        var robert = await dataContext.Users.FirstOrDefaultAsync(x => x.UserName == "robert");
+        var staff = await dataContext.Users.FirstOrDefaultAsync(x => x.UserName == "staff1");
+
+        if (locations.Count == 0)
+        {
+            return;
+        }
+
+        var updated = false;
+        var seededManagers = new[] { terri, rylie, robert };
+
+        for (var i = 0; i < locations.Count && i < seededManagers.Length; i++)
+        {
+            var manager = seededManagers[i];
+            if (manager != null && locations[i].ManagerId != manager.Id)
+            {
+                locations[i].ManagerId = manager.Id;
+                updated = true;
+            }
+        }
+
+        if (staff != null && staff.LocationId != locations[0].Id)
+        {
+            staff.LocationId = locations[0].Id;
+            updated = true;
+        }
+
+        if (updated)
+        {
+            await dataContext.SaveChangesAsync();
+        }
     }
 
     private static bool ApplySeedLocationDefaults(Location location, int position)
