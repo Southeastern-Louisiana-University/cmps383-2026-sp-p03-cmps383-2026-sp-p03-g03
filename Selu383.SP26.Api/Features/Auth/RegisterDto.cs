@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Selu383.SP26.Api.Features.Auth;
 
-public class CreateUserDto
+public class RegisterDto
 {
     [Required]
     [MaxLength(100)]
@@ -28,9 +28,4 @@ public class CreateUserDto
     [Phone]
     [MaxLength(30)]
     public string? PhoneNumber { get; set; }
-
-    [Required, MinLength(1)]
-    public string[] Roles { get; set; } = Array.Empty<string>();
-
-    public int? LocationId { get; set; }
 }

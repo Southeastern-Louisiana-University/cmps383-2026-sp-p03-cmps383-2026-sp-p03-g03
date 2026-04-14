@@ -119,10 +119,12 @@ public class StripeWebhookController : ControllerBase
                 _logger.LogInformation("[Webhook] Order status updated to {Status}, payment status to {PaymentStatus}", 
                     order.Status, order.PaymentStatus);
 
-                if (!wasAlreadyPaid && order.CreatedByUser != null)
+                if (!wasAlreadyPaid && order.CreatedByUser != null && !string.Equals(order.OrderType, OrderTypes.CoverCharge, StringComparison.OrdinalIgnoreCase))
                 {
-                    var pointsEarned = (int)Math.Round(order.Total * 10);
-                    _logger.LogInformation("[Webhook] Adding {Points} loyalty points to user {UserId}", pointsEarned, order.CreatedByUser.Id);
+                    var isFirstWeekCustomer = order.CreatedByUser.CreatedAt >= DateTime.UtcNow.AddDays(-7);
+                    var pointsRate = isFirstWeekCustomer ? 20 : 10;
+                    var pointsEarned = (int)Math.Round(order.Total * pointsRate);
+                    _logger.LogInformation("[Webhook] Adding {Points} loyalty points to user {UserId} (first week bonus: {FirstWeekBonus})", pointsEarned, order.CreatedByUser.Id, isFirstWeekCustomer);
 
                     var loyaltyExists = await _context.Set<LoyaltyLedger>()
                         .AnyAsync(x => x.OrderId == order.Id);

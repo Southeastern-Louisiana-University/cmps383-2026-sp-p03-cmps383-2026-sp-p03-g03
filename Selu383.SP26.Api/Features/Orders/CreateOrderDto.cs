@@ -23,3 +23,10 @@ public class CreateOrderDto
     [MinLength(1)]
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }
+
+public class UpdateOrderStatusDto
+{
+    [Required]
+    [MaxLength(20)]
+    public string Status { get; set; } = string.Empty;
+}
