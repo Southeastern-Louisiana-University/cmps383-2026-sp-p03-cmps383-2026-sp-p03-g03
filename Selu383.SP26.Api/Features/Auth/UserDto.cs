@@ -11,6 +11,7 @@ public class UserDto
 
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
+    public int LocationId { get; set; }
 
     public string[] Roles { get; set; } = Array.Empty<string>();
     public int LoyaltyPoints { get; set; }
