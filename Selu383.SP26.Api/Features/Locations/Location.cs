@@ -20,5 +20,6 @@ public class Location
     public int TableCount { get; set; }
     public int? ManagerId { get; set; }
     public virtual User? Manager { get; set; }
-    public virtual ICollection<MenuCategory> MenuCategories { get; set; } = new List<MenuCategory>();
+
+    public virtual ICollection<MenuCategoryLocation> MenuCategoryLocations { get; set; } = new List<MenuCategoryLocation>();
 }

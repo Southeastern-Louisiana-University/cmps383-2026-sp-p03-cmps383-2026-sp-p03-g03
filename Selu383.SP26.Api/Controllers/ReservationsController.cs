@@ -1,9 +1,13 @@
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Orders;
+using Selu383.SP26.Api.Features.Payments;
 using Selu383.SP26.Api.Features.Reservations;
 
 namespace Selu383.SP26.Api.Controllers;
@@ -12,29 +16,29 @@ namespace Selu383.SP26.Api.Controllers;
 [Route("api/reservations")]
 public class ReservationsController : ControllerBase
 {
-    private readonly DataContext _context;
+    private const decimal ReservationCoverChargeAmount = 5.00m;
 
-    public ReservationsController(DataContext context)
+    private readonly DataContext _context;
+    private readonly StripePaymentService _stripePaymentService;
+
+    public ReservationsController(DataContext context, StripePaymentService stripePaymentService)
     {
         _context = context;
+        _stripePaymentService = stripePaymentService;
     }
 
-    [HttpGet]
+    [HttpGet("my")]
     [Authorize]
-    public async Task<ActionResult<List<ReservationDto>>> GetAll()
+    public async Task<ActionResult<List<ReservationDto>>> GetMine()
     {
+        var userId = User.GetCurrentUserId();
+        if (!userId.HasValue)
+            return Unauthorized();
+
         var reservations = await _context.Reservations
-            .Select(x => new ReservationDto
-            {
-                Id = x.Id,
-                LocationId = x.LocationId,
-                UserId = x.UserId,
-                TableId = x.TableId,
-                ReservedFor = x.ReservedFor,
-                PartySize = x.PartySize,
-                Status = x.Status,
-                SpecialRequests = x.SpecialRequests
-            })
+            .Where(x => x.UserId == userId.Value)
+            .OrderByDescending(x => x.ReservedFor)
+            .Select(MapReservationDto())
             .ToListAsync();
 
         return Ok(reservations);
@@ -44,10 +48,157 @@ public class ReservationsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<ReservationDto>> GetById(int id)
     {
-        var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
+        var reservation = await _context.Reservations
+            .Where(x => x.Id == id)
+            .Select(MapReservationDto())
+            .FirstOrDefaultAsync();
 
         if (reservation == null)
             return NotFound();
+
+        var userId = User.GetCurrentUserId();
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && reservation.UserId != userId)
+            return Forbid();
+
+        return Ok(reservation);
+    }
+
+    [HttpGet("location/{locationId:int}")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
+    public async Task<ActionResult<List<ReservationDto>>> GetByLocation(int locationId)
+    {
+        var reservations = await _context.Reservations
+            .Where(x => x.LocationId == locationId)
+            .OrderBy(x => x.ReservedFor)
+            .Select(MapReservationDto())
+            .ToListAsync();
+
+        return Ok(reservations);
+    }
+
+    [HttpPost]
+    [Authorize]
+    public async Task<ActionResult<ReservationDto>> Create([FromBody] CreateReservationDto dto)
+    {
+        var userId = User.GetCurrentUserId();
+        if (!userId.HasValue)
+            return Unauthorized();
+
+        var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize);
+        if (validationMessage != null)
+            return BadRequest(validationMessage);
+
+        var hasPaidCoverCharge = await _context.Orders.AnyAsync(x =>
+            x.CreatedByUserId == userId.Value &&
+            x.LocationId == dto.LocationId &&
+            x.OrderType == OrderTypes.CoverCharge &&
+            x.PaymentStatus == PaymentStatuses.Paid &&
+            x.Note != null &&
+            x.Note.Contains($"table {dto.TableId}") &&
+            x.Note.Contains($"{dto.ReservedFor:O}"));
+
+        if (!hasPaidCoverCharge)
+        {
+            var coverChargeOrder = await _context.Orders
+                .Where(x =>
+                    x.CreatedByUserId == userId.Value &&
+                    x.LocationId == dto.LocationId &&
+                    x.OrderType == OrderTypes.CoverCharge &&
+                    x.PaymentStatus != PaymentStatuses.Paid &&
+                    x.Note != null &&
+                    x.Note.Contains($"table {dto.TableId}") &&
+                    x.Note.Contains($"{dto.ReservedFor:O}"))
+                .OrderByDescending(x => x.Id)
+                .FirstOrDefaultAsync();
+
+            if (coverChargeOrder == null)
+            {
+                coverChargeOrder = new Order
+                {
+                    LocationId = dto.LocationId,
+                    CreatedByUserId = userId.Value,
+                    OrderCode = $"COV{DateTime.UtcNow:yyyyMMddHHmmss}",
+                    OrderType = OrderTypes.CoverCharge,
+                    Status = OrderStatuses.Placed,
+                    PaymentStatus = PaymentStatuses.Unpaid,
+                    OrderTime = DateTime.UtcNow,
+                    Subtotal = ReservationCoverChargeAmount,
+                    Tax = 0m,
+                    Total = ReservationCoverChargeAmount,
+                    Note = $"Reservation cover charge for table {dto.TableId} at {dto.ReservedFor:O}"
+                };
+
+                _context.Orders.Add(coverChargeOrder);
+                await _context.SaveChangesAsync();
+            }
+
+            string? checkoutUrl = null;
+            try
+            {
+                var requestBaseUrl = $"{Request.Scheme}://{Request.Host.Value}";
+                checkoutUrl = await _stripePaymentService.CreateCheckoutSessionAsync(coverChargeOrder.Id, requestBaseUrl);
+            }
+            catch
+            {
+            }
+
+            return StatusCode(StatusCodes.Status402PaymentRequired, new
+            {
+                message = "To reserve this table and time, pay the $5.00 cover charge.",
+                coverChargeAmount = ReservationCoverChargeAmount,
+                coverChargeOrderId = coverChargeOrder.Id,
+                checkoutUrl
+            });
+        }
+
+        var reservation = new Reservation
+        {
+            LocationId = dto.LocationId,
+            UserId = userId.Value,
+            TableId = dto.TableId,
+            ReservedFor = dto.ReservedFor,
+            PartySize = dto.PartySize,
+            Status = ReservationStatuses.Confirmed,
+            SpecialRequests = dto.SpecialRequests?.Trim()
+        };
+
+        _context.Reservations.Add(reservation);
+        await _context.SaveChangesAsync();
+
+        return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, new ReservationDto
+        {
+            Id = reservation.Id,
+            LocationId = reservation.LocationId,
+            UserId = reservation.UserId,
+            TableId = reservation.TableId,
+            ReservedFor = reservation.ReservedFor,
+            PartySize = reservation.PartySize,
+            Status = reservation.Status,
+            SpecialRequests = reservation.SpecialRequests
+        });
+    }
+
+    [HttpPut("{id:int}")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
+    public async Task<ActionResult<ReservationDto>> Update(int id, [FromBody] UpdateReservationDto dto)
+    {
+        var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
+        if (reservation == null)
+            return NotFound();
+
+        var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize, id);
+        if (validationMessage != null)
+            return BadRequest(validationMessage);
+
+        reservation.LocationId = dto.LocationId;
+        reservation.TableId = dto.TableId;
+        reservation.ReservedFor = dto.ReservedFor;
+        reservation.PartySize = dto.PartySize;
+        reservation.Status = dto.Status.Trim();
+        reservation.SpecialRequests = dto.SpecialRequests?.Trim();
+
+        await _context.SaveChangesAsync();
 
         return Ok(new ReservationDto
         {
@@ -62,166 +213,6 @@ public class ReservationsController : ControllerBase
         });
     }
 
-    [HttpGet("location/{locationId:int}")]
-    [Authorize]
-    public async Task<ActionResult<List<ReservationDto>>> GetByLocation(int locationId)
-    {
-        var reservations = await _context.Reservations
-            .Where(x => x.LocationId == locationId)
-            .Select(x => new ReservationDto
-            {
-                Id = x.Id,
-                LocationId = x.LocationId,
-                UserId = x.UserId,
-                TableId = x.TableId,
-                ReservedFor = x.ReservedFor,
-                PartySize = x.PartySize,
-                Status = x.Status,
-                SpecialRequests = x.SpecialRequests
-            })
-            .ToListAsync();
-
-        return Ok(reservations);
-    }
-
-    [HttpPost]
-    [Authorize]
-    public async Task<ActionResult<ReservationDto>> Create(ReservationDto dto)
-    {
-
-        if (dto.PartySize < 2 || dto.PartySize > 6)
-            return BadRequest("Party size must be between 2 and 6 guests.");
-
-
-        if (dto.ReservedFor < DateTime.UtcNow.AddHours(2))
-            return BadRequest("Reservations must be made at least 2 hours in advance.");
-
-
-        var timeOfDay = dto.ReservedFor.TimeOfDay;
-        if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
-            return BadRequest("Reservations can only be made between 6:00 AM and 6:00 PM.");
-
-        var locationExists = await _context.Locations.AnyAsync(x => x.Id == dto.LocationId);
-        if (!locationExists)
-            return BadRequest("Invalid location.");
-
-        var userExists = await _context.Users.AnyAsync(x => x.Id == dto.UserId);
-        if (!userExists)
-            return BadRequest("Invalid user.");
-
-        var table = await _context.Tables.FirstOrDefaultAsync(x => x.Id == dto.TableId);
-        if (table == null)
-            return BadRequest("Invalid table.");
-
-        if (table.LocationId != dto.LocationId)
-            return BadRequest("Table does not belong to this location.");
-
-        if (!table.IsActive)
-            return BadRequest("Table is not active.");
-
-
-        if (table.IsBarSeat)
-            return BadRequest("Individual bar seats cannot be reserved.");
-
-
-        if (dto.PartySize > table.Seats)
-            return BadRequest($"Party size exceeds the table's capacity of {table.Seats}.");
-
-        var conflictingReservation = await _context.Reservations.AnyAsync(x =>
-            x.TableId == dto.TableId &&
-            x.Status != "Cancelled" &&
-            x.ReservedFor == dto.ReservedFor);
-
-        if (conflictingReservation)
-            return BadRequest("That table is already reserved for that time.");
-
-        var reservation = new Reservation
-        {
-            LocationId = dto.LocationId,
-            UserId = dto.UserId,
-            TableId = dto.TableId,
-            ReservedFor = dto.ReservedFor,
-            PartySize = dto.PartySize,
-            Status = dto.Status,
-            SpecialRequests = dto.SpecialRequests
-        };
-
-        _context.Reservations.Add(reservation);
-        await _context.SaveChangesAsync();
-
-        dto.Id = reservation.Id;
-
-        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
-    }
-
-    [HttpPut("{id:int}")]
-    [Authorize(Roles = RoleNames.Admin)]
-    public async Task<ActionResult<ReservationDto>> Update(int id, ReservationDto dto)
-    {
-
-        if (dto.PartySize < 2 || dto.PartySize > 6)
-            return BadRequest("Party size must be between 2 and 6 guests.");
-
-
-        if (dto.ReservedFor < DateTime.UtcNow.AddHours(2))
-            return BadRequest("Reservations must be made at least 2 hours in advance.");
-
-
-        var timeOfDay = dto.ReservedFor.TimeOfDay;
-        if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
-            return BadRequest("Reservations can only be made between 6:00 AM and 6:00 PM.");
-
-        var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
-        if (reservation == null)
-            return NotFound();
-
-        var locationExists = await _context.Locations.AnyAsync(x => x.Id == dto.LocationId);
-        if (!locationExists)
-            return BadRequest("Invalid location.");
-
-        var userExists = await _context.Users.AnyAsync(x => x.Id == dto.UserId);
-        if (!userExists)
-            return BadRequest("Invalid user.");
-
-        var table = await _context.Tables.FirstOrDefaultAsync(x => x.Id == dto.TableId);
-        if (table == null)
-            return BadRequest("Invalid table.");
-
-        if (table.LocationId != dto.LocationId)
-            return BadRequest("Table does not belong to this location.");
-
-
-        if (table.IsBarSeat)
-            return BadRequest("Individual bar seats cannot be reserved.");
-
-
-        if (dto.PartySize > table.Seats)
-            return BadRequest($"Party size exceeds the table's capacity of {table.Seats}.");
-
-        var conflictingReservation = await _context.Reservations.AnyAsync(x =>
-            x.Id != id &&
-            x.TableId == dto.TableId &&
-            x.Status != "Cancelled" &&
-            x.ReservedFor == dto.ReservedFor);
-
-        if (conflictingReservation)
-            return BadRequest("That table is already reserved for that time.");
-
-        reservation.LocationId = dto.LocationId;
-        reservation.UserId = dto.UserId;
-        reservation.TableId = dto.TableId;
-        reservation.ReservedFor = dto.ReservedFor;
-        reservation.PartySize = dto.PartySize;
-        reservation.Status = dto.Status;
-        reservation.SpecialRequests = dto.SpecialRequests;
-
-        await _context.SaveChangesAsync();
-
-        dto.Id = reservation.Id;
-
-        return Ok(dto);
-    }
-
     [HttpDelete("{id:int}")]
     [Authorize]
     public async Task<ActionResult> Delete(int id)
@@ -234,21 +225,78 @@ public class ReservationsController : ControllerBase
         if (!userId.HasValue)
             return Unauthorized();
 
-
-        var isAdmin = User.IsInRole(RoleNames.Admin);
-        if (!isAdmin && reservation.UserId != userId.Value)
-            return BadRequest("You can only cancel your own reservations.");
-
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager);
+        if (!isPrivileged && reservation.UserId != userId.Value)
+            return Forbid();
 
         if (reservation.ReservedFor < DateTime.UtcNow)
             return BadRequest("Cannot cancel a reservation for a past date/time.");
 
-        if (string.Equals(reservation.Status, "Cancelled", StringComparison.OrdinalIgnoreCase))
+        if (string.Equals(reservation.Status, ReservationStatuses.Cancelled, StringComparison.OrdinalIgnoreCase))
             return BadRequest("Reservation is already cancelled.");
 
-        reservation.Status = "Cancelled";
+        reservation.Status = ReservationStatuses.Cancelled;
         await _context.SaveChangesAsync();
 
         return Ok(new { message = "Reservation cancelled." });
+    }
+
+    private async Task<string?> ValidateReservationRequest(int locationId, int tableId, DateTime reservedFor, int partySize, int? reservationIdToExclude = null)
+    {
+        if (partySize < 2 || partySize > 6)
+            return "Party size must be between 2 and 6 guests.";
+
+        if (reservedFor < DateTime.UtcNow.AddHours(2))
+            return "Reservations must be made at least 2 hours in advance.";
+
+        var timeOfDay = reservedFor.TimeOfDay;
+        if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
+            return "Reservations can only be made between 6:00 AM and 6:00 PM.";
+
+        var locationExists = await _context.Locations.AnyAsync(x => x.Id == locationId);
+        if (!locationExists)
+            return "Invalid location.";
+
+        var table = await _context.Tables.FirstOrDefaultAsync(x => x.Id == tableId);
+        if (table == null)
+            return "Invalid table.";
+
+        if (table.LocationId != locationId)
+            return "Table does not belong to this location.";
+
+        if (!table.IsActive)
+            return "Table is not active.";
+
+        if (table.IsBarSeat)
+            return "Individual bar seats cannot be reserved.";
+
+        if (partySize > table.Seats)
+            return $"Party size exceeds the table's capacity of {table.Seats}.";
+
+        var conflictingReservation = await _context.Reservations.AnyAsync(x =>
+            (reservationIdToExclude == null || x.Id != reservationIdToExclude.Value) &&
+            x.TableId == tableId &&
+            x.Status != ReservationStatuses.Cancelled &&
+            x.ReservedFor == reservedFor);
+
+        if (conflictingReservation)
+            return "That table is already reserved for that time.";
+
+        return null;
+    }
+
+    private static Expression<Func<Reservation, ReservationDto>> MapReservationDto()
+    {
+        return x => new ReservationDto
+        {
+            Id = x.Id,
+            LocationId = x.LocationId,
+            UserId = x.UserId,
+            TableId = x.TableId,
+            ReservedFor = x.ReservedFor,
+            PartySize = x.PartySize,
+            Status = x.Status,
+            SpecialRequests = x.SpecialRequests
+        };
     }
 }

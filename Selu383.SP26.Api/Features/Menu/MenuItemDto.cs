@@ -5,7 +5,6 @@ namespace Selu383.SP26.Api.Features.Menu;
 public class MenuItemDto
 {
     public int Id { get; set; }
-
     public int CategoryId { get; set; }
 
     [Required]
@@ -13,8 +12,7 @@ public class MenuItemDto
     public string Name { get; set; } = string.Empty;
 
     public string? Description { get; set; }
-
     public decimal BasePrice { get; set; }
-
     public bool IsAvailable { get; set; }
+    public string? UnavailableReason { get; set; }
 }

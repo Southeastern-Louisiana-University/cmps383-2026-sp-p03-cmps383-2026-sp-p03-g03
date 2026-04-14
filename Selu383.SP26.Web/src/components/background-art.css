@@ -1,0 +1,32 @@
+.bg-art {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bg-art-orb {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.bg-art-orb-top {
+  top: 5%;
+  right: 8%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(
+    circle,
+    var(--bg-green-muted) 0%,
+    transparent 70%
+  );
+}
+
+.bg-art-orb-bottom {
+  bottom: 10%;
+  left: 5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, var(--bg-warm-tan) 0%, transparent 70%);
+}

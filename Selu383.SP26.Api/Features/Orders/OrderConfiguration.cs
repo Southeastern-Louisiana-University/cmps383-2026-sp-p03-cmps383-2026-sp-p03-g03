@@ -27,6 +27,12 @@ public class OrderConfiguration : IEntityTypeConfiguration<Order>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(x => x.Subtotal)
+            .HasColumnType("decimal(10,2)");
+
+        builder.Property(x => x.Tax)
+            .HasColumnType("decimal(10,2)");
+
         builder.Property(x => x.Total)
             .HasColumnType("decimal(10,2)");
 

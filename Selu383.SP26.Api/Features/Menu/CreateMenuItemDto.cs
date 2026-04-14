@@ -11,10 +11,35 @@ public class CreateMenuItemDto
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;
 
+    [MaxLength(500)]
     public string? Description { get; set; }
 
     [Required]
+    [Range(0.01, 1000)]
     public decimal BasePrice { get; set; }
 
     public bool IsAvailable { get; set; } = true;
+}
+
+public class UpdateMenuItemDto
+{
+    [Required]
+    [MaxLength(120)]
+    public string Name { get; set; } = string.Empty;
+
+    [MaxLength(500)]
+    public string? Description { get; set; }
+
+    [Required]
+    [Range(0.01, 1000)]
+    public decimal BasePrice { get; set; }
+
+    public bool IsAvailable { get; set; } = true;
+}
+
+public class DisableMenuItemDto
+{
+    [Required]
+    [MaxLength(250)]
+    public string Reason { get; set; } = string.Empty;
 }

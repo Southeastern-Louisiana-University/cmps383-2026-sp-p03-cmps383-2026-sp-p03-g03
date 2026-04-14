@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Auth;
@@ -12,9 +13,9 @@ namespace Selu383.SP26.Api.Controllers;
 public class LocationsController(DataContext dataContext) : ControllerBase
 {
     [HttpGet]
-    public IQueryable<LocationGetDto> GetAll()
+    public async Task<ActionResult<List<LocationGetDto>>> GetAll()
     {
-        return dataContext.Set<Location>()
+        var result = await dataContext.Set<Location>()
             .Select(x => new LocationGetDto
             {
                 Id = x.Id,
@@ -31,58 +32,61 @@ public class LocationsController(DataContext dataContext) : ControllerBase
                 IsActive = x.IsActive,
                 TableCount = x.TableCount,
                 ManagerId = x.ManagerId,
-            });
+                ManagerDisplayName = x.Manager != null
+                    ? (x.Manager.DisplayName ?? x.Manager.UserName)
+                    : null
+            })
+            .ToListAsync();
+
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
-    public ActionResult<LocationGetDto> GetById(int id)
+    public async Task<ActionResult<LocationGetDto>> GetById(int id)
     {
-        var result = dataContext.Set<Location>()
-            .FirstOrDefault(x => x.Id == id);
+        var result = await dataContext.Set<Location>()
+            .Where(x => x.Id == id)
+            .Select(x => new LocationGetDto
+            {
+                Id = x.Id,
+                Name = x.Name,
+                Type = x.Type,
+                Phone = x.Phone,
+                Address = x.Address,
+                City = x.City,
+                State = x.State,
+                Zip = x.Zip,
+                OpeningTime = x.OpeningTime,
+                ClosingTime = x.ClosingTime,
+                LayoutJson = x.LayoutJson,
+                IsActive = x.IsActive,
+                TableCount = x.TableCount,
+                ManagerId = x.ManagerId,
+                ManagerDisplayName = x.Manager != null
+                    ? (x.Manager.DisplayName ?? x.Manager.UserName)
+                    : null
+            })
+            .FirstOrDefaultAsync();
 
         if (result == null)
-        {
             return NotFound();
-        }
 
-        return Ok(new LocationGetDto
-        {
-            Id = result.Id,
-            Name = result.Name,
-            Type = result.Type,
-            Phone = result.Phone,
-            Address = result.Address,
-            City = result.City,
-            State = result.State,
-            Zip = result.Zip,
-            OpeningTime = result.OpeningTime,
-            ClosingTime = result.ClosingTime,
-            LayoutJson = result.LayoutJson,
-            IsActive = result.IsActive,
-            TableCount = result.TableCount,
-            ManagerId = result.ManagerId,
-            Manager = result.Manager
-        });
+        return Ok(result);
     }
 
     [HttpPost]
     [Authorize(Roles = RoleNames.Admin)]
-    public ActionResult<LocationCrudDto> Create(LocationCrudDto dto)
+    public async Task<ActionResult<LocationGetDto>> Create([FromBody] LocationCrudDto dto)
     {
-        if (dto.TableCount < 1)
-        {
-            return BadRequest();
-        }
-
         var location = new Location
         {
-            Name = dto.Name,
-            Type = dto.Type,
-            Phone = dto.Phone,
-            Address = dto.Address,
-            City = dto.City,
-            State = dto.State,
-            Zip = dto.Zip,
+            Name = dto.Name.Trim(),
+            Type = dto.Type.Trim(),
+            Phone = dto.Phone?.Trim(),
+            Address = dto.Address.Trim(),
+            City = dto.City?.Trim(),
+            State = dto.State?.Trim(),
+            Zip = dto.Zip?.Trim(),
             OpeningTime = dto.OpeningTime,
             ClosingTime = dto.ClosingTime,
             LayoutJson = dto.LayoutJson,
@@ -92,51 +96,9 @@ public class LocationsController(DataContext dataContext) : ControllerBase
         };
 
         dataContext.Set<Location>().Add(location);
-        dataContext.SaveChanges();
+        await dataContext.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetById), new { id = location.Id }, dto);
-    }
-
-    [HttpPut("{id}")]
-    [Authorize]
-    public ActionResult<LocationGetDto> Update(int id, LocationCrudDto dto)
-    {
-        if (dto.TableCount < 1)
-        {
-            return BadRequest();
-        }
-
-        var location = dataContext.Set<Location>()
-            .FirstOrDefault(x => x.Id == id);
-
-        if (location == null)
-        {
-            return NotFound();
-        }
-
-        if (!User.IsInRole(RoleNames.Admin) && User.GetCurrentUserId() != location.ManagerId)
-        {
-            return Forbid();
-        }
-
-        location.Name = dto.Name;
-        location.Type = dto.Type;
-        location.Phone = dto.Phone;
-        location.Address = dto.Address;
-        location.City = dto.City;
-        location.State = dto.State;
-        location.Zip = dto.Zip;
-        location.OpeningTime = dto.OpeningTime;
-        location.ClosingTime = dto.ClosingTime;
-        location.LayoutJson = dto.LayoutJson;
-        location.IsActive = dto.IsActive;
-        location.TableCount = dto.TableCount;
-        location.ManagerId = dto.ManagerId;
-        location.Manager = dto.Manager;
-
-        dataContext.SaveChanges();
-
-        return Ok(new LocationGetDto
+        return CreatedAtAction(nameof(GetById), new { id = location.Id }, new LocationGetDto
         {
             Id = location.Id,
             Name = location.Name,
@@ -151,30 +113,55 @@ public class LocationsController(DataContext dataContext) : ControllerBase
             LayoutJson = location.LayoutJson,
             IsActive = location.IsActive,
             TableCount = location.TableCount,
-            ManagerId = location.ManagerId,
-            Manager = location.Manager
+            ManagerId = location.ManagerId
         });
+    }
+
+    [HttpPut("{id}")]
+    [Authorize]
+    public async Task<ActionResult<LocationGetDto>> Update(int id, [FromBody] LocationCrudDto dto)
+    {
+        var location = await dataContext.Set<Location>().FirstOrDefaultAsync(x => x.Id == id);
+        if (location == null)
+            return NotFound();
+
+        if (!User.IsInRole(RoleNames.Admin) && User.GetCurrentUserId() != location.ManagerId)
+            return Forbid();
+
+        location.Name = dto.Name.Trim();
+        location.Type = dto.Type.Trim();
+        location.Phone = dto.Phone?.Trim();
+        location.Address = dto.Address.Trim();
+        location.City = dto.City?.Trim();
+        location.State = dto.State?.Trim();
+        location.Zip = dto.Zip?.Trim();
+        location.OpeningTime = dto.OpeningTime;
+        location.ClosingTime = dto.ClosingTime;
+        location.LayoutJson = dto.LayoutJson;
+        location.IsActive = dto.IsActive;
+        location.TableCount = dto.TableCount;
+        location.ManagerId = dto.ManagerId;
+
+        await dataContext.SaveChangesAsync();
+
+        return await GetById(id);
     }
 
     [HttpDelete("{id}")]
     [Authorize]
-    public ActionResult Delete(int id)
+    public async Task<ActionResult> Delete(int id)
     {
-        var location = dataContext.Set<Location>()
-            .FirstOrDefault(x => x.Id == id);
+        var location = await dataContext.Set<Location>()
+            .FirstOrDefaultAsync(x => x.Id == id);
 
         if (location == null)
-        {
             return NotFound();
-        }
 
         if (!User.IsInRole(RoleNames.Admin) && User.GetCurrentUserId() != location.ManagerId)
-        {
             return Forbid();
-        }
 
         dataContext.Set<Location>().Remove(location);
-        dataContext.SaveChanges();
+        await dataContext.SaveChangesAsync();
 
         return Ok();
     }

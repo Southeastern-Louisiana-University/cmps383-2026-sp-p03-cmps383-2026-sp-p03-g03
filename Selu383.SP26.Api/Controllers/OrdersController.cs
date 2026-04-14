@@ -1,10 +1,12 @@
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
-using Selu383.SP26.Api.Extensions; // Added for GetUserId()
+using Selu383.SP26.Api.Extensions;
+using Selu383.SP26.Api.Features.Auth;
 
 namespace Selu383.SP26.Api.Controllers;
 
@@ -35,96 +37,74 @@ public class OrdersController : ControllerBase
             return Unauthorized();
 
         var orders = await _context.Orders
-            .Where(o => o.CreatedByUserId == userId)
+            .Where(o => o.CreatedByUserId == userId.Value)
             .Include(o => o.OrderItems)
+            .Include(o => o.Receipt)
             .OrderByDescending(o => o.OrderTime)
-            .Select(o => new OrderDto
-            {
-                Id = o.Id,
-                LocationId = o.LocationId,
-                CreatedByUserId = o.CreatedByUserId,
-                OrderCode = o.OrderCode,
-                OrderType = o.OrderType,
-                Status = o.Status,
-                PaymentStatus = o.PaymentStatus,
-                OrderTime = o.OrderTime,
-                ScheduledPickupTime = o.ScheduledPickupTime,
-                Total = o.Total,
-                Note = o.Note,
-                PickupName = o.PickupName,
-                Items = o.OrderItems.Select(oi => new OrderItemDto
-                {
-                    Id = oi.Id,
-                    MenuItemId = oi.MenuItemId,
-                    Quantity = oi.Quantity,
-                    UnitPrice = oi.UnitPrice,
-                    LineTotal = oi.LineTotal,
-                    ItemNote = oi.ItemNote
-                }).ToList()
-            })
+            .Select(MapOrderDto())
             .ToListAsync();
 
         return Ok(orders);
     }
 
     [HttpGet("{id:int}")]
+    [Authorize]
     public async Task<ActionResult<OrderDto>> GetOrder(int id)
     {
         var order = await _context.Orders
+            .Where(o => o.Id == id)
             .Include(o => o.OrderItems)
-            .FirstOrDefaultAsync(o => o.Id == id);
+            .Include(o => o.Receipt)
+            .Select(MapOrderDto())
+            .FirstOrDefaultAsync();
 
         if (order == null)
             return NotFound();
 
-        var dto = new OrderDto
-        {
-            Id = order.Id,
-            LocationId = order.LocationId,
-            CreatedByUserId = order.CreatedByUserId,
-            OrderCode = order.OrderCode,
-            OrderType = order.OrderType,
-            Status = order.Status,
-            PaymentStatus = order.PaymentStatus,
-            OrderTime = order.OrderTime,
-            ScheduledPickupTime = order.ScheduledPickupTime,
-            Total = order.Total,
-            Note = order.Note,
-            PickupName = order.PickupName,
-            Items = order.OrderItems.Select(oi => new OrderItemDto
-            {
-                Id = oi.Id,
-                MenuItemId = oi.MenuItemId,
-                Quantity = oi.Quantity,
-                UnitPrice = oi.UnitPrice,
-                LineTotal = oi.LineTotal,
-                ItemNote = oi.ItemNote
-            }).ToList()
-        };
+        var currentUserId = User.GetCurrentUserId();
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
 
-        return Ok(dto);
+        if (!isPrivileged && currentUserId != order.CreatedByUserId)
+            return Forbid();
+
+        return Ok(order);
     }
 
     [HttpPost]
-    public async Task<ActionResult<OrderDto>> CreateOrder(CreateOrderDto dto)
+    [Authorize]
+    public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderDto dto)
     {
-        if (dto.Items == null || dto.Items.Count == 0)
-            return BadRequest("Order must contain at least one item.");
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+            return Unauthorized();
+
+        var normalizedOrderType = (dto.OrderType ?? string.Empty).Trim();
+        var canonicalOrderType = normalizedOrderType.Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant() switch
+        {
+            "pickup" => OrderTypes.Pickup,
+            "dinein" => OrderTypes.DineIn,
+            "instore" => OrderTypes.InStore,
+            "drivethru" => OrderTypes.DriveThru,
+            "covercharge" => OrderTypes.CoverCharge,
+            _ => normalizedOrderType
+        };
+
+        var allowedOrderTypes = new[] { OrderTypes.Pickup, OrderTypes.DineIn, OrderTypes.InStore, OrderTypes.DriveThru, OrderTypes.CoverCharge };
+        if (!allowedOrderTypes.Contains(canonicalOrderType, StringComparer.OrdinalIgnoreCase))
+            return BadRequest("Invalid order type.");
 
         if (dto.ScheduledPickupTime.HasValue)
         {
-            if (!string.Equals(dto.OrderType, "Pickup", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(canonicalOrderType, OrderTypes.Pickup, StringComparison.OrdinalIgnoreCase))
                 return BadRequest("Scheduled pickup is only available for pickup orders.");
 
-            if (dto.ScheduledPickupTime.Value < DateTime.UtcNow)
+            if (dto.ScheduledPickupTime.Value <= DateTime.UtcNow)
                 return BadRequest("Scheduled pickup time must be in the future.");
         }
 
         var locationExists = await _context.Locations.AnyAsync(l => l.Id == dto.LocationId);
         if (!locationExists)
             return BadRequest("Invalid location.");
-
-        var createdByUserId = User.GetCurrentUserId() ?? 1; 
 
         var menuItemIds = dto.Items.Select(i => i.MenuItemId).Distinct().ToList();
 
@@ -138,15 +118,15 @@ public class OrdersController : ControllerBase
         var order = new Order
         {
             LocationId = dto.LocationId,
-            CreatedByUserId = createdByUserId,
+            CreatedByUserId = currentUserId.Value,
             OrderCode = $"ORD{DateTime.UtcNow:yyyyMMddHHmmss}",
-            OrderType = dto.OrderType,
-            Status = "Placed",
-            PaymentStatus = "Unpaid",
+            OrderType = canonicalOrderType,
+            Status = OrderStatuses.Placed,
+            PaymentStatus = PaymentStatuses.Unpaid,
             OrderTime = DateTime.UtcNow,
             ScheduledPickupTime = dto.ScheduledPickupTime,
-            Note = dto.Note,
-            PickupName = dto.PickupName
+            Note = dto.Note?.Trim(),
+            PickupName = dto.PickupName?.Trim()
         };
 
         foreach (var item in dto.Items)
@@ -159,82 +139,157 @@ public class OrdersController : ControllerBase
             order.OrderItems.Add(new OrderItem
             {
                 MenuItemId = item.MenuItemId,
+                MenuItemName = menuItem.Name,
                 Quantity = quantity,
                 UnitPrice = unitPrice,
                 LineTotal = lineTotal,
-                ItemNote = item.ItemNote
+                ItemNote = item.ItemNote?.Trim()
             });
         }
 
-        order.Total = order.OrderItems.Sum(i => i.LineTotal);
+        order.Subtotal = order.OrderItems.Sum(i => i.LineTotal);
+        order.Tax = 0m;
+        order.Total = order.Subtotal + order.Tax;
 
         _context.Orders.Add(order);
         await _context.SaveChangesAsync();
 
-        var result = new OrderDto
+        string? receiptUrl = null;
+        try
         {
-            Id = order.Id,
-            LocationId = order.LocationId,
-            CreatedByUserId = order.CreatedByUserId,
-            OrderCode = order.OrderCode,
-            OrderType = order.OrderType,
-            Status = order.Status,
-            PaymentStatus = order.PaymentStatus,
-            OrderTime = order.OrderTime,
-            ScheduledPickupTime = order.ScheduledPickupTime,
-            Total = order.Total,
-            Note = order.Note,
-            PickupName = order.PickupName,
-            Items = order.OrderItems.Select(oi => new OrderItemDto
+            var orderWithItems = await _context.Orders
+                .Include(o => o.OrderItems)
+                .FirstOrDefaultAsync(o => o.Id == order.Id);
+
+            if (orderWithItems != null)
             {
-                Id = oi.Id,
-                MenuItemId = oi.MenuItemId,
-                Quantity = oi.Quantity,
-                UnitPrice = oi.UnitPrice,
-                LineTotal = oi.LineTotal,
-                ItemNote = oi.ItemNote
-            }).ToList()
-        };
+                var pdfBytes = _receiptPdfService.GenerateThermalReceipt(orderWithItems);
+                var fileName = $"receipts/order-{orderWithItems.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+                receiptUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
+
+                orderWithItems.Receipt = new Receipt
+                {
+                    OrderId = orderWithItems.Id,
+                    CreatedAt = DateTime.UtcNow,
+                    ReceiptUrl = receiptUrl
+                };
+
+                await _context.SaveChangesAsync();
+            }
+        }
+        catch
+        {
+            // Intentionally swallow receipt generation failures so order creation succeeds.
+        }
+
+        var result = await _context.Orders
+            .Where(o => o.Id == order.Id)
+            .Include(o => o.OrderItems)
+            .Include(o => o.Receipt)
+            .Select(MapOrderDto())
+            .FirstAsync();
+
+        result.ReceiptUrl = receiptUrl ?? result.ReceiptUrl;
 
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, result);
     }
 
     [HttpGet("{id:int}/receiptpdf")]
+    [HttpGet("{id:int}/receipt-pdf")]
+    [Authorize]
     public async Task<IActionResult> GetReceiptPdf(int id)
     {
         var order = await _context.Orders
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.MenuItem)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
             return NotFound();
 
+        var currentUserId = User.GetCurrentUserId();
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && currentUserId != order.CreatedByUserId)
+            return Forbid();
+
         var pdfBytes = _receiptPdfService.GenerateReceipt(order);
 
-        return File(pdfBytes, "application/pdf", $"order{order.Id}receipt.pdf");
+        return File(pdfBytes, "application/pdf", $"order-{order.Id}-receipt.pdf");
     }
 
-    [HttpPost("{id:int}/archivereceipt")]
+    [HttpPost("{id:int}/archive-receipt")]
+    [Authorize]
     public async Task<ActionResult<object>> ArchiveReceipt(int id)
     {
         var order = await _context.Orders
             .Include(o => o.OrderItems)
-            .ThenInclude(oi => oi.MenuItem)
+            .Include(o => o.Receipt)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
             return NotFound();
 
-        var pdfBytes = _receiptPdfService.GenerateReceipt(order);
+        var currentUserId = User.GetCurrentUserId();
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
+        if (!isPrivileged && currentUserId != order.CreatedByUserId)
+            return Forbid();
 
-        var fileName = $"receipts/order{order.Id}{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
+        var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
+        var fileName = $"receipts/order-{order.Id}-{DateTime.UtcNow:yyyyMMddHHmmss}.pdf";
         var blobUrl = await _blobStorageService.UploadReceiptAsync(pdfBytes, fileName);
+
+        if (order.Receipt == null)
+        {
+            order.Receipt = new Receipt
+            {
+                OrderId = order.Id,
+                CreatedAt = DateTime.UtcNow,
+                ReceiptUrl = blobUrl
+            };
+        }
+        else
+        {
+            order.Receipt.ReceiptUrl = blobUrl;
+            order.Receipt.CreatedAt = DateTime.UtcNow;
+        }
+
+        await _context.SaveChangesAsync();
 
         return Ok(new
         {
             orderId = order.Id,
             receiptUrl = blobUrl
         });
+    }
+
+    private static Expression<Func<Order, OrderDto>> MapOrderDto()
+    {
+        return o => new OrderDto
+        {
+            Id = o.Id,
+            LocationId = o.LocationId,
+            CreatedByUserId = o.CreatedByUserId,
+            OrderCode = o.OrderCode,
+            OrderType = o.OrderType,
+            Status = o.Status,
+            PaymentStatus = o.PaymentStatus,
+            OrderTime = o.OrderTime,
+            ScheduledPickupTime = o.ScheduledPickupTime,
+            Subtotal = o.Subtotal,
+            Tax = o.Tax,
+            Total = o.Total,
+            Note = o.Note,
+            PickupName = o.PickupName,
+            Items = o.OrderItems.Select(oi => new OrderItemDto
+            {
+                Id = oi.Id,
+                MenuItemId = oi.MenuItemId,
+                MenuItemName = oi.MenuItemName,
+                Quantity = oi.Quantity,
+                UnitPrice = oi.UnitPrice,
+                LineTotal = oi.LineTotal,
+                ItemNote = oi.ItemNote
+            }).ToList(),
+            ReceiptUrl = o.Receipt != null ? o.Receipt.ReceiptUrl : null
+        };
     }
 }

@@ -3,11 +3,9 @@ using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Payments;
-
 using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext")));
@@ -15,8 +13,15 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<DataContext>();
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
+    options.Cookie.Name = "Selu383.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SameSite = isDevelopment ? SameSiteMode.Lax : SameSiteMode.None;
+    options.Cookie.SecurePolicy = isDevelopment ? CookieSecurePolicy.SameAsRequest : CookieSecurePolicy.Always;
+
     options.Events.OnRedirectToLogin = context =>
     {
         context.Response.StatusCode = 401;
@@ -31,17 +36,15 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddControllers();
-
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReceiptPdfService>();
 builder.Services.AddScoped<BlobStorageService>();
 builder.Services.AddScoped<StripePaymentService>();
 
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowMobileApp", policy =>
+    options.AddPolicy("AllowFrontendApps", policy =>
     {
         policy
             .SetIsOriginAllowed(origin =>
@@ -52,7 +55,9 @@ builder.Services.AddCors(options =>
                 }
 
                 if (origin.StartsWith("http://localhost:", StringComparison.OrdinalIgnoreCase) ||
-                    origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase))
+                    origin.StartsWith("https://localhost:", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("http://127.0.0.1:", StringComparison.OrdinalIgnoreCase) ||
+                    origin.StartsWith("https://127.0.0.1:", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
@@ -63,7 +68,11 @@ builder.Services.AddCors(options =>
                 }
 
                 return uri.Scheme == Uri.UriSchemeHttps &&
-                       uri.Host.EndsWith(".use2.devtunnels.ms", StringComparison.OrdinalIgnoreCase);
+                       (
+                           uri.Host.EndsWith(".use2.devtunnels.ms", StringComparison.OrdinalIgnoreCase) ||
+                           uri.Host.EndsWith(".exp.direct", StringComparison.OrdinalIgnoreCase) ||
+                           uri.Host.EndsWith(".azurewebsites.net", StringComparison.OrdinalIgnoreCase)
+                       );
             })
             .AllowAnyMethod()
             .AllowAnyHeader()
@@ -74,52 +83,57 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
 using (var scope = app.Services.CreateScope())
 {
-    await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
-}
+    var startupLogger = scope.ServiceProvider
+        .GetRequiredService<ILoggerFactory>()
+        .CreateLogger("Startup");
 
+    try
+    {
+        await SeedHelper.MigrateAndSeed(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        startupLogger.LogError(ex, "Database migrate/seed failed during startup.");
+
+        if (app.Environment.IsDevelopment())
+        {
+            throw;
+        }
+
+        startupLogger.LogWarning("Continuing startup without blocking process because environment is non-development.");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.ConfigObject.AdditionalItems["withCredentials"] = true;
+    });
 }
-
-
-app.UseCors("AllowMobileApp");
 
 app.UseHttpsRedirection();
 
-app.UseRouting();
-
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.StatusCode = 200;
-        await context.Response.CompleteAsync();
-        return;
-    }
-    await next();
-});
-
-app.UseAuthentication();
-app.UseAuthorization();
-
-
-app.MapControllers();
+app
+    .UseRouting()
+    .UseCors("AllowFrontendApps")
+    .UseAuthentication()
+    .UseAuthorization()
+    .UseEndpoints(e => e.MapControllers());
 
 app.UseStaticFiles();
 
 if(app.Environment.IsDevelopment())
 {
-
-
+    app.UseSpa(x =>
+    {
+        x.UseProxyToSpaDevelopmentServer("http://localhost:5173");
+    });
 }
 else
 {

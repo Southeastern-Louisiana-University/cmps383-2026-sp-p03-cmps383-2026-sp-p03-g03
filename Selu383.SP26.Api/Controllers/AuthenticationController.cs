@@ -27,27 +27,28 @@ public class AuthenticationController : ControllerBase
     public async Task<ActionResult<UserDto>> Me()
     {
         var username = User.GetCurrentUserName();
-        var resultDto = await GetUserDto(userManager.Users).SingleAsync(x => x.UserName == username);
+        var resultDto = await GetUserDto(userManager.Users)
+            .SingleAsync(x => x.UserName == username);
+
         return Ok(resultDto);
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<UserDto>> Login(LoginDto dto)
+    public async Task<ActionResult<UserDto>> Login([FromBody] LoginDto dto)
     {
         var user = await userManager.FindByNameAsync(dto.UserName);
         if (user == null)
-        {
-            return BadRequest();
-        }
+            return Unauthorized(new { message = "Invalid username or password." });
+
         var result = await signInManager.CheckPasswordSignInAsync(user, dto.Password, true);
         if (!result.Succeeded)
-        {
-            return BadRequest();
-        }
+            return Unauthorized(new { message = "Invalid username or password." });
 
         await signInManager.SignInAsync(user, false);
 
-        var resultDto = await GetUserDto(userManager.Users).SingleAsync(x => x.UserName == user.UserName);
+        var resultDto = await GetUserDto(userManager.Users)
+            .SingleAsync(x => x.UserName == user.UserName);
+
         return Ok(resultDto);
     }
 
@@ -59,20 +60,19 @@ public class AuthenticationController : ControllerBase
         return Ok();
     }
 
-   private static IQueryable<UserDto> GetUserDto(IQueryable<User> users)
-{
-    return users.Select(x => new UserDto
+    private static IQueryable<UserDto> GetUserDto(IQueryable<User> users)
     {
-        Id = x.Id,
-        UserName = x.UserName!,
-        FirstName = x.FirstName,
-        LastName = x.LastName,
-        DisplayName = x.DisplayName,
-        Email = x.Email,
-        PhoneNumber = x.PhoneNumber,
-        Roles = x.UserRoles.Select(y => y.Role!.Name!).ToArray(),
-            //map the database value directly to the returned dto
+        return users.Select(x => new UserDto
+        {
+            Id = x.Id,
+            UserName = x.UserName!,
+            FirstName = x.FirstName,
+            LastName = x.LastName,
+            DisplayName = x.DisplayName,
+            Email = x.Email,
+            PhoneNumber = x.PhoneNumber,
+            Roles = x.UserRoles.Select(y => y.Role.Name!).ToArray(),
             LoyaltyPoints = x.LoyaltyPoints
-    });
-}
+        });
+    }
 }

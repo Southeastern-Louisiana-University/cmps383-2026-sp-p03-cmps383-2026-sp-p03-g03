@@ -9,13 +9,8 @@ import { PageHeaderActions } from '@/components/page-header-actions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/hooks/useAuth';
 import { CommonStyles, getColors } from '@/constants/styles';
+import { getMenuItemImage } from '@/constants/menu-item-images';
 import { getMenuItems, type MenuItemDto } from '@/services/api';
-
-const FEATURED_IMAGES = [
-  require('@/assets/images/featured-caramel-latte.jpg'),
-  require('@/assets/images/featured-iced-matcha.jpg.jpg'),
-  require('@/assets/images/featured-croissant.jpg.jpg'),
-];
 
 type FeaturedItem = {
   id: string;
@@ -27,21 +22,21 @@ type FeaturedItem = {
 const FALLBACK_FEATURED_ITEMS: FeaturedItem[] = [
   {
     id: '1',
-    image: FEATURED_IMAGES[0],
-    name: 'Caramel Latte',
+    name: 'Iced Latte',
+    image: getMenuItemImage('Iced Latte'),
     price: '$4.95',
   },
   {
     id: '2',
-    image: FEATURED_IMAGES[1],
-    name: 'Iced Matcha',
-    price: '$5.25',
+    name: 'Supernova',
+    image: getMenuItemImage('Supernova'),
+    price: '$6.50',
   },
   {
     id: '3',
-    image: FEATURED_IMAGES[2],
-    name: 'Butter Croissant',
-    price: '$3.50',
+    name: 'The Classic',
+    image: getMenuItemImage('The Classic'),
+    price: '$8.95',
   },
 ];
 
@@ -64,7 +59,7 @@ function buildDailyFeatured(menuItems: MenuItemDto[]): FeaturedItem[] {
     const item = available[(startIndex + index) % available.length];
     return {
       id: String(item.id),
-      image: FEATURED_IMAGES[index % FEATURED_IMAGES.length],
+      image: getMenuItemImage(item.name),
       name: item.name,
       price: `$${item.basePrice.toFixed(2)}`,
     };
@@ -205,7 +200,7 @@ export default function HomeScreen() {
 
           <View style={[styles.footerCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}> 
             <ThemedText style={[styles.footerTitle, { color: colors.text }]}>Today</ThemedText>
-            <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Open 7:00 AM - 9:00 PM</ThemedText>
+            <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Open 6:00 AM - 6:00 PM</ThemedText>
             <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Featured picks refresh daily</ThemedText>
             <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Mobile pickup available</ThemedText>
           </View>

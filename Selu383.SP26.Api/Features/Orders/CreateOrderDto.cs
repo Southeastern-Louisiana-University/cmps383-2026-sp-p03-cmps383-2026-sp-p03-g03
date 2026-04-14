@@ -7,13 +7,19 @@ public class CreateOrderDto
     [Required]
     public int LocationId { get; set; }
 
-    public string OrderType { get; set; } = "Pickup";
+    [Required]
+    [MaxLength(20)]
+    public string OrderType { get; set; } = OrderTypes.Pickup;
 
+    [MaxLength(500)]
     public string? Note { get; set; }
 
+    [MaxLength(80)]
     public string? PickupName { get; set; }
 
     public DateTime? ScheduledPickupTime { get; set; }
 
+    [Required]
+    [MinLength(1)]
     public List<CreateOrderItemDto> Items { get; set; } = new();
 }

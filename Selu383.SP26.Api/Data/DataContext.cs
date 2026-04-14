@@ -18,18 +18,19 @@ public class DataContext : IdentityDbContext<User, Role, int, IdentityUserClaim<
     {
     }
 
-        public DbSet<Location> Locations { get; set; }
-        public DbSet<MenuCategory> MenuCategories { get; set; }
-        public DbSet<MenuItem> MenuItems { get; set; }
-        public DbSet<Order> Orders { get; set; }
-        public DbSet<OrderItem> OrderItems { get; set; }
-        public DbSet<Receipt> Receipts { get; set; }
-        public DbSet<Table> Tables => Set<Table>();
-        public DbSet<Reservation> Reservations { get; set; }
-        public DbSet<Payment> Payments { get; set; }
-        public DbSet<LoyaltyLedger> LoyaltyLedgers { get; set; }
-
-
+    public DbSet<Location> Locations { get; set; }
+    public DbSet<MenuCategory> MenuCategories { get; set; }
+    public DbSet<MenuCategoryLocation> MenuCategoryLocations { get; set; }
+    public DbSet<MenuItem> MenuItems { get; set; }
+    public DbSet<Order> Orders { get; set; }
+    public DbSet<OrderItem> OrderItems { get; set; }
+    public DbSet<Receipt> Receipts { get; set; }
+    public DbSet<Table> Tables => Set<Table>();
+    public DbSet<Reservation> Reservations { get; set; }
+    public DbSet<Payment> Payments { get; set; }
+    public DbSet<PaymentMethod> PaymentMethods { get; set; }
+    public DbSet<LoyaltyLedger> LoyaltyLedgers { get; set; }
+    public DbSet<Reward> Rewards { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

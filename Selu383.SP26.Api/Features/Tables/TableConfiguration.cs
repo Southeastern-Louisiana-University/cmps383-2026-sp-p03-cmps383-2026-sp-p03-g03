@@ -23,5 +23,8 @@ public class TableConfiguration : IEntityTypeConfiguration<Table>
 
         builder.Property(x => x.IsActive)
             .HasDefaultValue(true);
+
+        builder.HasIndex(x => new { x.LocationId, x.TableNumber })
+            .IsUnique();
     }
 }
