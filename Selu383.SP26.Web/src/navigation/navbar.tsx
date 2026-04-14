@@ -2,7 +2,7 @@ import { Tokens, LOGO } from "../styles/tokens";
 import { Ic } from "../components/icons";
 import { useAppContext } from "../api/context-providers/app-context";
 import { useLocation, useNavigate } from "react-router-dom";
-import { APP_ROUTES, isActiveRoute } from "./routes";
+import { APP_ROUTES, isActiveRoute, homeRouteForRoles } from "./routes";
 import "./navbar.css";
 
 const navItems = [
@@ -51,6 +51,18 @@ export function Navbar({ cartCount }: { cartCount: number }) {
               <span className="nav-cart-badge">{cartCount}</span>
             )}
           </button>
+
+          {isLoggedIn &&
+            user.roles.some((r) =>
+              ["Staff", "Manager", "Admin"].includes(r),
+            ) && (
+              <button
+                onClick={() => navigate(homeRouteForRoles(user.roles))}
+                className="focus-ring nav-staff-link"
+              >
+                Staff Panel
+              </button>
+            )}
 
           <div className="nav-divider" />
 

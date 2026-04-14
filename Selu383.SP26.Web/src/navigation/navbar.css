@@ -122,6 +122,24 @@
   font-family: var(--font-body);
 }
 
+.nav-staff-link {
+  background: none;
+  border: 1px solid var(--green);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--green);
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-right: 4px;
+}
+
+.nav-staff-link:hover {
+  background: var(--cream);
+}
+
 .nav-divider {
   width: 1px;
   height: 24px;

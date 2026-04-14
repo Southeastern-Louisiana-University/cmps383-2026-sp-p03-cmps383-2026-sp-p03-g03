@@ -6,7 +6,18 @@ export const APP_ROUTES = {
   reservations: "/reservations",
   auth: "/auth",
   profile: "/profile",
+  staffHome: "/staff",
+  managerHome: "/manager",
+  adminHome: "/admin",
 } as const;
+
+export function homeRouteForRoles(roles: string[] | undefined): string {
+  if (!roles || roles.length === 0) return APP_ROUTES.home;
+  if (roles.includes("Admin")) return APP_ROUTES.adminHome;
+  if (roles.includes("Manager")) return APP_ROUTES.managerHome;
+  if (roles.includes("Staff")) return APP_ROUTES.staffHome;
+  return APP_ROUTES.home;
+}
 
 const ROUTE_ALIASES: Record<string, string> = {
   "/order": APP_ROUTES.menu,

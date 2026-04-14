@@ -4,7 +4,7 @@ import { Ic } from "../../components/icons";
 import { useAppContext } from "../../api/context-providers/app-context";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import { useNavigate } from "react-router-dom";
-import { APP_ROUTES } from "../../navigation/routes";
+import { homeRouteForRoles } from "../../navigation/routes";
 import "./auth.css";
 
 export function AuthPage() {
@@ -29,7 +29,7 @@ export function AuthPage() {
         : await signup(name, credential, password);
 
     if (!result.ok) setError(result.error || "Something went wrong.");
-    if (result.ok) navigate(APP_ROUTES.home);
+    if (result.ok) navigate(homeRouteForRoles(result.roles));
     setLoading(false);
   };
 

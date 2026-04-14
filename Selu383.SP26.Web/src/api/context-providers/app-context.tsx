@@ -32,12 +32,12 @@ interface AppContext {
   login: (
     username: string,
     password: string,
-  ) => Promise<{ ok: boolean; error?: string }>;
+  ) => Promise<{ ok: boolean; error?: string; roles?: string[] }>;
   signup: (
     name: string,
     email: string,
     password: string,
-  ) => Promise<{ ok: boolean; error?: string }>;
+  ) => Promise<{ ok: boolean; error?: string; roles?: string[] }>;
   logout: () => Promise<{ ok: boolean; error?: string }>;
 }
 
@@ -56,9 +56,10 @@ const EMPTY_USER: UserProfile = {
   defaultLocation: "",
   defaultOrderType: "Pickup",
   receiptPref: "email",
+  roles: [],
 };
 
-type AuthResult = { ok: boolean; error?: string };
+type AuthResult = { ok: boolean; error?: string; roles?: string[] };
 
 interface ApiUserDto {
   id: number;
@@ -92,6 +93,7 @@ function toUserProfile(dto: ApiUserDto): UserProfile {
     defaultLocation: "",
     defaultOrderType: "Pickup",
     receiptPref: "email",
+    roles: dto.roles ?? [],
   };
 }
 
@@ -235,7 +237,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       }
 
       setSignedInState(payload as ApiUserDto);
-      return { ok: true };
+      return { ok: true, roles: (payload as ApiUserDto).roles };
     } catch {
       return { ok: false, error: "Unable to reach the server right now." };
     }

@@ -6,7 +6,11 @@ import { OrdersPage } from "../pages/orders/orders";
 import { ReservationPage } from "../pages/reservations/reservations";
 import { AuthPage } from "../pages/login/auth";
 import { ProfilePage } from "../pages/user/profile";
+import { StaffDashboard } from "../pages/staff/staff-dashboard";
+import { ManagerDashboard } from "../pages/manager/manager-dashboard";
+import { AdminDashboard } from "../pages/admin/admin-dashboard";
 import { Navbar } from "./navbar";
+import { ProtectedRoute } from "./protected-route";
 import { BackgroundArt } from "../components/background-art";
 import { Footer } from "../components/footer";
 import {
@@ -98,6 +102,30 @@ export function Router() {
         <Route
           path={APP_ROUTES.profile.slice(1)}
           element={<ProtectedProfileRoute />}
+        />
+        <Route
+          path="staff"
+          element={
+            <ProtectedRoute allowedRoles={["Staff", "Manager", "Admin"]}>
+              <StaffDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="manager"
+          element={
+            <ProtectedRoute allowedRoles={["Manager", "Admin"]}>
+              <ManagerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="admin"
+          element={
+            <ProtectedRoute allowedRoles={["Admin"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
         />
         <Route path="*" element={<Navigate to={APP_ROUTES.home} replace />} />
       </Route>

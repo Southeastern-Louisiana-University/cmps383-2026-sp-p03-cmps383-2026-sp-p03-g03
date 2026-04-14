@@ -113,4 +113,5 @@ export interface UserProfile {
   defaultLocation: string;
   defaultOrderType: "Pickup" | "Drive-Thru";
   receiptPref: string;
+  roles: string[];
 }
