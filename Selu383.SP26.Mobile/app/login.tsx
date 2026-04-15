@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   TextInput,
@@ -22,17 +22,25 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 export default function LoginScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const { login, isLoading } = useAuth();
+  const { login, register, isLoading, user } = useAuth();
 
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [username, setUsername] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
 
   const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
 
-  
-  const handleLogin = async () => {
+  useEffect(() => {
+    if (user && !isLoading) {
+      router.replace('/(tabs)');
+    }
+  }, [user, isLoading, router]);
+
+  const handleSubmit = async () => {
     
     setError('');
     setFormError('');
@@ -48,21 +56,27 @@ export default function LoginScreen() {
       return;
     }
 
-    try {
-      console.log('Login attempt with:', username);
-      
-      await login(username, password);
-      console.log('Login successful, navigating to home');
+    if (isRegisterMode && password.trim().length < 8) {
+      setFormError('Password must be at least 8 characters');
+      return;
+    }
 
-      
-      router.replace('/(tabs)');
+    if (isRegisterMode && password !== confirmPassword) {
+      setFormError('Passwords do not match');
+      return;
+    }
+
+    try {
+      if (isRegisterMode) {
+        await register(username, password, displayName.trim() || undefined);
+      } else {
+        await login(username, password);
+      }
     } catch (err: any) {
-      console.log('Login error:', err);
-      const errorMessage = err.message || 'Login failed. Please try again.';
+      const errorMessage = err.message || (isRegisterMode ? 'Registration failed. Please try again.' : 'Login failed. Please try again.');
       setError(errorMessage);
 
-    
-      Alert.alert('Login Failed', errorMessage, [
+      Alert.alert(isRegisterMode ? 'Sign Up Failed' : 'Login Failed', errorMessage, [
         {
           text: 'OK',
           onPress: () => setError(''),
@@ -115,6 +129,10 @@ export default function LoginScreen() {
               </View>
             ) : null}
 
+            <ThemedText style={[styles.modeTitle, { color: colors.text }]}>
+              {isRegisterMode ? 'Create Account' : 'Sign In'}
+            </ThemedText>
+
             {/* Username Input */}
             <View style={styles.inputContainer}>
               <ThemedText style={styles.label}>Username</ThemedText>
@@ -136,6 +154,27 @@ export default function LoginScreen() {
                 autoCorrect={false}
               />
             </View>
+
+            {isRegisterMode && (
+              <View style={styles.inputContainer}>
+                <ThemedText style={styles.label}>Display Name (Optional)</ThemedText>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: colors.text,
+                      color: colors.text,
+                      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+                    },
+                  ]}
+                  placeholder="How your name appears"
+                  placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                  value={displayName}
+                  onChangeText={setDisplayName}
+                  editable={!isLoading}
+                />
+              </View>
+            )}
 
             {/* Password Input */}
             <View style={styles.inputContainer}>
@@ -160,6 +199,30 @@ export default function LoginScreen() {
               />
             </View>
 
+            {isRegisterMode && (
+              <View style={styles.inputContainer}>
+                <ThemedText style={styles.label}>Confirm Password</ThemedText>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      borderColor: colors.text,
+                      color: colors.text,
+                      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+                    },
+                  ]}
+                  placeholder="Re-enter password"
+                  placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  editable={!isLoading}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+              </View>
+            )}
+
             {/* Login Button */}
             <TouchableOpacity
               style={[
@@ -169,7 +232,7 @@ export default function LoginScreen() {
                   opacity: isLoading ? 0.6 : 1,
                 },
               ]}
-              onPress={handleLogin}
+              onPress={handleSubmit}
               disabled={isLoading}
               activeOpacity={0.8}
             >
@@ -177,14 +240,30 @@ export default function LoginScreen() {
                 <ActivityIndicator color="white" size="small" />
               ) : (
                 <ThemedText style={styles.loginButtonText}>
-                  🍃 Start Order ⚡
+                  {isRegisterMode ? 'Create My Account' : '🍃 Start Order ⚡'}
                 </ThemedText>
               )}
             </TouchableOpacity>
 
+            <TouchableOpacity
+              onPress={() => {
+                setIsRegisterMode((prev) => !prev);
+                setError('');
+                setFormError('');
+              }}
+              disabled={isLoading}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={[styles.toggleText, { color: Colors.brandGreen }]}> 
+                {isRegisterMode ? 'Already have an account? Sign In' : 'New here? Create an account'}
+              </ThemedText>
+            </TouchableOpacity>
+
             {/* Info Text */}
             <ThemedText style={styles.infoText}>
-              Enter your credentials to access your account
+              {isRegisterMode
+                ? 'Create a customer account to start ordering'
+                : 'Enter your credentials to access your account'}
             </ThemedText>
           </ThemedView>
         </ScrollView>
@@ -234,6 +313,12 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     fontFamily: 'Corben_400Regular',
   },
+  modeTitle: {
+    fontSize: 22,
+    lineHeight: 30,
+    marginBottom: 14,
+    fontFamily: 'Corben_700Bold',
+  },
   errorContainer: {
     width: '100%',
     padding: 12,
@@ -278,8 +363,10 @@ const styles = StyleSheet.create({
   loginButtonText: {
     color: 'white',
     fontSize: 20,
+    lineHeight: 28,
     fontWeight: 'bold',
     fontFamily: 'Corben_700Bold',
+    textAlign: 'center',
   },
   infoText: {
     marginTop: 20,
@@ -287,5 +374,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     opacity: 0.6,
     fontFamily: 'Corben_400Regular',
+  },
+  toggleText: {
+    marginTop: 14,
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: 'Corben_700Bold',
+    textAlign: 'center',
   },
 });

@@ -91,6 +91,15 @@ export default function CartScreen() {
                 </View>
               ))}
 
+              <TouchableOpacity
+                style={[styles.addMoreButton, { borderColor: colors.primary, backgroundColor: colors.primary + '12' }]}
+                onPress={() => router.push('/(tabs)/menu')}
+                activeOpacity={0.85}
+              >
+                <MaterialIcons name="restaurant-menu" size={18} color={colors.primary} />
+                <ThemedText style={[styles.addMoreButtonText, { color: colors.primary }]}>Add More Items</ThemedText>
+              </TouchableOpacity>
+
               <View style={[styles.totalsCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 <View style={styles.totalRow}>
                   <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Subtotal</ThemedText>
@@ -224,6 +233,21 @@ const styles = StyleSheet.create({
   removeBtn: {
     marginLeft: 4,
     padding: 2,
+  },
+  addMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  addMoreButtonText: {
+    fontFamily: 'Corben_700Bold',
+    fontSize: 14,
   },
   totalsCard: {
     borderWidth: 1,

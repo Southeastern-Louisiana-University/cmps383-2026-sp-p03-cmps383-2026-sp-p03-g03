@@ -22,12 +22,16 @@ import { useThemeMode } from '@/contexts/ThemeContext';
 import { PageHeaderActions } from '@/components/page-header-actions';
 import {
   addPaymentMethod,
+  createUserAccount,
   deletePaymentMethod,
+  getLocations,
   getMyLoyalty,
   getPaymentMethods,
   getRewards,
   redeemReward,
   setDefaultPaymentMethod,
+  updateLocationManager,
+  type LocationDto,
   type LoyaltySummaryDto,
   type PaymentMethodDto,
   type RewardDto,
@@ -120,7 +124,14 @@ export default function AccountScreen() {
   const isFocused = useIsFocused();
   const { toggleMode } = useThemeMode();
 
+  const normalizedRoles = user?.roles?.map((role) => role.toLowerCase()) ?? [];
+  const isAdmin = normalizedRoles.includes('admin');
+  const isManager = normalizedRoles.includes('manager');
+  const isStaff = normalizedRoles.includes('staff');
+  const hasWorkAccess = isAdmin || isManager || isStaff;
+
   const [loyalty, setLoyalty] = useState<LoyaltySummaryDto | null>(null);
+  const [locations, setLocations] = useState<LocationDto[]>([]);
   const [rewards, setRewards] = useState<RewardDto[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodDto[]>([]);
 
@@ -139,6 +150,25 @@ export default function AccountScreen() {
   const [updatingMethodId, setUpdatingMethodId] = useState<number | null>(null);
   const [redeemingRewardId, setRedeemingRewardId] = useState<number | null>(null);
   const [selectedRedemption, setSelectedRedemption] = useState<LoyaltySummaryDto['history'][number] | null>(null);
+  const [teamMemberUserName, setTeamMemberUserName] = useState('');
+  const [teamMemberDisplayName, setTeamMemberDisplayName] = useState('');
+  const [teamMemberEmail, setTeamMemberEmail] = useState('');
+  const [teamMemberPassword, setTeamMemberPassword] = useState('');
+  const [teamRole, setTeamRole] = useState<'Staff' | 'Manager'>('Staff');
+  const [selectedTeamLocationId, setSelectedTeamLocationId] = useState<number | null>(null);
+  const [creatingTeamMember, setCreatingTeamMember] = useState(false);
+
+  const managedLocations = useMemo(() => {
+    if (!user) return [];
+    if (isAdmin) return locations;
+    if (isManager) return locations.filter((location) => location.managerId === user.id);
+    return [];
+  }, [isAdmin, isManager, locations, user]);
+
+  const assignableLocations = useMemo(() => {
+    if (isAdmin) return locations;
+    return managedLocations;
+  }, [isAdmin, locations, managedLocations]);
 
   const visibleHistory = useMemo(() => {
     return loyalty?.history?.slice(0, 8) ?? [];
@@ -203,13 +233,18 @@ export default function AccountScreen() {
       if (!user) {
         setLoyalty(null);
         setPaymentMethods([]);
+        setLocations([]);
       }
 
       if (user) {
-        const [loyaltyResult, methodsResult] = await Promise.allSettled([
-          getMyLoyalty(),
-          getPaymentMethods(),
-        ]);
+        const requests = [getMyLoyalty(), getPaymentMethods()] as const;
+        const results = await Promise.allSettled(
+          hasWorkAccess ? [...requests, getLocations()] : requests,
+        );
+
+        const loyaltyResult = results[0];
+        const methodsResult = results[1];
+        const locationsResult = hasWorkAccess ? results[2] : null;
 
         if (loyaltyResult.status === 'fulfilled') {
           setLoyalty(loyaltyResult.value);
@@ -227,6 +262,14 @@ export default function AccountScreen() {
           setPaymentMethods([]);
           warnings.push('Saved payment methods are temporarily unavailable');
         }
+
+        if (locationsResult && locationsResult.status === 'fulfilled') {
+          setLocations(locationsResult.value);
+        } else if (hasWorkAccess) {
+          console.error('[Account] Location load failed:', locationsResult && 'reason' in locationsResult ? locationsResult.reason : null);
+          setLocations([]);
+          warnings.push('Location access could not be loaded');
+        }
       }
 
       if (warnings.length > 0) {
@@ -238,7 +281,7 @@ export default function AccountScreen() {
       setIsLoading(false);
       setRefreshing(false);
     }
-  }, [user]);
+  }, [hasWorkAccess, user]);
 
   useEffect(() => {
     if (authLoading || !isFocused) {
@@ -375,11 +418,95 @@ export default function AccountScreen() {
       setRedeemingRewardId(reward.id);
       setError(null);
       await redeemReward(reward.id);
-      await Promise.all([loadAccountData(true), checkAuth()]);
+      await loadAccountData(true);
+
+      // Refresh auth-derived user fields (like loyalty points) without
+      // flipping the global app loader or failing redemption UX.
+      void checkAuth(true).catch(() => {
+        // Best effort only; account data is already refreshed.
+      });
     } catch (e: any) {
       setError(e.message || 'Could not redeem reward.');
     } finally {
       setRedeemingRewardId(null);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedTeamLocationId && assignableLocations.some((location) => location.id === selectedTeamLocationId)) {
+      return;
+    }
+
+    setSelectedTeamLocationId(assignableLocations[0]?.id ?? null);
+  }, [assignableLocations, selectedTeamLocationId]);
+
+  useEffect(() => {
+    if (!isAdmin && teamRole !== 'Staff') {
+      setTeamRole('Staff');
+    }
+  }, [isAdmin, teamRole]);
+
+  const handleCreateTeamMember = async () => {
+    if (!user || (!isAdmin && !isManager)) {
+      return;
+    }
+
+    const trimmedUserName = teamMemberUserName.trim();
+    const trimmedDisplayName = teamMemberDisplayName.trim();
+    const trimmedEmail = teamMemberEmail.trim();
+    const trimmedPassword = teamMemberPassword.trim();
+    const roleToCreate = isAdmin ? teamRole : 'Staff';
+    const selectedLocation = assignableLocations.find((location) => location.id === selectedTeamLocationId);
+
+    if (!trimmedUserName || !trimmedPassword) {
+      setError('Enter a username and password for the work account.');
+      return;
+    }
+
+    if (!selectedLocation) {
+      setError(isManager
+        ? 'Your manager account must be assigned to a location before you can create staff.'
+        : 'Select a location first.');
+      return;
+    }
+
+    try {
+      setCreatingTeamMember(true);
+      setError(null);
+
+      const createdUser = await createUserAccount({
+        userName: trimmedUserName,
+        password: trimmedPassword,
+        displayName: trimmedDisplayName || undefined,
+        email: trimmedEmail || undefined,
+        roles: [roleToCreate],
+        locationId: roleToCreate === 'Staff' ? selectedLocation.id : undefined,
+      });
+
+      if (roleToCreate === 'Manager' && isAdmin) {
+        await updateLocationManager(selectedLocation, createdUser.id);
+      }
+
+      setTeamMemberUserName('');
+      setTeamMemberDisplayName('');
+      setTeamMemberEmail('');
+      setTeamMemberPassword('');
+      if (isAdmin) {
+        setTeamRole('Staff');
+      }
+
+      Alert.alert(
+        'Work account created',
+        roleToCreate === 'Manager'
+          ? `${trimmedUserName} is now the manager for ${selectedLocation.name}.`
+          : `${trimmedUserName} can now sign in as staff for ${selectedLocation.name}.`,
+      );
+
+      await loadAccountData(true);
+    } catch (e: any) {
+      setError(e.message || 'Could not create the work account.');
+    } finally {
+      setCreatingTeamMember(false);
     }
   };
 
@@ -391,6 +518,7 @@ export default function AccountScreen() {
       >
         <ThemedView style={CommonStyles.container}>
           <PageHeaderActions showLogout />
+
           <View style={styles.headerRow}>
             <View style={styles.titleRow}>
               <Image
@@ -452,6 +580,189 @@ export default function AccountScreen() {
                   <ThemedText style={CommonStyles.label}>Role:</ThemedText>
                   <ThemedText style={CommonStyles.value}>{user.roles.join(', ')}</ThemedText>
                 </View>
+              )}
+            </View>
+          )}
+
+          {user && hasWorkAccess && (
+            <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
+              <ThemedText style={CommonStyles.cardTitle}>Work Access</ThemedText>
+
+              <View style={[styles.workSummaryBox, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}>
+                <ThemedText style={[styles.workSummaryText, { color: colors.text }]}>
+                  {isAdmin
+                    ? 'Create manager and staff accounts for any location directly from mobile.'
+                    : isManager
+                      ? 'Create staff accounts for the locations you manage and use the Orders and Menu tabs for daily operations.'
+                      : 'Use the Orders tab to process the assigned location orders you are allowed to handle.'}
+                </ThemedText>
+
+                {!!user.locationId && (
+                  <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>
+                    Assigned location ID: {user.locationId}
+                  </ThemedText>
+                )}
+
+                {isManager && managedLocations.length > 0 && (
+                  <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>
+                    Managed locations: {managedLocations.map((location) => location.name).join(', ')}
+                  </ThemedText>
+                )}
+              </View>
+
+              {(isAdmin || isManager) && (
+                <>
+                  <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Create Team Account</ThemedText>
+
+                  {isAdmin && (
+                    <View style={styles.pillRow}>
+                      {(['Staff', 'Manager'] as const).map((role) => {
+                        const selected = teamRole === role;
+                        return (
+                          <TouchableOpacity
+                            key={role}
+                            style={[
+                              styles.pill,
+                              {
+                                borderColor: selected ? colors.primary : colors.border,
+                                backgroundColor: selected ? `${colors.primary}22` : 'transparent',
+                              },
+                            ]}
+                            onPress={() => setTeamRole(role)}
+                            activeOpacity={0.85}
+                          >
+                            <ThemedText style={[styles.pillText, { color: selected ? colors.primary : colors.text }]}>{role}</ThemedText>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
+                  )}
+
+                  <View style={styles.formStack}>
+                    <TextInput
+                      style={[
+                        CommonStyles.input,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.inputBackground,
+                          color: colors.text,
+                        },
+                      ]}
+                      value={teamMemberUserName}
+                      onChangeText={setTeamMemberUserName}
+                      placeholder="Username"
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                    />
+
+                    <TextInput
+                      style={[
+                        CommonStyles.input,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.inputBackground,
+                          color: colors.text,
+                        },
+                      ]}
+                      value={teamMemberDisplayName}
+                      onChangeText={setTeamMemberDisplayName}
+                      placeholder="Display name"
+                      placeholderTextColor={colors.textSecondary}
+                    />
+
+                    <TextInput
+                      style={[
+                        CommonStyles.input,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.inputBackground,
+                          color: colors.text,
+                        },
+                      ]}
+                      value={teamMemberEmail}
+                      onChangeText={setTeamMemberEmail}
+                      placeholder="Email (optional)"
+                      placeholderTextColor={colors.textSecondary}
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                    />
+
+                    <TextInput
+                      style={[
+                        CommonStyles.input,
+                        {
+                          borderColor: colors.border,
+                          backgroundColor: colors.inputBackground,
+                          color: colors.text,
+                        },
+                      ]}
+                      value={teamMemberPassword}
+                      onChangeText={setTeamMemberPassword}
+                      placeholder="Temporary password"
+                      placeholderTextColor={colors.textSecondary}
+                      secureTextEntry
+                    />
+
+                    <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>
+                      {isAdmin && teamRole === 'Manager'
+                        ? 'Select the location that this new manager should control.'
+                        : 'Select the location this staff member should work at.'}
+                    </ThemedText>
+
+                    {assignableLocations.length === 0 ? (
+                      <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
+                        {isManager
+                          ? 'No managed locations are assigned to your account yet.'
+                          : 'No locations are available right now.'}
+                      </ThemedText>
+                    ) : (
+                      <View style={styles.pillRow}>
+                        {assignableLocations.map((location) => {
+                          const selected = selectedTeamLocationId === location.id;
+                          return (
+                            <TouchableOpacity
+                              key={location.id}
+                              style={[
+                                styles.pill,
+                                {
+                                  borderColor: selected ? colors.primary : colors.border,
+                                  backgroundColor: selected ? `${colors.primary}22` : 'transparent',
+                                },
+                              ]}
+                              onPress={() => setSelectedTeamLocationId(location.id)}
+                              activeOpacity={0.85}
+                            >
+                              <ThemedText style={[styles.pillText, { color: selected ? colors.primary : colors.text }]}>
+                                {location.name}
+                              </ThemedText>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
+                    )}
+
+                    <TouchableOpacity
+                      style={[
+                        styles.addButton,
+                        {
+                          backgroundColor: colors.primary,
+                          opacity: creatingTeamMember ? 0.7 : 1,
+                        },
+                      ]}
+                      onPress={handleCreateTeamMember}
+                      disabled={creatingTeamMember}
+                      activeOpacity={0.85}
+                    >
+                      <ThemedText style={styles.addButtonText}>
+                        {creatingTeamMember
+                          ? 'Creating...'
+                          : isAdmin && teamRole === 'Manager'
+                            ? 'Create Manager'
+                            : 'Create Staff Account'}
+                      </ThemedText>
+                    </TouchableOpacity>
+                  </View>
+                </>
               )}
             </View>
           )}
@@ -800,6 +1111,38 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     opacity: 0.8,
     fontFamily: 'Corben_400Regular',
+  },
+  workSummaryBox: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  workSummaryText: {
+    fontFamily: 'Corben_400Regular',
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  pillRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 8,
+  },
+  pill: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  pillText: {
+    fontFamily: 'Corben_700Bold',
+    fontSize: 12,
+  },
+  helperText: {
+    fontFamily: 'Corben_400Regular',
+    fontSize: 12,
+    lineHeight: 18,
   },
   loadingText: {
     marginTop: 10,

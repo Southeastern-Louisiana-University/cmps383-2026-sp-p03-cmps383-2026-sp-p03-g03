@@ -1,14 +1,42 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import React from "react";
+import { ActivityIndicator, View } from "react-native";
 
 import { HapticTab } from "@/components/haptic-tab";
+import { ThemedText } from "@/components/themed-text";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
+import { useAuth } from "@/hooks/useAuth";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const { user, isLoading } = useAuth();
+  const hasWorkPortal = !!user?.roles?.some((role) =>
+    ["admin", "manager", "staff"].includes(role.toLowerCase()),
+  );
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: isDark ? "#151718" : "#ffffff",
+          gap: 12,
+        }}
+      >
+        <ActivityIndicator size="large" color={Colors.brandGreen} />
+        <ThemedText>Loading your portal...</ThemedText>
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <Redirect href="/login" />;
+  }
 
   return (
     <Tabs
@@ -27,7 +55,8 @@ export default function TabLayout() {
         },
         tabBarLabelStyle: {
           fontFamily: "Corben_700Bold",
-          fontSize: 8,
+          fontSize: 9,
+          lineHeight: 14,
           marginBottom: 2,
         },
         tabBarItemStyle: {
@@ -35,6 +64,19 @@ export default function TabLayout() {
         },
       }}
     >
+      {/*
+        // TODO: Re-enable the Portal tab after demo/merge freeze is over
+        <Tabs.Screen
+          name="portal"
+          options={{
+            href: hasWorkPortal ? undefined : null,
+            title: "Portal",
+            tabBarIcon: ({ color }) => (
+              <IconSymbol size={22} name="person.2.fill" color={color} />
+            ),
+          }}
+        />
+      */}
       <Tabs.Screen
         name="index"
         options={{

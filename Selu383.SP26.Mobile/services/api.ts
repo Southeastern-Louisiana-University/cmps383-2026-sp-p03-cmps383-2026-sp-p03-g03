@@ -1,14 +1,22 @@
-const DEFAULT_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
+const AZURE_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
+const LOCAL_API_BASE_URL = "https://localhost:7116";
 const TIMEOUT = 30000;
 
 const getApiBaseUrl = (): string => {
   const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
+  const envTarget = process.env.EXPO_PUBLIC_API_TARGET?.trim().toLowerCase();
+  const azureEnvUrl = process.env.EXPO_PUBLIC_AZURE_API_BASE_URL?.trim();
+  const localEnvUrl = process.env.EXPO_PUBLIC_LOCAL_API_BASE_URL?.trim();
 
   if (envUrl) {
     return envUrl.replace(/\/$/, "");
   }
 
-  return DEFAULT_API_BASE_URL;
+  if (envTarget === "local") {
+    return (localEnvUrl || LOCAL_API_BASE_URL).replace(/\/$/, "");
+  }
+
+  return (azureEnvUrl || AZURE_API_BASE_URL).replace(/\/$/, "");
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -39,6 +47,7 @@ export interface MenuItemDto {
 export interface MenuCategoryDto {
   id: number;
   name: string;
+  locationIds?: number[];
   isSeasonal: boolean;
   isActive: boolean;
 }
@@ -83,9 +92,11 @@ export interface LocationDto {
   zip?: string;
   openingTime?: string;
   closingTime?: string;
+  layoutJson?: string;
   isActive: boolean;
   tableCount?: number;
   managerId?: number;
+  managerDisplayName?: string;
   managerName?: string;
 }
 
@@ -102,6 +113,28 @@ export interface CreateOrderDto {
   pickupName?: string;
   scheduledPickupTime?: string;
   items: CreateOrderItemDto[];
+}
+
+export interface RegisterUserDto {
+  userName: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  email?: string;
+  phoneNumber?: string;
+}
+
+export interface CreateUserAccountDto {
+  userName: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  email?: string;
+  phoneNumber?: string;
+  roles: string[];
+  locationId?: number;
 }
 
 export interface PaymentMethodDto {
@@ -168,9 +201,16 @@ export interface ReservationDto {
   userId: number;
   tableId: number;
   reservedFor: string;
+  createdAt?: string;
   partySize: number;
   status: string;
   specialRequests?: string;
+}
+
+export interface ReservationAvailabilityDto {
+  locationId: number;
+  reservedFor: string;
+  takenTableIds: number[];
 }
 
 export interface CreateReservationDto {
@@ -178,6 +218,7 @@ export interface CreateReservationDto {
   tableId: number;
   reservedFor: string;
   partySize: number;
+  coverChargeOrderId?: number;
   specialRequests?: string;
 }
 
@@ -374,7 +415,7 @@ const apiCall = async (
 
     if (error?.message === "Network request failed") {
       throw new Error(
-        `Network request failed. Verify API host is reachable: ${API_BASE_URL}`,
+        `Network request failed. Verify API host is reachable: ${API_BASE_URL}. If testing on a physical phone, localhost will not point to your PC; use your machine LAN IP or a dev tunnel URL.`,
       );
     }
 
@@ -389,6 +430,32 @@ export const login = async (username: string, password: string): Promise<any> =>
   });
 };
 
+export const register = async (dto: RegisterUserDto): Promise<any> => {
+  return apiCall("/api/authentication/register", "POST", {
+    UserName: dto.userName,
+    Password: dto.password,
+    FirstName: dto.firstName,
+    LastName: dto.lastName,
+    DisplayName: dto.displayName,
+    Email: dto.email,
+    PhoneNumber: dto.phoneNumber,
+  });
+};
+
+export const createUserAccount = async (dto: CreateUserAccountDto): Promise<any> => {
+  return apiCall("/api/users", "POST", {
+    UserName: dto.userName,
+    Password: dto.password,
+    FirstName: dto.firstName,
+    LastName: dto.lastName,
+    DisplayName: dto.displayName,
+    Email: dto.email,
+    PhoneNumber: dto.phoneNumber,
+    Roles: dto.roles,
+    LocationId: dto.locationId,
+  });
+};
+
 export const getCurrentUser = async (): Promise<any> => {
   return apiCall("/api/authentication/me", "GET");
 };
@@ -398,15 +465,37 @@ export const logout = async (): Promise<void> => {
 };
 
 export const getMenuItems = async (): Promise<MenuItemDto[]> => {
-  return apiCall("/api/menu/items", "GET");
+  return apiCall(`/api/menu/items?ts=${Date.now()}`, "GET");
 };
 
 export const getMenuCategories = async (): Promise<MenuCategoryDto[]> => {
-  return apiCall("/api/menu/categories", "GET");
+  return apiCall(`/api/menu/categories?ts=${Date.now()}`, "GET");
+};
+
+export const disableMenuItem = async (
+  id: number,
+  reason: string,
+): Promise<MenuItemDto> => {
+  return apiCall(`/api/menu/items/${id}/disable`, "POST", { reason });
+};
+
+export const enableMenuItem = async (id: number): Promise<MenuItemDto> => {
+  return apiCall(`/api/menu/items/${id}/enable`, "POST");
 };
 
 export const getMyOrders = async (): Promise<OrderDto[]> => {
   return apiCall("/api/orders/my-orders", "GET");
+};
+
+export const getAllOrders = async (): Promise<OrderDto[]> => {
+  return apiCall("/api/orders", "GET");
+};
+
+export const updateOrderStatus = async (
+  orderId: number,
+  status: string,
+): Promise<OrderDto> => {
+  return apiCall(`/api/orders/${orderId}/status`, "PUT", { status });
 };
 
 export const getOrderById = async (orderId: number): Promise<OrderDto> => {
@@ -425,6 +514,27 @@ export const archiveReceipt = async (
 
 export const getLocations = async (): Promise<LocationDto[]> => {
   return apiCall("/api/locations", "GET");
+};
+
+export const updateLocationManager = async (
+  location: LocationDto,
+  managerId?: number | null,
+): Promise<LocationDto> => {
+  return apiCall(`/api/locations/${location.id}`, "PUT", {
+    Name: location.name,
+    Type: location.type,
+    Phone: location.phone,
+    Address: location.address,
+    City: location.city,
+    State: location.state,
+    Zip: location.zip,
+    OpeningTime: location.openingTime,
+    ClosingTime: location.closingTime,
+    LayoutJson: location.layoutJson,
+    IsActive: location.isActive,
+    TableCount: location.tableCount ?? 1,
+    ManagerId: managerId ?? null,
+  });
 };
 
 export const createOrder = async (orderData: CreateOrderDto): Promise<OrderDto> => {
@@ -446,8 +556,11 @@ export const syncStripePaymentStatus = async (
 
 export const payOrderWithSavedMethod = async (
   orderId: number,
+  paymentMethodId?: number,
 ): Promise<PayWithSavedMethodResultDto> => {
-  return apiCall(`/api/payments/orders/${orderId}/pay-with-saved-method`, "POST", {});
+  return apiCall(`/api/payments/orders/${orderId}/pay-with-saved-method`, "POST", {
+    paymentMethodId,
+  });
 };
 
 export const getPaymentMethods = async (): Promise<PaymentMethodDto[]> => {
@@ -497,6 +610,14 @@ export const removeOrderPayment = async (
   } satisfies RemovePaymentDto);
 };
 
+export const refundOrderPayment = async (
+  orderId: number,
+  paymentId: number,
+  reason: string,
+): Promise<void> => {
+  await removeOrderPayment(orderId, paymentId, reason);
+};
+
 export const getReservations = async (): Promise<ReservationDto[]> => {
   return apiCall("/api/reservations/my", "GET");
 };
@@ -505,6 +626,25 @@ export const createReservation = async (
   reservationData: CreateReservationDto,
 ): Promise<ReservationDto> => {
   return apiCall("/api/reservations", "POST", reservationData);
+};
+
+export const getLocationReservations = async (locationId: number): Promise<ReservationDto[]> => {
+  const response = await apiCall(`/api/reservations/location/${locationId}`, "GET");
+  return Array.isArray(response) ? response : [];
+};
+
+export const getReservationAvailability = async (
+  locationId: number,
+  reservedFor: string,
+): Promise<ReservationAvailabilityDto> => {
+  return apiCall(`/api/reservations/availability?locationId=${locationId}&reservedFor=${encodeURIComponent(reservedFor)}`, "GET");
+};
+
+export const updateReservation = async (
+  reservationId: number,
+  reservationData: CreateReservationDto & { status: string },
+): Promise<ReservationDto> => {
+  return apiCall(`/api/reservations/${reservationId}`, "PUT", reservationData);
 };
 
 export const cancelReservation = async (reservationId: number): Promise<any> => {
@@ -534,11 +674,17 @@ export const redeemReward = async (
 
 export default {
   login,
+  register,
+  createUserAccount,
   getCurrentUser,
   logout,
   getMenuItems,
   getMenuCategories,
+  disableMenuItem,
+  enableMenuItem,
   getMyOrders,
+  getAllOrders,
+  updateOrderStatus,
   getOrderById,
   getReceiptPdfUrl,
   archiveReceipt,
@@ -553,8 +699,12 @@ export default {
   deletePaymentMethod,
   getOrderPayments,
   removeOrderPayment,
+  refundOrderPayment,
   getReservations,
   createReservation,
+  getLocationReservations,
+  getReservationAvailability,
+  updateReservation,
   cancelReservation,
   getTables,
   getMyLoyalty,
