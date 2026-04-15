@@ -3,30 +3,58 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Payment Complete</title>
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <title>Payment Successful</title>
+  <script>
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const sessionId = params.get("session_id");
+      if (sessionId) {
+        window.__stripeSessionId = sessionId;
+        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    })();
+  </script>
   <style>
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 0; background: #f4fbf2; color: #1f2937; }
     .wrap { max-width: 560px; margin: 48px auto; padding: 0 16px; }
     .card { background: #fff; border: 1px solid #d8e8d2; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.06); }
+    .logo { display: block; width: 140px; height: auto; margin: 0 auto 14px; }
     h1 { margin: 0 0 10px; color: #14532d; font-size: 28px; }
     p { margin: 8px 0; line-height: 1.45; }
-    .meta { color: #475569; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .actions { margin-top: 16px; display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { display: inline-block; text-decoration: none; border-radius: 10px; padding: 10px 14px; border: 1px solid #14532d; background: #14532d; color: #fff; font-weight: 600; }
+    .btn.secondary { background: transparent; color: #14532d; }
+    .hint { margin-top: 12px; color: #475569; font-size: 14px; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <h1>Payment Complete</h1>
-      <p>Your checkout finished successfully. You can return to the app now.</p>
-      <p id="session" class="meta"></p>
+      <img class="logo" src="/checkout/logo.png" alt="SELU 383" />
+      <h1>Payment Successful</h1>
+      <p>Your payment was successful and your order is being prepared.</p>
+      <div class="actions">
+        <a id="openApp" class="btn" href="selu383sp26mobile://">Return to App</a>
+        <a class="btn secondary" href="https://selu383-sp26-p03-g03.azurewebsites.net/checkout/success.html">Stay on this page</a>
+      </div>
+      <p class="hint">If the app does not open, switch back to the app manually.</p>
     </div>
   </div>
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get("session_id");
+    const sessionId = window.__stripeSessionId;
+    const appLink = document.getElementById("openApp");
     if (sessionId) {
-      document.getElementById("session").textContent = `Session: ${sessionId}`;
+      appLink.setAttribute("href", `selu383sp26mobile://?session_id=${encodeURIComponent(sessionId)}`);
     }
+
+    // Attempt auto-return after a short delay.
+    setTimeout(() => {
+      window.location.href = appLink.getAttribute("href");
+    }, 1200);
   </script>
 </body>
 </html>
