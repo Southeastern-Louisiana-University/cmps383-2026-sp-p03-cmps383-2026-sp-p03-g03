@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 
-const useApiReadOrDelete = <inputDto = unknown>(method: string, controller: string) => {
+const useApiReadOrDelete = <inputDto = unknown,>(
+  method: string,
+  controller: string,
+) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<inputDto | null>(null);
@@ -34,13 +37,19 @@ const useApiReadOrDelete = <inputDto = unknown>(method: string, controller: stri
         }
 
         setData(payload as inputDto);
-
       } catch (requestError) {
-        if (requestError instanceof Error && requestError.name === "AbortError") {
+        if (
+          requestError instanceof Error &&
+          requestError.name === "AbortError"
+        ) {
           return;
         }
 
-        setError(requestError instanceof Error ? requestError.message : "Unknown request error");
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unknown request error",
+        );
       } finally {
         setLoading(false);
       }

@@ -37,11 +37,36 @@ public class ReservationsController : ControllerBase
 
         var reservations = await _context.Reservations
             .Where(x => x.UserId == userId.Value)
-            .OrderByDescending(x => x.ReservedFor)
+            .OrderByDescending(x => x.CreatedAt)
+            .ThenByDescending(x => x.ReservedFor)
             .Select(MapReservationDto())
             .ToListAsync();
 
         return Ok(reservations);
+    }
+
+    [HttpGet("availability")]
+    [Authorize]
+    public async Task<ActionResult<ReservationAvailabilityDto>> GetAvailability([FromQuery] int locationId, [FromQuery] DateTime reservedFor)
+    {
+        var locationExists = await _context.Locations.AnyAsync(x => x.Id == locationId && x.IsActive);
+        if (!locationExists)
+            return NotFound("Invalid location.");
+
+        var takenTableIds = await _context.Reservations
+            .Where(x => x.LocationId == locationId
+                && x.ReservedFor == reservedFor
+                && x.Status != ReservationStatuses.Cancelled)
+            .Select(x => x.TableId)
+            .Distinct()
+            .ToListAsync();
+
+        return Ok(new ReservationAvailabilityDto
+        {
+            LocationId = locationId,
+            ReservedFor = reservedFor,
+            TakenTableIds = takenTableIds
+        });
     }
 
     [HttpGet("{id:int}")]
@@ -89,6 +114,18 @@ public class ReservationsController : ControllerBase
         if (validationMessage != null)
             return BadRequest(validationMessage);
 
+        var reservationDayStartUtc = dto.ReservedFor.Date;
+        var reservationDayEndUtc = reservationDayStartUtc.AddDays(1);
+
+        var hasQualifyingPurchase = await _context.Orders.AnyAsync(x =>
+            x.CreatedByUserId == userId.Value &&
+            x.LocationId == dto.LocationId &&
+            x.OrderType != OrderTypes.CoverCharge &&
+            x.PaymentStatus == PaymentStatuses.Paid &&
+            x.Subtotal >= 10.00m &&
+            x.OrderTime >= reservationDayStartUtc &&
+            x.OrderTime < reservationDayEndUtc);
+
         var hasPaidCoverCharge = await _context.Orders.AnyAsync(x =>
             x.CreatedByUserId == userId.Value &&
             x.LocationId == dto.LocationId &&
@@ -98,7 +135,7 @@ public class ReservationsController : ControllerBase
             x.Note.Contains($"table {dto.TableId}") &&
             x.Note.Contains($"{dto.ReservedFor:O}"));
 
-        if (!hasPaidCoverCharge)
+        if (!hasQualifyingPurchase && !hasPaidCoverCharge)
         {
             var coverChargeOrder = await _context.Orders
                 .Where(x =>
@@ -145,7 +182,7 @@ public class ReservationsController : ControllerBase
 
             return StatusCode(StatusCodes.Status402PaymentRequired, new
             {
-                message = "To reserve this table and time, pay the $5.00 cover charge.",
+                message = "To reserve this table and time, pay the $5.00 non-refundable cover charge. It is waived if you already have a paid food or drink order over $10 at this location today.",
                 coverChargeAmount = ReservationCoverChargeAmount,
                 coverChargeOrderId = coverChargeOrder.Id,
                 checkoutUrl
@@ -173,6 +210,7 @@ public class ReservationsController : ControllerBase
             UserId = reservation.UserId,
             TableId = reservation.TableId,
             ReservedFor = reservation.ReservedFor,
+            CreatedAt = reservation.CreatedAt,
             PartySize = reservation.PartySize,
             Status = reservation.Status,
             SpecialRequests = reservation.SpecialRequests
@@ -180,7 +218,7 @@ public class ReservationsController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
-    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
     public async Task<ActionResult<ReservationDto>> Update(int id, [FromBody] UpdateReservationDto dto)
     {
         var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
@@ -207,6 +245,7 @@ public class ReservationsController : ControllerBase
             UserId = reservation.UserId,
             TableId = reservation.TableId,
             ReservedFor = reservation.ReservedFor,
+            CreatedAt = reservation.CreatedAt,
             PartySize = reservation.PartySize,
             Status = reservation.Status,
             SpecialRequests = reservation.SpecialRequests
@@ -225,7 +264,7 @@ public class ReservationsController : ControllerBase
         if (!userId.HasValue)
             return Unauthorized();
 
-        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager);
+        var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
         if (!isPrivileged && reservation.UserId != userId.Value)
             return Forbid();
 
@@ -294,6 +333,7 @@ public class ReservationsController : ControllerBase
             UserId = x.UserId,
             TableId = x.TableId,
             ReservedFor = x.ReservedFor,
+            CreatedAt = x.CreatedAt,
             PartySize = x.PartySize,
             Status = x.Status,
             SpecialRequests = x.SpecialRequests

@@ -47,6 +47,31 @@ public class OrdersController : ControllerBase
         return Ok(orders);
     }
 
+    [HttpGet]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
+    public async Task<ActionResult<List<OrderDto>>> GetAllOrders()
+    {
+        var isAdmin = User.IsInRole(RoleNames.Admin);
+        var allowedLocationIds = isAdmin ? new List<int>() : await GetAccessibleLocationIdsAsync();
+
+        var query = _context.Orders
+            .Include(o => o.OrderItems)
+            .Include(o => o.Receipt)
+            .OrderByDescending(o => o.OrderTime)
+            .AsQueryable();
+
+        if (!isAdmin)
+        {
+            query = query.Where(o => allowedLocationIds.Contains(o.LocationId));
+        }
+
+        var orders = await query
+            .Select(MapOrderDto())
+            .ToListAsync();
+
+        return Ok(orders);
+    }
+
     [HttpGet("{id:int}")]
     [Authorize]
     public async Task<ActionResult<OrderDto>> GetOrder(int id)
@@ -65,6 +90,9 @@ public class OrdersController : ControllerBase
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
 
         if (!isPrivileged && currentUserId != order.CreatedByUserId)
+            return Forbid();
+
+        if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
             return Forbid();
 
         return Ok(order);
@@ -194,6 +222,57 @@ public class OrdersController : ControllerBase
         return CreatedAtAction(nameof(GetOrder), new { id = order.Id }, result);
     }
 
+    [HttpPut("{id:int}/status")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
+    public async Task<ActionResult<OrderDto>> UpdateStatus(int id, [FromBody] UpdateOrderStatusDto dto)
+    {
+        var order = await _context.Orders
+            .Include(o => o.OrderItems)
+            .Include(o => o.Receipt)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order == null)
+            return NotFound();
+
+        if (!TryNormalizeOrderStatus(dto.Status, out var nextStatus))
+            return BadRequest("Invalid order status.");
+
+        if (!await CanAccessLocationAsync(order.LocationId))
+            return Forbid();
+
+        order.Status = nextStatus;
+        await _context.SaveChangesAsync();
+
+        return Ok(new OrderDto
+        {
+            Id = order.Id,
+            LocationId = order.LocationId,
+            CreatedByUserId = order.CreatedByUserId,
+            OrderCode = order.OrderCode,
+            OrderType = order.OrderType,
+            Status = order.Status,
+            PaymentStatus = order.PaymentStatus,
+            OrderTime = order.OrderTime,
+            ScheduledPickupTime = order.ScheduledPickupTime,
+            Subtotal = order.Subtotal,
+            Tax = order.Tax,
+            Total = order.Total,
+            Note = order.Note,
+            PickupName = order.PickupName,
+            Items = order.OrderItems.Select(oi => new OrderItemDto
+            {
+                Id = oi.Id,
+                MenuItemId = oi.MenuItemId,
+                MenuItemName = oi.MenuItemName,
+                Quantity = oi.Quantity,
+                UnitPrice = oi.UnitPrice,
+                LineTotal = oi.LineTotal,
+                ItemNote = oi.ItemNote
+            }).ToList(),
+            ReceiptUrl = order.Receipt != null ? order.Receipt.ReceiptUrl : null
+        });
+    }
+
     [HttpGet("{id:int}/receiptpdf")]
     [HttpGet("{id:int}/receipt-pdf")]
     [Authorize]
@@ -209,6 +288,9 @@ public class OrdersController : ControllerBase
         var currentUserId = User.GetCurrentUserId();
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
         if (!isPrivileged && currentUserId != order.CreatedByUserId)
+            return Forbid();
+
+        if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
             return Forbid();
 
         var pdfBytes = _receiptPdfService.GenerateReceipt(order);
@@ -231,6 +313,9 @@ public class OrdersController : ControllerBase
         var currentUserId = User.GetCurrentUserId();
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
         if (!isPrivileged && currentUserId != order.CreatedByUserId)
+            return Forbid();
+
+        if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
             return Forbid();
 
         var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
@@ -259,6 +344,67 @@ public class OrdersController : ControllerBase
             orderId = order.Id,
             receiptUrl = blobUrl
         });
+    }
+
+    private async Task<List<int>> GetAccessibleLocationIdsAsync()
+    {
+        if (User.IsInRole(RoleNames.Admin))
+        {
+            return await _context.Locations.Select(x => x.Id).ToListAsync();
+        }
+
+        var currentUserId = User.GetCurrentUserId();
+        if (!currentUserId.HasValue)
+        {
+            return new List<int>();
+        }
+
+        if (User.IsInRole(RoleNames.Manager))
+        {
+            return await _context.Locations
+                .Where(x => x.ManagerId == currentUserId.Value)
+                .Select(x => x.Id)
+                .ToListAsync();
+        }
+
+        if (User.IsInRole(RoleNames.Staff))
+        {
+            var staffLocationId = await _context.Users
+                .Where(x => x.Id == currentUserId.Value)
+                .Select(x => x.LocationId)
+                .FirstOrDefaultAsync();
+
+            return staffLocationId > 0 ? new List<int> { staffLocationId } : new List<int>();
+        }
+
+        return new List<int>();
+    }
+
+    private async Task<bool> CanAccessLocationAsync(int locationId)
+    {
+        if (User.IsInRole(RoleNames.Admin))
+        {
+            return true;
+        }
+
+        var allowedLocationIds = await GetAccessibleLocationIdsAsync();
+        return allowedLocationIds.Contains(locationId);
+    }
+
+    private static bool TryNormalizeOrderStatus(string? rawStatus, out string normalized)
+    {
+        normalized = (rawStatus ?? string.Empty).Trim().ToLowerInvariant() switch
+        {
+            "placed" => OrderStatuses.Placed,
+            "confirmed" => OrderStatuses.Confirmed,
+            "preparing" => OrderStatuses.Preparing,
+            "ready" => OrderStatuses.Ready,
+            "completed" => OrderStatuses.Completed,
+            "cancelled" => OrderStatuses.Cancelled,
+            _ => string.Empty,
+        };
+
+        return !string.IsNullOrWhiteSpace(normalized);
     }
 
     private static Expression<Func<Order, OrderDto>> MapOrderDto()
