@@ -220,7 +220,24 @@
   font-family: var(--font-body);
   font-size: 13px;
   color: var(--espresso);
-  margin: 0;
+  margin: 0 0 6px;
+}
+
+.auth-demo-table {
+  width: 100%;
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--espresso);
+  border-collapse: collapse;
+}
+
+.auth-demo-table td {
+  padding: 2px 0;
+}
+
+.auth-demo-table td:first-child {
+  color: var(--mocha);
+  width: 70px;
 }
 
 .auth-submit {

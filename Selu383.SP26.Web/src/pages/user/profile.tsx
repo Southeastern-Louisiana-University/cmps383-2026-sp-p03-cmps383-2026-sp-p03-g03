@@ -7,19 +7,10 @@ import {
   useAppContext,
   requestApi,
 } from "../../api/context-providers/app-context";
+import { useMyOrders } from "../../api/orders";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../navigation/routes";
 import "./profile.css";
-
-const ORDER_HISTORY = [
-  {
-    id: "00847",
-    date: "Mar 21, 2026",
-    items: ["Iced Latte", "Downtowner"],
-    total: 16.25,
-    status: "Completed",
-  },
-];
 
 const FAVORITE_ITEMS = [
   {
@@ -67,8 +58,15 @@ function detectBrand(cardNumber: string): string {
 }
 
 export function ProfilePage() {
-  const { user, setUser, logout, setSel, setQty, setNote } = useAppContext();
+  const { user, setUser, logout, setSel, setQty, setNote, isLoggedIn } =
+    useAppContext();
   const navigate = useNavigate();
+  const {
+    orders: myOrders,
+    loading: ordersLoading,
+    unauthorized: ordersUnauth,
+    error: ordersError,
+  } = useMyOrders();
   const [activeTab, setActiveTab] = useState<ProfileTab>("overview");
   const [editing, setEditing] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -126,7 +124,6 @@ export function ProfilePage() {
       );
       if (response.ok) fetchMethods();
     } catch {
-      /* network error — ignore */
     }
   };
 
@@ -475,33 +472,52 @@ export function ProfilePage() {
               Your recent orders at Caffeinated Lions.
             </p>
           </div>
-          <div className="profile-order-list">
-            {ORDER_HISTORY.map((order) => (
-              <div
-                key={order.id}
-                className="card-base card-hover profile-order-card"
-              >
-                <div className="profile-order-icon-wrap">
-                  <Ic name="menu" size={22} color={Tokens.green} />
-                </div>
-                <div className="profile-flex-1">
-                  <div className="profile-order-head">
-                    <h4 className="profile-order-id">{order.id}</h4>
-                    <span className="profile-order-date">{order.date}</span>
+          {!isLoggedIn || ordersUnauth ? (
+            <p className="profile-block-copy">
+              Sign in to view your order history.
+            </p>
+          ) : ordersLoading ? (
+            <p className="profile-block-copy">Loading orders...</p>
+          ) : ordersError ? (
+            <p className="profile-block-copy">{ordersError}</p>
+          ) : myOrders.length === 0 ? (
+            <p className="profile-block-copy">
+              No orders yet — start with the menu.
+            </p>
+          ) : (
+            <div className="profile-order-list">
+              {myOrders.slice(0, 5).map((order) => (
+                <div
+                  key={order.id}
+                  className="card-base card-hover profile-order-card"
+                >
+                  <div className="profile-order-icon-wrap">
+                    <Ic name="menu" size={22} color={Tokens.green} />
                   </div>
-                  <p className="profile-order-items">
-                    {order.items.join(", ")}
-                  </p>
+                  <div className="profile-flex-1">
+                    <div className="profile-order-head">
+                      <h4 className="profile-order-id">{order.orderCode}</h4>
+                      <span className="profile-order-date">
+                        {new Date(order.orderTime).toLocaleDateString(
+                          "en-US",
+                          { month: "short", day: "numeric", year: "numeric" },
+                        )}
+                      </span>
+                    </div>
+                    <p className="profile-order-items">
+                      {order.items.map((i) => i.name).join(", ")}
+                    </p>
+                  </div>
+                  <div className="profile-order-right">
+                    <p className="profile-order-total">
+                      ${order.total.toFixed(2)}
+                    </p>
+                    <span className="profile-order-status">{order.status}</span>
+                  </div>
                 </div>
-                <div className="profile-order-right">
-                  <p className="profile-order-total">
-                    ${order.total.toFixed(2)}
-                  </p>
-                  <span className="profile-order-status">{order.status}</span>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

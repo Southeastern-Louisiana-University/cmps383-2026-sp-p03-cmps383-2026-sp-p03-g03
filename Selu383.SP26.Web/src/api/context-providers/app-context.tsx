@@ -255,23 +255,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      const { response, payload } = await requestApi("/api/users", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userName: trimEmail,
-          password,
-          displayName: trimName,
-          email: trimEmail,
-          roles: ["Customer"],
-        }),
-      });
+      const { response, payload } = await requestApi(
+        "/api/authentication/register",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userName: trimEmail,
+            password,
+            displayName: trimName,
+            email: trimEmail,
+          }),
+        },
+      );
 
       if (!response.ok) {
         return { ok: false, error: parseApiError(response.status, payload) };
       }
 
-      return login(trimEmail, password);
+      setSignedInState(payload as ApiUserDto);
+      return { ok: true, roles: (payload as ApiUserDto).roles };
     } catch {
       return { ok: false, error: "Unable to reach the server right now." };
     }

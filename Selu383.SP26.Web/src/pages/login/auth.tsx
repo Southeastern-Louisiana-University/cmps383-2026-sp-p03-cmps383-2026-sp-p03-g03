@@ -183,9 +183,28 @@ export function AuthPage() {
               <div className="auth-demo-box">
                 <p className="auth-demo-title">Demo login</p>
                 <p className="auth-demo-copy">
-                  Username: <strong>bob</strong> &nbsp;·&nbsp; Password:{" "}
-                  <strong>password123</strong>
+                  All use password: <strong>Password123!</strong>
                 </p>
+                <table className="auth-demo-table">
+                  <tbody>
+                    <tr>
+                      <td>Customer</td>
+                      <td><strong>bob</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Staff</td>
+                      <td><strong>staff1</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Manager</td>
+                      <td><strong>terri</strong></td>
+                    </tr>
+                    <tr>
+                      <td>Admin</td>
+                      <td><strong>Elora</strong></td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             )}
 

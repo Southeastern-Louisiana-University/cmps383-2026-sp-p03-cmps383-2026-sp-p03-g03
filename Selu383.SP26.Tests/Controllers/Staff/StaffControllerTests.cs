@@ -143,6 +143,129 @@ public class StaffControllerTests
         response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
             "a staff member should not be able to access the daily summary (manager+ only)");
     }
+
+    [TestMethod]
+    public async Task AdvanceOrder_AsStaff_Placed_Returns200WithConfirmedStatus()
+    {
+        // arrange — create an order as bob
+        await webClient.AssertLoggedInAsBob();
+        var createResponse = await webClient.PostAsJsonAsync("/api/orders", new
+        {
+            locationId = 1,
+            orderType = "Pickup",
+            items = new[] { new { menuItemId = 1, quantity = 1 } }
+        });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "bob should be able to create an order");
+        var created = await createResponse.Content.ReadAsJsonAsync<StaffOrderDto>();
+        created.Should().NotBeNull();
+
+        // switch to staff1
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "staff1",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "staff1 should be able to log in");
+
+        // act
+        var advanceResponse = await webClient.PostAsync($"/api/staff/orders/{created!.Id}/advance", null);
+
+        // assert
+        advanceResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "staff should be able to advance a Placed order");
+        var advanced = await advanceResponse.Content.ReadAsJsonAsync<StaffOrderDto>();
+        advanced.Should().NotBeNull();
+        advanced!.Status.Should().Be("Confirmed",
+            "advancing a Placed order should set status to Confirmed");
+    }
+
+    [TestMethod]
+    public async Task CancelOrder_AsStaff_WithReason_Returns200()
+    {
+        // arrange — create an order as bob
+        await webClient.AssertLoggedInAsBob();
+        var createResponse = await webClient.PostAsJsonAsync("/api/orders", new
+        {
+            locationId = 1,
+            orderType = "Pickup",
+            items = new[] { new { menuItemId = 1, quantity = 1 } }
+        });
+        createResponse.StatusCode.Should().Be(HttpStatusCode.Created,
+            "bob should be able to create an order");
+        var created = await createResponse.Content.ReadAsJsonAsync<StaffOrderDto>();
+        created.Should().NotBeNull();
+
+        // switch to staff1
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "staff1",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "staff1 should be able to log in");
+
+        // act
+        var cancelResponse = await webClient.PostAsJsonAsync(
+            $"/api/staff/orders/{created!.Id}/cancel",
+            new { reason = "Test cancellation" });
+
+        // assert
+        cancelResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "staff should be able to cancel an order with a reason");
+        var cancelled = await cancelResponse.Content.ReadAsJsonAsync<StaffOrderDto>();
+        cancelled.Should().NotBeNull();
+        cancelled!.Status.Should().Be("Cancelled",
+            "cancelling an order should set status to Cancelled");
+    }
+
+    [TestMethod]
+    public async Task DisableMenuItem_AsStaff_Returns403()
+    {
+        // arrange — login as staff1
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "staff1",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "staff1 should be able to log in");
+
+        // act
+        var response = await webClient.PostAsJsonAsync(
+            "/api/staff/menu-items/1/disable",
+            new { reason = "Test" });
+
+        // assert
+        response.StatusCode.Should().Be(HttpStatusCode.Forbidden,
+            "a staff member should not be able to disable menu items (manager+ only)");
+    }
+
+    [TestMethod]
+    public async Task DisableMenuItem_AsManager_Returns200ThenEnable_Returns200()
+    {
+        // arrange — login as manager1
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "manager1",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "manager1 should be able to log in");
+
+        // act — disable
+        var disableResponse = await webClient.PostAsJsonAsync(
+            "/api/staff/menu-items/1/disable",
+            new { reason = "Out of stock" });
+
+        // assert disable
+        disableResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "a manager should be able to disable a menu item");
+
+        // act — re-enable
+        var enableResponse = await webClient.PostAsync("/api/staff/menu-items/1/enable", null);
+
+        // assert enable
+        enableResponse.StatusCode.Should().Be(HttpStatusCode.OK,
+            "a manager should be able to re-enable a menu item");
+    }
 }
 
 internal class StaffOrderDto
