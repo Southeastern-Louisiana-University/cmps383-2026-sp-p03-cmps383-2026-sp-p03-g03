@@ -9,6 +9,7 @@ export interface UserDto {
   displayName?: string;
   email?: string;
   phoneNumber?: string;
+  locationId: number;
   roles: string[];
   loyaltyPoints: number;
 }
@@ -18,8 +19,9 @@ export interface AuthContextType {
   isLoading: boolean;
   error: string | null;
   login: (username: string, password: string) => Promise<void>;
+  register: (username: string, password: string, displayName?: string) => Promise<void>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  checkAuth: (silent?: boolean) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -31,18 +33,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const checkAuth = async () => {
+  const checkAuth = async (silent = false) => {
     try {
-      setIsLoading(true);
+      if (!silent) {
+        setIsLoading(true);
+      }
       setError(null);
       const userData = await api.getCurrentUser();
       setUser(userData);
     } catch (err: any) {
-      setUser(null);
+      const status = typeof err?.status === 'number' ? err.status : undefined;
+      const isUnauthorized = status === 401 || status === 403;
+
+      // Silent refresh should not wipe a valid session because of transient
+      // network/server issues. Only clear user when auth is actually invalid.
+      if (!silent || isUnauthorized) {
+        setUser(null);
+      }
       setError(null);
       console.log("No active session");
     } finally {
-      setIsLoading(false);
+      if (!silent) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -51,11 +64,44 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(true);
       setError(null);
 
-      await api.login(username, password);
-      const userData = await api.getCurrentUser();
+      const userData = await api.login(username, password);
       setUser(userData);
+
+      void api.getCurrentUser()
+        .then((freshUser) => setUser(freshUser))
+        .catch(() => {
+          // best-effort refresh; login already returned user data
+        });
     } catch (err: any) {
       const errorMessage = err.message || "Login failed";
+      setError(errorMessage);
+      setUser(null);
+      throw err;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (username: string, password: string, displayName?: string) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const userData = await api.register({
+        userName: username,
+        password,
+        displayName,
+      });
+
+      setUser(userData);
+
+      void api.getCurrentUser()
+        .then((freshUser) => setUser(freshUser))
+        .catch(() => {
+          // best-effort refresh; register already returned user data
+        });
+    } catch (err: any) {
+      const errorMessage = err.message || "Registration failed";
       setError(errorMessage);
       setUser(null);
       throw err;
@@ -86,6 +132,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isLoading,
     error,
     login,
+    register,
     logout,
     checkAuth,
   };
