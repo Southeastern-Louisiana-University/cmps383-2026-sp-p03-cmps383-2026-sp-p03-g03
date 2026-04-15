@@ -23,7 +23,7 @@ export default function SplashScreen() {
         router.replace('/login');
       }
     }
-  }, [isLoading, user]);
+  }, [isLoading, router, user]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor }]}>

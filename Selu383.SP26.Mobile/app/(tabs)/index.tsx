@@ -72,6 +72,9 @@ export default function HomeScreen() {
   const colors = getColors(isDark);
   const { user } = useAuth();
   const router = useRouter();
+  const hasWorkPortal = !!user?.roles?.some((role) =>
+    ['admin', 'manager', 'staff'].includes(role.toLowerCase()),
+  );
   const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>(FALLBACK_FEATURED_ITEMS);
 
   useEffect(() => {
@@ -102,7 +105,20 @@ export default function HomeScreen() {
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView contentContainerStyle={CommonStyles.scrollContent}>
         <ThemedView style={CommonStyles.container}>
-          <PageHeaderActions showHome={false} showLogout />
+          <View style={styles.topBarRow}>
+            <TouchableOpacity
+              style={[styles.topMenuButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+              onPress={() => router.push('/(tabs)/menu')}
+              activeOpacity={0.85}
+            >
+              <ThemedText style={[styles.topMenuButtonText, { color: colors.text }]}>Menu</ThemedText>
+            </TouchableOpacity>
+
+            <View style={styles.topBarActions}>
+              <PageHeaderActions showHome={false} showLogout />
+            </View>
+          </View>
+
           <View style={styles.heroWrap}>
             <Image
               source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
@@ -156,6 +172,16 @@ export default function HomeScreen() {
             >
               <ThemedText style={[styles.quickPillText, { color: colors.text }]}>Account</ThemedText>
             </TouchableOpacity>
+
+            {hasWorkPortal && (
+              <TouchableOpacity
+                style={[styles.quickPill, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+                onPress={() => router.push('/portal')}
+                activeOpacity={0.85}
+              >
+                <ThemedText style={[styles.quickPillText, { color: colors.primary }]}>Portal</ThemedText>
+              </TouchableOpacity>
+            )}
           </View>
 
           <View style={[styles.summaryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}> 
@@ -186,7 +212,12 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={item.id}
                 style={[styles.featuredCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                onPress={() => router.push('/(tabs)/menu')}
+                onPress={() =>
+                  router.push({
+                    pathname: '/(tabs)/menu',
+                    params: { itemId: item.id },
+                  })
+                }
                 activeOpacity={0.85}
               >
                 <Image source={item.image} style={styles.featuredImage} resizeMode="cover" />
@@ -211,6 +242,28 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
+  topBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 10,
+  },
+  topBarActions: {
+    flex: 1,
+    minWidth: 0,
+  },
+  topMenuButton: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topMenuButtonText: {
+    fontFamily: 'Corben_700Bold',
+    fontSize: 13,
+  },
   heroWrap: {
     alignItems: 'center',
     marginBottom: 16,
