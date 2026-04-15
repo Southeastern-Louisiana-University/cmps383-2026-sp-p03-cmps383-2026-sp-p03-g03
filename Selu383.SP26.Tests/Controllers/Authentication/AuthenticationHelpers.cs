@@ -30,7 +30,7 @@ internal static class AuthenticationHelpers
         {
             var responseMessage = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
             {
-                UserName = "galkadi",
+                UserName = "Elora",
                 Password = DefaultUserPassword
             });
             return await AssertLoginFunctions(responseMessage);
@@ -123,7 +123,7 @@ internal static class AuthenticationHelpers
     {
         if (await webClient.LoginAsAdminAsync() == null)
         {
-            Assert.Fail("You are not ready for this test - logging as 'galkadi' (an admin) should work first");
+            Assert.Fail("You are not ready for this test - logging as 'Elora' (an admin) should work first");
         }
     }
 }
