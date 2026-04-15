@@ -72,7 +72,7 @@ interface Location {
   name: string;
 }
 
-export function StaffDashboard() {
+export function StaffDashboard({ embedded = false }: { embedded?: boolean } = {}) {
   const { user } = useAppContext();
   const [tab, setTab] = useState<Tab>("active");
   const [orders, setOrders] = useState<StaffOrder[]>([]);
@@ -182,13 +182,15 @@ export function StaffDashboard() {
 
   return (
     <div className="staff-page">
-      <div className="staff-header">
-        <p className="staff-kicker">{primaryRole} Dashboard</p>
-        <h1 className="staff-title">Staff Dashboard</h1>
-        <p className="staff-subtitle">
-          Signed in as {user.name} &middot; {primaryRole}
-        </p>
-      </div>
+      {!embedded && (
+        <div className="staff-header">
+          <p className="staff-kicker">{primaryRole} Dashboard</p>
+          <h1 className="staff-title">Staff Dashboard</h1>
+          <p className="staff-subtitle">
+            Signed in as {user.name} &middot; {primaryRole}
+          </p>
+        </div>
+      )}
 
       {isAdmin && locations.length > 0 && (
         <div className="staff-location-filter">

@@ -89,7 +89,7 @@ export function AdminDashboard() {
         </p>
       </div>
 
-      <ManagerDashboard />
+      <ManagerDashboard embedded />
 
       <div className="adm-divider" />
 

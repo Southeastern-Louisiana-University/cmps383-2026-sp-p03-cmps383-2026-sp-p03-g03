@@ -17,6 +17,9 @@ export function Navbar({ cartCount }: { cartCount: number }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const initials = user.name.charAt(0).toUpperCase();
+  const isStaffSide = user.roles.some((r) =>
+    ["Staff", "Manager", "Admin"].includes(r),
+  );
 
   return (
     <header className="navbar">
@@ -42,15 +45,17 @@ export function Navbar({ cartCount }: { cartCount: number }) {
         </nav>
 
         <div className="nav-actions">
-          <button
-            onClick={() => navigate(APP_ROUTES.cart)}
-            className="focus-ring nav-cart"
-          >
-            <Ic name="cart" size={22} color={Tokens.darkBrew} />
-            {cartCount > 0 && (
-              <span className="nav-cart-badge">{cartCount}</span>
-            )}
-          </button>
+          {!isStaffSide && (
+            <button
+              onClick={() => navigate(APP_ROUTES.cart)}
+              className="focus-ring nav-cart"
+            >
+              <Ic name="cart" size={22} color={Tokens.darkBrew} />
+              {cartCount > 0 && (
+                <span className="nav-cart-badge">{cartCount}</span>
+              )}
+            </button>
+          )}
 
           {isLoggedIn &&
             user.roles.some((r) =>
@@ -76,7 +81,9 @@ export function Navbar({ cartCount }: { cartCount: number }) {
               </div>
               <div className="nav-user-meta">
                 <p className="nav-user-name">{user.name}</p>
-                <p className="nav-user-points">{user.points} pts</p>
+                {!isStaffSide && (
+                  <p className="nav-user-points">{user.points} pts</p>
+                )}
               </div>
             </button>
           ) : (

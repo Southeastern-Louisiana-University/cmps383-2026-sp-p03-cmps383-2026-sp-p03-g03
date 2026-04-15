@@ -86,6 +86,15 @@ export function ReservationPage() {
       if (chosen < cutoff) {
         errors.push("Reservation must be at least 2 hours from now.");
       }
+      if (res.time) {
+        const [h] = res.time.split(":").map(Number);
+        const m = Number(res.time.split(":")[1]);
+        if (h < 6 || h > 16 || (h === 16 && m > 0)) {
+          errors.push(
+            "Pick a time between 6:00 AM and 4:00 PM so your 2-hour booking ends by closing.",
+          );
+        }
+      }
     }
     if (res.party < 2 || res.party > 6) {
       errors.push("Party size must be between 2 and 6.");
@@ -111,7 +120,7 @@ export function ReservationPage() {
         body: JSON.stringify({
           locationId,
           tableId,
-          reservedFor: `${res.date}T${res.time}:00`,
+          reservedFor: new Date(`${res.date}T${res.time}:00`).toISOString(),
           partySize: res.party,
           specialRequests: res.specialRequests.trim() || null,
         }),
@@ -277,7 +286,7 @@ export function ReservationPage() {
                   {Array.from({ length: 25 }, (_, i) => {
                     const h = Math.floor(i / 2) + 6,
                       m = i % 2 === 0 ? "00" : "30";
-                    if (h > 18 || (h === 18 && m === "30")) return null;
+                    if (h > 16 || (h === 16 && m === "30")) return null;
                     return (
                       <option
                         key={i}
@@ -376,6 +385,7 @@ export function ReservationPage() {
               <h4 className="res-side-title">Good to Know</h4>
               {[
                 { i: "clock", t: "Book 2+ hours ahead" },
+                { i: "clock", t: "Tables held for 2 hours" },
                 { i: "user", t: "Parties of 2\u20136 guests" },
                 { i: "calendar", t: "Open Mon\u2013Sat 6am\u20136pm" },
               ].map((item) => (

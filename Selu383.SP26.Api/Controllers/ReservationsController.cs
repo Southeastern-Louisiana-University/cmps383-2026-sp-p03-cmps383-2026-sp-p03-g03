@@ -261,13 +261,17 @@ public class ReservationsController : ControllerBase
         if (reservedFor < DateTime.UtcNow.AddHours(2))
             return "Reservations must be made at least 2 hours in advance.";
 
-        var timeOfDay = reservedFor.TimeOfDay;
-        if (timeOfDay < new TimeSpan(6, 0, 0) || timeOfDay > new TimeSpan(18, 0, 0))
-            return "Reservations can only be made between 6:00 AM and 6:00 PM.";
-
-        var locationExists = await _context.Locations.AnyAsync(x => x.Id == locationId);
-        if (!locationExists)
+        var location = await _context.Locations.FirstOrDefaultAsync(x => x.Id == locationId);
+        if (location == null)
             return "Invalid location.";
+
+        var opening = location.OpeningTime?.ToTimeSpan() ?? new TimeSpan(6, 0, 0);
+        var closing = location.ClosingTime?.ToTimeSpan() ?? new TimeSpan(18, 0, 0);
+        var latestStart = closing.Subtract(TimeSpan.FromHours(2));
+
+        var timeOfDay = reservedFor.TimeOfDay;
+        if (timeOfDay < opening || timeOfDay > latestStart)
+            return $"Reservations must start between {opening:hh\\:mm} and {latestStart:hh\\:mm} so the 2-hour booking ends by closing.";
 
         var table = await _context.Tables.FirstOrDefaultAsync(x => x.Id == tableId);
         if (table == null)
@@ -285,14 +289,19 @@ public class ReservationsController : ControllerBase
         if (partySize > table.Seats)
             return $"Party size exceeds the table's capacity of {table.Seats}.";
 
+        var twoHours = TimeSpan.FromHours(2);
+        var earliestBoundary = reservedFor.Subtract(twoHours);
+        var latestBoundary = reservedFor.Add(twoHours);
+
         var conflictingReservation = await _context.Reservations.AnyAsync(x =>
             (reservationIdToExclude == null || x.Id != reservationIdToExclude.Value) &&
             x.TableId == tableId &&
             x.Status != ReservationStatuses.Cancelled &&
-            x.ReservedFor == reservedFor);
+            x.ReservedFor > earliestBoundary &&
+            x.ReservedFor < latestBoundary);
 
         if (conflictingReservation)
-            return "That table is already reserved for that time.";
+            return "That table is held for 2 hours per reservation. Please choose a time at least 2 hours before or after an existing booking.";
 
         return null;
     }

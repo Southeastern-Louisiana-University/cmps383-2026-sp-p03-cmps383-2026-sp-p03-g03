@@ -29,8 +29,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task GetOrders_AsAdmin_Returns200()
     {
-        // arrange
-        await webClient.AssertLoggedInAsAdmin();
+        // arrange - login as Elora (Admin)
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "Elora",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Elora should be able to log in");
 
         // act
         var response = await webClient.GetAsync("/api/staff/orders");
@@ -46,8 +51,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task GetOrders_AsCustomer_Returns403()
     {
-        // arrange
-        await webClient.AssertLoggedInAsBob();
+        // arrange - login as bob (Customer)
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "bob",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "bob should be able to log in");
 
         // act
         var response = await webClient.GetAsync("/api/staff/orders");
@@ -72,8 +82,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task GetAdminUsers_AsAdmin_Returns200WithUsers()
     {
-        // arrange
-        await webClient.AssertLoggedInAsAdmin();
+        // arrange - login as Elora (Admin)
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "Elora",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "Elora should be able to log in");
 
         // act
         var response = await webClient.GetAsync("/api/staff/admin/users");
@@ -85,15 +100,20 @@ public class StaffControllerTests
         var users = await response.Content.ReadAsJsonAsync<List<AdminUserDto>>();
         users.Should().NotBeNull("we expect a list of users");
         users!.Count.Should().BeGreaterThan(0, "there should be seeded users");
-        users.Should().Contain(u => u.UserName == "galkadi",
-            "the admin user 'galkadi' should be in the list");
+        users.Should().Contain(u => u.UserName == "Elora",
+            "the admin user 'Elora' should be in the list");
     }
 
     [TestMethod]
     public async Task GetAdminUsers_AsCustomer_Returns403()
     {
-        // arrange
-        await webClient.AssertLoggedInAsBob();
+        // arrange - login as bob (Customer)
+        var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "bob",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "bob should be able to log in");
 
         // act
         var response = await webClient.GetAsync("/api/staff/admin/users");
@@ -106,13 +126,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task GetDailySummary_AsManager_Returns200()
     {
-        // arrange - login as manager1
+        // arrange - login as terri (Manager)
         var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
         {
-            UserName = "manager1",
+            UserName = "terri",
             Password = AuthenticationHelpers.DefaultUserPassword
         });
-        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "manager1 should be able to log in");
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "terri should be able to log in");
 
         // act
         var response = await webClient.GetAsync("/api/staff/reports/daily-summary");
@@ -147,8 +167,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task AdvanceOrder_AsStaff_Placed_Returns200WithConfirmedStatus()
     {
-        // arrange — create an order as bob
-        await webClient.AssertLoggedInAsBob();
+        // arrange — create an order as bob (Customer)
+        var bobLogin = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "bob",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        bobLogin.StatusCode.Should().Be(HttpStatusCode.OK, "bob should be able to log in");
         var createResponse = await webClient.PostAsJsonAsync("/api/orders", new
         {
             locationId = 1,
@@ -183,8 +208,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task CancelOrder_AsStaff_WithReason_Returns200()
     {
-        // arrange — create an order as bob
-        await webClient.AssertLoggedInAsBob();
+        // arrange — create an order as bob (Customer)
+        var bobLogin = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
+        {
+            UserName = "bob",
+            Password = AuthenticationHelpers.DefaultUserPassword
+        });
+        bobLogin.StatusCode.Should().Be(HttpStatusCode.OK, "bob should be able to log in");
         var createResponse = await webClient.PostAsJsonAsync("/api/orders", new
         {
             locationId = 1,
@@ -242,13 +272,13 @@ public class StaffControllerTests
     [TestMethod]
     public async Task DisableMenuItem_AsManager_Returns200ThenEnable_Returns200()
     {
-        // arrange — login as manager1
+        // arrange — login as terri (Manager)
         var loginResponse = await webClient.PostAsJsonAsync("/api/authentication/login", new LoginDto
         {
-            UserName = "manager1",
+            UserName = "terri",
             Password = AuthenticationHelpers.DefaultUserPassword
         });
-        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "manager1 should be able to log in");
+        loginResponse.StatusCode.Should().Be(HttpStatusCode.OK, "terri should be able to log in");
 
         // act — disable
         var disableResponse = await webClient.PostAsJsonAsync(

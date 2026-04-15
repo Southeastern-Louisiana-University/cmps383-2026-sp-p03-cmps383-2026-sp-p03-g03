@@ -58,7 +58,7 @@ interface OrderDto {
   total: number;
 }
 
-export function ManagerDashboard() {
+export function ManagerDashboard({ embedded = false }: { embedded?: boolean } = {}) {
   const { user } = useAppContext();
   const [tab, setTab] = useState<MgrTab>("menu");
 
@@ -66,15 +66,17 @@ export function ManagerDashboard() {
 
   return (
     <div className="mgr-page">
-      <div className="mgr-header">
-        <p className="mgr-kicker">{primaryRole} Dashboard</p>
-        <h1 className="mgr-title">Manager Dashboard</h1>
-        <p className="mgr-subtitle">
-          Signed in as {user.name} &middot; {primaryRole}
-        </p>
-      </div>
+      {!embedded && (
+        <div className="mgr-header">
+          <p className="mgr-kicker">{primaryRole} Dashboard</p>
+          <h1 className="mgr-title">Manager Dashboard</h1>
+          <p className="mgr-subtitle">
+            Signed in as {user.name} &middot; {primaryRole}
+          </p>
+        </div>
+      )}
 
-      <StaffDashboard />
+      <StaffDashboard embedded />
 
       <div className="mgr-divider" />
 
