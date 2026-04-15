@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
+import useApiReadOrDelete from "../hooks/useApiReadOrDelete";
 import type {
   ApiMenuCategoryDto,
   ApiMenuItemDto,
   MenuCatalog,
-  MenuCategory,
   MenuItem,
 } from "./dto-interfaces";
 
@@ -38,140 +38,87 @@ function toMenuItem(item: ApiMenuItemDto, categoryName: string): MenuItem {
   };
 }
 
-function getFeaturedItems(categories: MenuCategory[]): MenuItem[] {
-  const featured: MenuItem[] = [];
-  const seen = new Set<number>();
-
-  for (const categoryName of [
-    "Drinks",
-    "Sweet Crepes",
-    "Bagels",
-    "Savory Crepes",
-  ]) {
-    const match = categories.find((category) => category.name === categoryName)
-      ?.items[0];
-    if (match && !seen.has(match.id)) {
-      featured.push(match);
-      seen.add(match.id);
-    }
-    if (featured.length === 3) {
-      return featured;
-    }
-  }
-
-  for (const item of categories.flatMap((category) => category.items)) {
-    if (!seen.has(item.id)) {
-      featured.push(item);
-      seen.add(item.id);
-    }
-    if (featured.length === 3) {
-      break;
-    }
-  }
-
-  return featured;
-}
-
-async function readJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
-  }
-
-  return (await response.json()) as T;
-}
-
-export async function fetchMenuCatalog(
-  signal?: AbortSignal,
-): Promise<MenuCatalog> {
-  const [categoryDtos, itemDtos] = await Promise.all([
-    readJson<ApiMenuCategoryDto[]>("/api/menu/categories", signal),
-    readJson<ApiMenuItemDto[]>("/api/menu/items", signal),
-  ]);
-
-  const activeCategories = [...categoryDtos]
-    .filter((category) => category.isActive)
-    .sort((left, right) => compareCategoryNames(left.name, right.name));
-
-  const categoryNames = new Map(
-    activeCategories.map((category) => [category.id, category.name]),
-  );
-
-  const itemsByCategoryId = new Map<number, MenuItem[]>();
-  for (const item of itemDtos) {
-    if (!item.isAvailable) {
-      continue;
-    }
-
-    const categoryName = categoryNames.get(item.categoryId);
-    if (!categoryName) {
-      continue;
-    }
-
-    const categoryItems = itemsByCategoryId.get(item.categoryId) ?? [];
-    categoryItems.push(toMenuItem(item, categoryName));
-    itemsByCategoryId.set(item.categoryId, categoryItems);
-  }
-
-  const categories = activeCategories
-    .map((category) => ({
-      id: category.id,
-      name: category.name,
-      isSeasonal: category.isSeasonal,
-      isActive: category.isActive,
-      items: (itemsByCategoryId.get(category.id) ?? []).sort((left, right) =>
-        left.name.localeCompare(right.name),
-      ),
-    }))
-    .filter((category) => category.items.length > 0);
-
-  const items = categories.flatMap((category) => category.items);
-
-  return {
-    categories,
-    items,
-    featuredItems: getFeaturedItems(categories),
-    defaultCategory: categories[0]?.name ?? "",
-  };
-}
-
 export function useMenuCatalog() {
-  const [catalog, setCatalog] = useState<MenuCatalog | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Fire off both hooks concurrently
+  const {
+    data: categoryDtos,
+    loading: catLoading,
+    error: catError,
+  } = useApiReadOrDelete<ApiMenuCategoryDto[]>("GET", "menu/categories");
+  const {
+    data: itemDtos,
+    loading: itemLoading,
+    error: itemError,
+  } = useApiReadOrDelete<ApiMenuItemDto[]>("GET", "menu/items");
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const catalog = useMemo<MenuCatalog>(() => {
+    if (!categoryDtos || !itemDtos) {
+      return {
+        categories: [],
+        items: [],
+        featuredItems: [],
+        defaultCategory: "",
+      };
+    }
 
-    setLoading(true);
-    setError(null);
+    // Sort active categories
+    const activeCategories = [...categoryDtos]
+      .filter((category) => category.isActive)
+      .sort((left, right) => compareCategoryNames(left.name, right.name));
 
-    fetchMenuCatalog(controller.signal)
-      .then((nextCatalog) => {
-        setCatalog(nextCatalog);
-      })
-      .catch((nextError: unknown) => {
-        if ((nextError as Error).name === "AbortError") {
-          return;
-        }
+    const categoryNames = new Map(
+      activeCategories.map((category) => [category.id, category.name]),
+    );
 
-        setError("Unable to load the menu right now.");
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) {
-          setLoading(false);
-        }
-      });
+    // Group items
+    const itemsByCategoryId = new Map<number, MenuItem[]>();
+    for (const item of itemDtos) {
+      if (!item.isAvailable) {
+        continue;
+      }
 
-    return () => controller.abort();
-  }, []);
+      const categoryName = categoryNames.get(item.categoryId);
+      if (!categoryName) {
+        continue;
+      }
+
+      const categoryItems = itemsByCategoryId.get(item.categoryId) ?? [];
+      categoryItems.push(toMenuItem(item, categoryName));
+      itemsByCategoryId.set(item.categoryId, categoryItems);
+    }
+
+    // Build final category array
+    const categories = activeCategories
+      .map((category) => ({
+        id: category.id,
+        name: category.name,
+        isSeasonal: category.isSeasonal,
+        isActive: category.isActive,
+        items: (itemsByCategoryId.get(category.id) ?? []).sort((left, right) =>
+          left.name.localeCompare(right.name),
+        ),
+      }))
+      .filter((category) => category.items.length > 0);
+
+    // Flatten all items
+    const allItems = categories.flatMap((category) => category.items);
+
+    // Shuffle and grab 5 random items for the carousel
+    const featuredItems = [...allItems]
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 5);
+
+    return {
+      categories,
+      items: allItems,
+      featuredItems,
+      defaultCategory: categories[0]?.name ?? "",
+    };
+  }, [categoryDtos, itemDtos]);
 
   return {
-    categories: catalog?.categories ?? [],
-    items: catalog?.items ?? [],
-    featuredItems: catalog?.featuredItems ?? [],
-    defaultCategory: catalog?.defaultCategory ?? "",
-    loading,
-    error,
+    ...catalog,
+    loading: catLoading || itemLoading,
+    error: catError || itemError,
   };
 }

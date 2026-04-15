@@ -1,8 +1,10 @@
+Last Updated: 4/12/26
+
 <details><summary><h1>Caffeinated Lions (Team #3)</h1></summary>
 
 Eliora Browning, Terri Crawford, Rylie McDonald, Michael Painter, Robert Russell
-Last Updated: 4/12/26
-![Team 3's logo for Caffeinated Lions: A portrait drawing of a green lion with coffee beans in its mane.](.\Selu383.SP26.Web\src\styles\assets\ConceptLogo2.png)
+
+![Team 3's logo for Caffeinated Lions: A portrait drawing of a green lion with coffee beans in its mane.](https://github.com/Southeastern-Louisiana-University/cmps383-2026-sp-p03-cmps383-2026-sp-p03-g03/blob/main/Selu383.SP26.Web/src/styles/assets/ConceptLogo2.png?raw=true)
 [This README will be more verbose/formal once the opposite ends of the code are closer to being fully connected.]
 
 <details><summary><h2>What is this?</h2></summary>
