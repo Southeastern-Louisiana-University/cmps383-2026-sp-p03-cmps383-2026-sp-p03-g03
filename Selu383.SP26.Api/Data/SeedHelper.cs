@@ -27,6 +27,19 @@ public static class SeedHelper
             await dataContext.Database.MigrateAsync();
 
             await AddRoles(serviceProvider);
+            await dataContext.SaveChangesAsync();
+
+            var adminRoleExists = await dataContext.Roles
+                .AnyAsync(r => r.NormalizedName == RoleNames.Admin.ToUpperInvariant());
+
+            if (!adminRoleExists)
+            {
+                throw new InvalidOperationException(
+                    "Seed integrity check failed: Admin role was not persisted after AddRoles. " +
+                    "This usually means the test infrastructure is reusing a disposed WebApplicationFactory. " +
+                    "Check Selu383.SP26.Tests/Helpers/WebTestContext.cs for a cleanup ordering bug.");
+            }
+
             await AddUsers(serviceProvider);
             await AddLocations(dataContext);
             await EnsureSeedAssignments(dataContext);

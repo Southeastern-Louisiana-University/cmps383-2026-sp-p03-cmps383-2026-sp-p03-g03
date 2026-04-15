@@ -28,6 +28,17 @@ public sealed class WebTestContext : IDisposable
 
     public IServiceProvider GetServices()
     {
+        if (cleanNeeded)
+        {
+            if (webHostFactory != null)
+            {
+                webHostFactory.Dispose();
+                webHostFactory = null;
+            }
+            SqlServerTestDatabaseProvider.ClearData();
+            cleanNeeded = false;
+        }
+
         if (webHostFactory == null)
         {
             webHostFactory = new WebHostFactory<Program>(SqlServerTestDatabaseProvider.GetConnectionString());
@@ -38,16 +49,20 @@ public sealed class WebTestContext : IDisposable
 
     public HttpClient GetStandardWebClient()
     {
+        if (cleanNeeded)
+        {
+            if (webHostFactory != null)
+            {
+                webHostFactory.Dispose();
+                webHostFactory = null;
+            }
+            SqlServerTestDatabaseProvider.ClearData();
+            cleanNeeded = false;
+        }
+
         if (webHostFactory == null)
         {
             webHostFactory = new WebHostFactory<Program>(SqlServerTestDatabaseProvider.GetConnectionString());
-        }
-
-        if (cleanNeeded)
-        {
-            webHostFactory.Dispose();
-            SqlServerTestDatabaseProvider.ClearData();
-            cleanNeeded = false;
         }
 
         var cookieContainer = new CookieContainer(100);
