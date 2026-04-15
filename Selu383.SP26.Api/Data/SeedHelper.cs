@@ -163,6 +163,7 @@ public static class SeedHelper
         await EnsureRoleExistsAsync(roleManager, RoleNames.Admin);
         await EnsureRoleExistsAsync(roleManager, RoleNames.Manager);
         await EnsureRoleExistsAsync(roleManager, RoleNames.Staff);
+        await EnsureRoleExistsAsync(roleManager, RoleNames.Customer);
         await EnsureRoleExistsAsync(roleManager, RoleNames.User);
     }
 
