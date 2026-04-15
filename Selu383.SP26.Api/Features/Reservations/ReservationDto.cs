@@ -9,9 +9,17 @@ public class ReservationDto
     public int UserId { get; set; }
     public int TableId { get; set; }
     public DateTime ReservedFor { get; set; }
+    public DateTime CreatedAt { get; set; }
     public int PartySize { get; set; }
     public string Status { get; set; } = ReservationStatuses.Pending;
     public string? SpecialRequests { get; set; }
+}
+
+public class ReservationAvailabilityDto
+{
+    public int LocationId { get; set; }
+    public DateTime ReservedFor { get; set; }
+    public List<int> TakenTableIds { get; set; } = new();
 }
 
 public class CreateReservationDto
