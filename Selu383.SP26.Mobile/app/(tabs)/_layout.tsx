@@ -64,19 +64,16 @@ export default function TabLayout() {
         },
       }}
     >
-      {/*
-        // TODO: Re-enable the Portal tab after demo/merge freeze is over
-        <Tabs.Screen
-          name="portal"
-          options={{
-            href: hasWorkPortal ? undefined : null,
-            title: "Portal",
-            tabBarIcon: ({ color }) => (
-              <IconSymbol size={22} name="person.2.fill" color={color} />
-            ),
-          }}
-        />
-      */}
+      <Tabs.Screen
+        name="portal"
+        options={{
+          href: hasWorkPortal ? undefined : null,
+          title: "Portal",
+          tabBarIcon: ({ color }) => (
+            <IconSymbol size={22} name="person.2.fill" color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="index"
         options={{
