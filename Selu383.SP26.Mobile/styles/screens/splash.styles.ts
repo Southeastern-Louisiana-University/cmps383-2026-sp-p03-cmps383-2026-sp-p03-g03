@@ -1,0 +1,166 @@
+import { StyleSheet } from 'react-native';
+import { Colors } from '@/constants/theme';
+
+export const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingLogo: {
+    width: 150,
+    height: 150,
+  },
+  loadingSpinner: {
+    marginTop: 20,
+  },
+  scrollContent: {
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  /* ── Hero ── */
+  heroSection: {
+    alignItems: 'center',
+    marginTop: 28,
+    marginBottom: 20,
+  },
+  heroLogo: {
+    width: 130,
+    height: 130,
+    marginBottom: 12,
+  },
+  heroTitle: {
+    fontSize: 34,
+    fontFamily: 'Oregano_400Regular',
+    color: Colors.brandGreen,
+    fontWeight: 'bold',
+    marginBottom: 6,
+    textAlign: 'center',
+  },
+  heroSlogan: {
+    fontSize: 16,
+    fontFamily: 'Corben_400Regular',
+    textAlign: 'center',
+  },
+  /* ── CTA ── */
+  startOrderButton: {
+    backgroundColor: Colors.brandGreen,
+    borderRadius: 30,
+    paddingVertical: 18,
+    paddingHorizontal: 56,
+    marginBottom: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  startOrderText: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: 'bold',
+    fontFamily: 'Corben_700Bold',
+    textAlign: 'center',
+  },
+  secondaryText: {
+    fontSize: 14,
+    marginTop: 4,
+    marginBottom: 24,
+    textAlign: 'center',
+    fontFamily: 'Corben_400Regular',
+  },
+  featuredLabel: {
+    fontSize: 20,
+    fontWeight: '700',
+    fontFamily: 'Oregano_400Regular',
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+    marginLeft: 4,
+  },
+  /* ── Modal ── */
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    borderRadius: 20,
+    padding: 24,
+    width: '90%',
+    maxWidth: 400,
+    alignItems: 'stretch',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  modalCloseX: {
+    position: 'absolute',
+    top: 14,
+    right: 18,
+    zIndex: 10,
+    padding: 4,
+  },
+  modalCloseText: {
+    fontSize: 22,
+  },
+  modalHeader: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 18,
+    color: Colors.brandGreen,
+    fontFamily: 'Corben_700Bold',
+    textAlign: 'center',
+  },
+  errorContainer: {
+    width: '100%',
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+    backgroundColor: '#ffebee',
+    borderLeftWidth: 4,
+    borderLeftColor: '#d32f2f',
+  },
+  errorText: {
+    color: '#c62828',
+    fontWeight: '600',
+    fontSize: 14,
+    fontFamily: 'Corben_700Bold',
+  },
+  modalInput: {
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    marginBottom: 12,
+    fontFamily: 'Corben_400Regular',
+  },
+  modalSubmitBtn: {
+    backgroundColor: Colors.brandGreen,
+    borderRadius: 28,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  modalSubmitText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    fontFamily: 'Corben_700Bold',
+  },
+  toggleText: {
+    marginTop: 4,
+    fontSize: 14,
+    color: Colors.brandGreen,
+    fontFamily: 'Corben_700Bold',
+    textAlign: 'center',
+  },
+});
