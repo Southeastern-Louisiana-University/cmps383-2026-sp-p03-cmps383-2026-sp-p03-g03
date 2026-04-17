@@ -8,9 +8,18 @@ import { styles } from '@/styles/screens/splash-header.styles';
 interface HeaderProps {
   onSignInPress: () => void;
   isDark?: boolean;
+  showSignIn?: boolean;
+  showBack?: boolean;
+  onBackPress?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ onSignInPress, isDark = false }) => {
+export const Header: React.FC<HeaderProps> = ({
+  onSignInPress,
+  isDark = false,
+  showSignIn = true,
+  showBack = false,
+  onBackPress,
+}) => {
   const insets = useSafeAreaInsets();
 
   return (
@@ -24,16 +33,25 @@ export const Header: React.FC<HeaderProps> = ({ onSignInPress, isDark = false })
       ]}
     >
       <View style={styles.logoContainer}>
+        {showBack ? (
+          <TouchableOpacity style={styles.backButton} onPress={onBackPress}>
+            <ThemedText style={styles.backText}>←</ThemedText>
+          </TouchableOpacity>
+        ) : null}
         <Image
           source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
           style={styles.logo}
           resizeMode="contain"
         />
-        <ThemedText style={styles.logoText}>Caffeinated Lions</ThemedText>
+        <ThemedText style={styles.logoText} numberOfLines={1}>Caffeinated Lions</ThemedText>
       </View>
-      <TouchableOpacity style={styles.signInButton} onPress={onSignInPress}>
-        <ThemedText style={styles.signInText}>Sign In</ThemedText>
-      </TouchableOpacity>
+      {showSignIn ? (
+        <TouchableOpacity style={styles.signInButton} onPress={onSignInPress}>
+          <ThemedText style={styles.signInText}>Sign In</ThemedText>
+        </TouchableOpacity>
+      ) : (
+        <View style={styles.headerSpacer} />
+      )}
     </View>
   );
 };

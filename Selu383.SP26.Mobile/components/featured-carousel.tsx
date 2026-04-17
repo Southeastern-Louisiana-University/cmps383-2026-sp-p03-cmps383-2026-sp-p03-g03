@@ -15,8 +15,8 @@ const ALL_FEATURED_ITEMS = [
 ];
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.75;
-const CARD_SPACING = 12;
+const CARD_WIDTH = SCREEN_WIDTH * 0.72;
+const CARD_SPACING = 14;
 const AUTO_SCROLL_INTERVAL = 4000;
 
 /** Rotate the list so a different item is first each day */
@@ -81,6 +81,7 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = fal
       >
         {items.map((item, index) => {
           const bgColor = BG_COLORS[index % BG_COLORS.length];
+          const isActive = index === currentIndex;
           return (
             <View
               key={item.name}
@@ -91,10 +92,13 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = fal
                   marginRight: CARD_SPACING,
                   backgroundColor: bgColor,
                   shadowColor: bgColor,
+                  opacity: isActive ? 1 : 0.9,
+                  transform: [{ scale: isActive ? 1 : 0.98 }],
                 },
               ]}
             >
               <Image source={getMenuItemImage(item.name)} style={styles.itemImage} />
+              <View style={styles.imageShade} />
               <View style={styles.itemContent}>
                 <Text style={styles.itemCategory}>{item.category.toUpperCase()}</Text>
                 <Text style={styles.itemName}>{item.name}</Text>
