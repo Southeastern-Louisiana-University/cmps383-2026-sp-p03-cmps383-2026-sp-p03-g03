@@ -11,9 +11,11 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useAuth } from '@/hooks/useAuth';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { Colors } from '@/constants/theme';
@@ -39,6 +41,8 @@ export default function SplashScreen() {
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -46,6 +50,30 @@ export default function SplashScreen() {
       router.replace('/(tabs)' as any);
     }
   }, [user, isLoading, router]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (Platform.OS !== 'android') {
+        return () => {};
+      }
+
+      const onBackPress = () => {
+        if (router.canGoBack()) {
+          router.back();
+          return true;
+        }
+
+        Alert.alert('Exit App', 'Are you sure you want to close the app?', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Exit', style: 'destructive', onPress: () => BackHandler.exitApp() },
+        ]);
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+      return () => subscription.remove();
+    }, [router]),
+  );
 
   const handleStartOrder = () => {
     router.replace('/(tabs)/menu');
@@ -64,6 +92,8 @@ export default function SplashScreen() {
     setPassword('');
     setConfirmPassword('');
     setDisplayName('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handleSubmit = async () => {
@@ -136,7 +166,13 @@ export default function SplashScreen() {
       <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
 
       {/* Top Header */}
-      <Header onSignInPress={handleSignIn} isDark={isDark} />
+      <Header
+        onSignInPress={handleSignIn}
+        isDark={isDark}
+        showSignIn
+        showBack={router.canGoBack()}
+        onBackPress={() => router.back()}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -144,38 +180,63 @@ export default function SplashScreen() {
       >
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          <Image
-            source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
-            style={styles.heroLogo}
-            resizeMode="contain"
-          />
-          <ThemedText style={styles.heroTitle}>Caffeinated Lions</ThemedText>
-          <ThemedText style={[styles.heroSlogan, { color: isDark ? '#aaa' : '#666' }]}>
-            Pouring pride into every cup.
-          </ThemedText>
+          <View style={styles.heroImageWrap}>
+            <Image
+              source={require('@/assets/images/featured-caramel-latte.jpg')}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroOverlay} />
+            <View style={styles.heroContent}>
+              <ThemedText style={styles.heroTitle}>Bold brews to fuel the pride</ThemedText>
+              <ThemedText style={styles.heroSlogan}>
+                Fresh coffee, crepes, and bagels crafted for fast pickup.
+              </ThemedText>
+
+              <TouchableOpacity
+                style={styles.startOrderButton}
+                onPress={handleStartOrder}
+                activeOpacity={0.85}
+              >
+                <ThemedText style={styles.startOrderText}>Start Order</ThemedText>
+              </TouchableOpacity>
+            </View>
+          </View>
         </View>
 
-        {/* Main CTA */}
-        <TouchableOpacity
-          style={styles.startOrderButton}
-          onPress={handleStartOrder}
-          activeOpacity={0.85}
-        >
-          <ThemedText style={styles.startOrderText}>Start Order</ThemedText>
-        </TouchableOpacity>
-
-        {/* Secondary Text */}
-        <ThemedText style={[styles.secondaryText, { color: isDark ? '#999' : '#888' }]}>
-          Sign in to earn rewards and track orders
-        </ThemedText>
-
         {/* Featured Section Label */}
-        <ThemedText style={[styles.featuredLabel, { color: colors.text }]}>
-          Featured
-        </ThemedText>
+        <View style={styles.carouselSection}>
+          <ThemedText style={[styles.featuredLabel, { color: colors.text }]}>Featured Picks</ThemedText>
 
-        {/* Featured Carousel */}
-        <FeaturedCarousel isDark={isDark} />
+          {/* Featured Carousel */}
+          <FeaturedCarousel isDark={isDark} />
+        </View>
+
+        <View style={styles.authFooter}>
+          <ThemedText style={[styles.authFooterText, { color: isDark ? '#a3a3a3' : '#6b7280' }]}>Sign in to save favorites, earn rewards, and track orders</ThemedText>
+
+          <View style={styles.authFooterActions}>
+            <TouchableOpacity
+              style={styles.createAccountBtn}
+              onPress={() => {
+                setIsRegisterMode(true);
+                setLoginVisible(true);
+              }}
+              activeOpacity={0.8}
+            >
+              <ThemedText style={styles.createAccountText}>Create Account</ThemedText>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity
+            style={styles.guestBtn}
+            onPress={handleStartOrder}
+            activeOpacity={0.8}
+          >
+            <ThemedText style={styles.guestText}>Continue as Guest</ThemedText>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
 
       {/* Login / Register Modal */}
@@ -239,39 +300,49 @@ export default function SplashScreen() {
             )}
 
             {/* Password */}
-            <TextInput
-              style={[styles.modalInput, {
-                borderColor: isDark ? '#555' : '#ddd',
-                color: isDark ? '#fff' : '#333',
-                backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-              }]}
-              placeholder="Password"
-              placeholderTextColor={isDark ? '#666' : '#999'}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={!submitting}
-            />
-
-            {/* Confirm Password (register only) */}
-            {isRegisterMode && (
+            <View style={[styles.passwordRow, {
+              borderColor: isDark ? '#555' : '#ddd',
+              backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+            }]}
+            >
               <TextInput
-                style={[styles.modalInput, {
-                  borderColor: isDark ? '#555' : '#ddd',
-                  color: isDark ? '#fff' : '#333',
-                  backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
-                }]}
-                placeholder="Confirm Password"
+                style={[styles.passwordInput, { color: isDark ? '#fff' : '#333' }]}
+                placeholder="Password"
                 placeholderTextColor={isDark ? '#666' : '#999'}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 autoCorrect={false}
                 editable={!submitting}
               />
+              <TouchableOpacity onPress={() => setShowPassword((prev) => !prev)}>
+                <ThemedText style={styles.passwordToggle}>{showPassword ? 'Hide' : 'Show'}</ThemedText>
+              </TouchableOpacity>
+            </View>
+
+            {/* Confirm Password (register only) */}
+            {isRegisterMode && (
+              <View style={[styles.passwordRow, {
+                borderColor: isDark ? '#555' : '#ddd',
+                backgroundColor: isDark ? '#1a1a1a' : '#f5f5f5',
+              }]}
+              >
+                <TextInput
+                  style={[styles.passwordInput, { color: isDark ? '#fff' : '#333' }]}
+                  placeholder="Confirm Password"
+                  placeholderTextColor={isDark ? '#666' : '#999'}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                  secureTextEntry={!showConfirmPassword}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!submitting}
+                />
+                <TouchableOpacity onPress={() => setShowConfirmPassword((prev) => !prev)}>
+                  <ThemedText style={styles.passwordToggle}>{showConfirmPassword ? 'Hide' : 'Show'}</ThemedText>
+                </TouchableOpacity>
+              </View>
             )}
 
             {/* Submit */}
