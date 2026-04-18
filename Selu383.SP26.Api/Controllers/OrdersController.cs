@@ -73,7 +73,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<OrderDto>> GetOrder(int id)
     {
         var order = await _context.Orders
@@ -89,7 +89,8 @@ public class OrdersController : ControllerBase
         var currentUserId = User.GetCurrentUserId();
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
 
-        if (!isPrivileged && currentUserId != order.CreatedByUserId)
+        // Guests (null CreatedByUserId) can view their own guest orders
+        if (order.CreatedByUserId.HasValue && !isPrivileged && order.CreatedByUserId != currentUserId)
             return Forbid();
 
         if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
@@ -99,12 +100,10 @@ public class OrdersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderDto dto)
     {
         var currentUserId = User.GetCurrentUserId();
-        if (!currentUserId.HasValue)
-            return Unauthorized();
 
         var normalizedOrderType = (dto.OrderType ?? string.Empty).Trim();
         var canonicalOrderType = normalizedOrderType.Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant() switch
@@ -146,7 +145,7 @@ public class OrdersController : ControllerBase
         var order = new Order
         {
             LocationId = dto.LocationId,
-            CreatedByUserId = currentUserId.Value,
+            CreatedByUserId = currentUserId,
             OrderCode = $"ORD{DateTime.UtcNow:yyyyMMddHHmmss}",
             OrderType = canonicalOrderType,
             Status = OrderStatuses.Placed,

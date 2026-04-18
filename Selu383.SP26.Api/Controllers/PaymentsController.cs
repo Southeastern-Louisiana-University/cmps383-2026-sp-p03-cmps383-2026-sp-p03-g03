@@ -300,19 +300,18 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost("create-checkout-session")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<object>> CreateCheckoutSession([FromBody] CreateCheckoutSessionDto dto)
     {
         var currentUserId = User.GetCurrentUserId();
-        if (!currentUserId.HasValue)
-            return Unauthorized();
 
         var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == dto.OrderId);
         if (order == null)
             return NotFound("Order not found.");
 
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
-        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+        // Guests (null CreatedByUserId) can check out their own guest orders
+        if (order.CreatedByUserId.HasValue && !isPrivileged && order.CreatedByUserId != currentUserId)
             return Forbid();
 
         if (order.PaymentStatus == PaymentStatuses.Paid)
@@ -450,19 +449,18 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpGet("orders/{orderId:int}")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<List<OrderPaymentDto>>> GetOrderPayments(int orderId)
     {
         var currentUserId = User.GetCurrentUserId();
-        if (!currentUserId.HasValue)
-            return Unauthorized();
 
         var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
         if (order == null)
             return NotFound();
 
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
-        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+        // Guests (null CreatedByUserId) can view payments for their own guest orders
+        if (order.CreatedByUserId.HasValue && !isPrivileged && order.CreatedByUserId != currentUserId)
             return Forbid();
 
         var payments = await _context.Payments
@@ -486,19 +484,18 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost("orders/{orderId:int}/sync-stripe-status")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<object>> SyncStripeStatus(int orderId)
     {
         var currentUserId = User.GetCurrentUserId();
-        if (!currentUserId.HasValue)
-            return Unauthorized();
 
         var order = await _context.Orders.FirstOrDefaultAsync(x => x.Id == orderId);
         if (order == null)
             return NotFound("Order not found.");
 
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
-        if (!isPrivileged && order.CreatedByUserId != currentUserId.Value)
+        // Guests (null CreatedByUserId) can sync their own guest orders
+        if (order.CreatedByUserId.HasValue && !isPrivileged && order.CreatedByUserId != currentUserId)
             return Forbid();
 
         var updated = await _stripePaymentService.SyncOrderPaymentStatusFromStripeAsync(orderId);
