@@ -11,7 +11,7 @@ public class Order
     public int LocationId { get; set; }
     public virtual Location? Location { get; set; }
 
-    public int CreatedByUserId { get; set; }
+    public int? CreatedByUserId { get; set; }
     public virtual User? CreatedByUser { get; set; }
 
     public string OrderCode { get; set; } = string.Empty;
