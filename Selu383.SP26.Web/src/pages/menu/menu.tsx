@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { Tokens } from "../../styles/tokens.ts";
-import { ItemIcon } from "../../components/icons";
 import { useAppContext } from "../../api/context-providers/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import { useMenuCatalog } from "../../api/menu.ts";
+import {
+  getMenuItemImagePath,
+  getMenuItemFallbackPath,
+} from "../../utils/menu-item-images";
 import "./menu.css";
 
 const catImages: Record<string, string> = {
-  Drinks: Tokens.icedImg,
-  "Sweet Crepes": Tokens.crepeImg,
-  "Savory Crepes": Tokens.cafeImg,
-  Bagels: Tokens.latteImg,
+  Drinks: Tokens.latteImg,
+  "Crepes - Sweet": Tokens.sweetCrepeImg,
+  "Crepes - Savory": Tokens.savoryCrepeImg,
+  Bagels: Tokens.bagelImg,
 };
 
 export function MenuPage() {
@@ -38,11 +41,7 @@ export function MenuPage() {
   return (
     <div className="menu-page">
       <section className="menu-header">
-        <p className="menu-kicker">Our Menu</p>
         <h1 className="menu-title">Menu</h1>
-        {/* <p className="menu-subtitle">
-          From bold espresso to sweet crepes, every item is made fresh to order.
-        </p> */}
       </section>
 
       <div className="menu-tabs">
@@ -95,9 +94,12 @@ export function MenuPage() {
             }}
             className="card-base card-hover menu-featured-card"
           >
-            <div className="menu-featured-icon-wrap">
-              <ItemIcon cat={activeCategory?.name ?? "Drinks"} size={80} />
-            </div>
+            <ImageWithFallback
+              src={getMenuItemImagePath(items[0].id, items[0].category)}
+              fallbackSrc={getMenuItemFallbackPath(items[0].category)}
+              alt={items[0].name}
+              className="menu-featured-image"
+            />
             <div className="menu-featured-content">
               <div className="menu-featured-head">
                 <div>
@@ -122,7 +124,12 @@ export function MenuPage() {
               }}
               className="card-base card-hover menu-item-card"
             >
-              <ItemIcon cat={item.category} size={56} />
+              <ImageWithFallback
+                src={getMenuItemImagePath(item.id, item.category)}
+                fallbackSrc={getMenuItemFallbackPath(item.category)}
+                alt={item.name}
+                className="menu-item-image"
+              />
               <div className="menu-flex-1">
                 <div className="menu-item-head">
                   <h3 className="menu-item-title">{item.name}</h3>

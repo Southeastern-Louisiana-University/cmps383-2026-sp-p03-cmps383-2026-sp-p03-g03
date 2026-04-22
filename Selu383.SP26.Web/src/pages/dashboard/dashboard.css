@@ -6,9 +6,9 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  height: fit-content;
+  height: 40%;
   min-height: 200px;
-  max-height: 500px;
+  max-height: 400px;
   margin-bottom: 24px;
 }
 
@@ -53,6 +53,7 @@
   flex: 1;
   display: flex;
   justify-content: center;
+  height: 172px;
 }
 
 @media (max-width: 992px) {

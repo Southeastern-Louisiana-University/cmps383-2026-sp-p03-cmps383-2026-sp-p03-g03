@@ -187,3 +187,33 @@
   padding: 10px 24px;
   font-size: 14px;
 }
+
+.nav-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1px solid var(--sand);
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  margin-left: auto;
+  margin-right: 24px;
+}
+
+.nav-location:hover {
+  border-color: var(--mocha);
+  background: var(--cream);
+}
+
+.nav-location-name {
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--mocha);
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

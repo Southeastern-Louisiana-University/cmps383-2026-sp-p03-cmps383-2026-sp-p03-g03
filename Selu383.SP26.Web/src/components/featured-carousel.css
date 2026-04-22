@@ -2,45 +2,37 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   width: 100%;
   max-width: 1200px;
-  margin-right: 180px; 
+  margin-right: 120px;
 }
 
 .slideC {
   position: relative;
-  perspective: 1200px;
+  perspective: 960px;
   transform-style: preserve-3d;
   width: 100%;
-  aspect-ratio: 1.5 / 1; 
-  max-height: 320px;
+  height: 100%;
   margin: 0 auto;
 }
 
 .slide {
-  width: 360px; 
-  height: 320px;
-  transition: transform 500ms ease 0s, opacity 500ms ease 0s, z-index 500ms ease 0s;
+  width: 280px;
+  height: 100%;
+  transition:
+    transform 500ms ease 0s,
+    opacity 500ms ease 0s,
+    z-index 500ms ease 0s;
   position: absolute;
   top: 0;
   left: 50%;
-  margin-left: -180px; 
-  border-radius: 16px;
+  margin-left: -140px;
+  border-radius: 12px;
   overflow: hidden;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-}
-
-.reflection {
-  position: absolute;
-  width: 360px;
-  height: 60px;
-  bottom: -60px;
-  left: 50%;
-  margin-left: -180px;
-  border-radius: 16px;
-  transition: transform 500ms ease 0s, opacity 500ms ease 0s;
 }
 
 .sliderContent {
@@ -66,57 +58,33 @@
 }
 
 .slide-text {
-  padding: 16px 20px;
+  padding: 12px 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 
-.slide-kicker {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  opacity: 0.8;
-  margin-bottom: 6px;
+.slide-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
 }
 
 .slide-title {
   font-family: var(--font-display);
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0 0 6px;
-  line-height: 1.2;
-}
-
-.slide-desc {
-  font-family: var(--font-body);
-  font-size: 13px;
-  line-height: 1.4;
-  margin: 0 0 auto 0;
-  opacity: 0.9;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  flex: 1;
-}
-
-.slide-footer {
-  margin-top: auto;
-}
-
-.slide-price {
-  font-family: var(--font-display);
   font-size: 18px;
   font-weight: 700;
+  margin: 0;
+  line-height: 1;
+  flex: 1;
+  min-width: 0;
 }
 
 .btns {
   display: flex;
-  gap: 16px;
-  margin-top: 50px;
+  gap: 25px;
+  margin-top: 10px;
   z-index: 20;
 }
 
@@ -124,10 +92,10 @@
   cursor: pointer;
   background: rgba(255, 255, 255, 0.15);
   border: 1px solid rgba(255, 255, 255, 0.3);
-  color: white;
+  color: var(--cream);
   border-radius: 50%;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -137,11 +105,4 @@
 
 .btns .btn:hover {
   background: rgba(255, 255, 255, 0.3);
-}
-
-/* Remove media query padding or adjustments if they conflict with the nudge */
-@media (max-width: 992px) {
-  .carousel-container {
-    margin-right: 0;
-  }
 }

@@ -130,7 +130,7 @@
   overflow: hidden;
 }
 
-.menu-featured-icon-wrap {
+.menu-featured-image {
   width: 220px;
   height: 180px;
   flex-shrink: 0;
@@ -138,6 +138,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  object-fit: cover;
 }
 
 .menu-featured-content {
@@ -196,6 +197,18 @@
   display: flex;
   gap: 16px;
   align-items: flex-start;
+}
+
+.menu-item-image {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .menu-flex-1 {

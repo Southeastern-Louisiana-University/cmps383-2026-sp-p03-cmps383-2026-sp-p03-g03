@@ -13,6 +13,7 @@ import {
   ItemDialog,
   CheckoutDialog,
   SuccessDialog,
+  LocationChangeDialog,
 } from "../components/dialogs";
 import { useAppContext } from "../api/context-providers/app-context";
 import { APP_ROUTES, normalizeRoute } from "./routes";
@@ -39,6 +40,7 @@ function AppLayout() {
       <ItemDialog />
       <CheckoutDialog />
       <SuccessDialog />
+      <LocationChangeDialog />
     </div>
   );
 }

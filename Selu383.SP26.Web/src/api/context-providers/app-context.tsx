@@ -22,11 +22,19 @@ interface AppContext {
   setQty: React.Dispatch<React.SetStateAction<number>>;
   rcpt: string;
   setRcpt: React.Dispatch<React.SetStateAction<string>>;
+  selectedLocation: number | null;
+  setSelectedLocation: React.Dispatch<React.SetStateAction<number | null>>;
+  showLocationChangeDialog: boolean;
+  setShowLocationChangeDialog: React.Dispatch<React.SetStateAction<boolean>>;
+  pendingLocationId: number | null;
+  setPendingLocationId: React.Dispatch<React.SetStateAction<number | null>>;
   user: UserProfile;
   setUser: React.Dispatch<React.SetStateAction<UserProfile>>;
   total: number;
   count: number;
   addToCart: () => void;
+  handleLocationChange: (locationId: number) => void;
+  confirmLocationChange: () => void;
   isLoggedIn: boolean;
   authReady: boolean;
   login: (
@@ -144,6 +152,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [note, setNote] = useState("");
   const [qty, setQty] = useState(1);
   const [rcpt, setRcpt] = useState("email");
+  const [selectedLocation, setSelectedLocation] = useState<number | null>(null);
+  const [showLocationChangeDialog, setShowLocationChangeDialog] =
+    useState(false);
+  const [pendingLocationId, setPendingLocationId] = useState<number | null>(
+    null,
+  );
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authReady, setAuthReady] = useState(false);
   const [user, setUser] = useState<UserProfile>(EMPTY_USER);
@@ -170,6 +184,27 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     setSel(null);
     setNote("");
     setQty(1);
+  };
+
+  const handleLocationChange = (locationId: number) => {
+    if (selectedLocation === locationId) {
+      return;
+    }
+    if (cart.length > 0) {
+      setPendingLocationId(locationId);
+      setShowLocationChangeDialog(true);
+    } else {
+      setSelectedLocation(locationId);
+    }
+  };
+
+  const confirmLocationChange = () => {
+    if (pendingLocationId !== null) {
+      setCart([]);
+      setSelectedLocation(pendingLocationId);
+      setPendingLocationId(null);
+      setShowLocationChangeDialog(false);
+    }
   };
 
   useEffect(() => {
@@ -309,11 +344,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         setQty,
         rcpt,
         setRcpt,
+        selectedLocation,
+        setSelectedLocation,
+        showLocationChangeDialog,
+        setShowLocationChangeDialog,
+        pendingLocationId,
+        setPendingLocationId,
         user,
         setUser,
         total,
         count,
         addToCart,
+        handleLocationChange,
+        confirmLocationChange,
         isLoggedIn,
         authReady,
         login,

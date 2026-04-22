@@ -1,6 +1,7 @@
 import { Tokens, LOGO } from "../styles/tokens";
 import { Ic } from "../components/icons";
 import { useAppContext } from "../api/context-providers/app-context";
+import { useLocations } from "../api/locations";
 import { useLocation, useNavigate } from "react-router-dom";
 import { APP_ROUTES, isActiveRoute } from "./routes";
 import "./navbar.css";
@@ -13,10 +14,16 @@ const navItems = [
 ] as const;
 
 export function Navbar({ cartCount }: { cartCount: number }) {
-  const { isLoggedIn, user } = useAppContext();
+  const { isLoggedIn, user, selectedLocation } = useAppContext();
+  const { locations } = useLocations();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const initials = user.name.charAt(0).toUpperCase();
+
+  const selectedLocationName = selectedLocation
+    ? locations.find((loc) => loc.id === selectedLocation)?.name ||
+      "Unknown Location"
+    : null;
 
   return (
     <header className="navbar">
@@ -40,6 +47,17 @@ export function Navbar({ cartCount }: { cartCount: number }) {
             </button>
           ))}
         </nav>
+
+        {selectedLocationName && (
+          <button
+            onClick={() => navigate(APP_ROUTES.orders)}
+            className="nav-location focus-ring"
+            title="Change location"
+          >
+            <Ic name="location" size={16} color={Tokens.mocha} />
+            <span className="nav-location-name">{selectedLocationName}</span>
+          </button>
+        )}
 
         <div className="nav-actions">
           <button

@@ -1,118 +1,175 @@
-import { useMemo } from "react";
-import { Ic } from "../../components/icons";
-import { useMyOrders } from "../../api/orders.ts";
-import { useNavigate } from "react-router-dom";
-import { APP_ROUTES } from "../../navigation/routes";
-
-function formatOrderDate(isoDate: string) {
-  const asDate = new Date(isoDate);
-  if (Number.isNaN(asDate.getTime())) {
-    return "Unknown date";
-  }
-
-  return asDate.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+import { useState, useEffect } from "react";
+import { useLocations } from "../../api/locations";
+import { useMenuCatalog } from "../../api/menu";
+import { Tokens } from "../../styles/tokens";
+import { ItemIcon } from "../../components/icons";
+import { ImageWithFallback } from "../../components/image-with-fallback";
+import {
+  getMenuItemImagePath,
+  getMenuItemFallbackPath,
+} from "../../utils/menu-item-images";
+import { useAppContext } from "../../api/context-providers/app-context";
+import "./orders.css";
 
 export function OrdersPage() {
-  const navigate = useNavigate();
-  const { orders, loading, unauthorized, error } = useMyOrders();
+  const { locations, loading: locLoading, error: locError } = useLocations();
+  const {
+    categories,
+    defaultCategory,
+    loading: menuLoading,
+    error: menuError,
+  } = useMenuCatalog();
+  const { setSel, setQty, setNote, selectedLocation, handleLocationChange } =
+    useAppContext();
+  const [menuCat, setMenuCat] = useState("");
 
-  const orderCards = useMemo(
-    () =>
-      orders.map((order) => ({
-        ...order,
-        itemsText: order.items
-          .map((item) => `${item.quantity}x ${item.name}`)
-          .join(", "),
-      })),
-    [orders],
-  );
+  useEffect(() => {
+    if (!categories.length) {
+      return;
+    }
+
+    const hasCurrentCategory = categories.some(
+      (category) => category.name === menuCat,
+    );
+    if (!menuCat || !hasCurrentCategory) {
+      setMenuCat(defaultCategory || categories[0].name);
+    }
+  }, [categories, defaultCategory, menuCat]);
+
+  const activeCategory =
+    categories.find((category) => category.name === menuCat) ?? categories[0];
+  const items = activeCategory?.items ?? [];
 
   return (
-    <div className="profile-page">
-      <section className="cart-header">
-        <p className="cart-kicker">Your Orders</p>
-        <h1 className="cart-title">Order History</h1>
+    <div className="orders-page">
+      <section className="orders-header">
+        <h1 className="orders-title">Order Online</h1>
       </section>
 
-      {loading ? (
-        <div className="card-base" style={{ padding: 24 }}>
-          Loading your orders...
-        </div>
-      ) : unauthorized ? (
-        <div className="card-base" style={{ padding: 24 }}>
-          <p className="profile-block-copy" style={{ marginBottom: 14 }}>
-            Please sign in to view your order history.
-          </p>
-          <button
-            onClick={() => navigate(APP_ROUTES.auth)}
-            className="btn-primary focus-ring btn-primary-base"
-          >
-            Sign In
-          </button>
-        </div>
-      ) : error ? (
-        <div className="card-base" style={{ padding: 24 }}>
-          {error}
-        </div>
-      ) : orderCards.length === 0 ? (
-        <div className="cart-empty-state">
-          <h2 className="cart-empty-title">No orders yet</h2>
-          <p className="cart-empty-copy">
-            Start with the menu and your orders will appear here.
-          </p>
-          <button
-            onClick={() => navigate(APP_ROUTES.menu)}
-            className="btn-primary focus-ring btn-primary-base"
-          >
-            Browse Menu
-          </button>
-        </div>
-      ) : (
-        <div className="profile-order-list">
-          {orderCards.map((order) => (
-            <div
-              key={order.id}
-              className="card-base card-hover profile-order-card"
-            >
-              <div className="profile-order-icon-wrap">
-                <Ic name="menu" size={22} color="#65a30d" />
-              </div>
-
-              <div className="profile-flex-1">
-                <div className="profile-order-head">
-                  <h4 className="profile-order-id">{order.orderCode}</h4>
-                  <span className="profile-order-date">
-                    {formatOrderDate(order.orderTime)}
-                  </span>
+      <div className="location-selection">
+        <h2 className="location-title">Select a Location</h2>
+        {locLoading ? (
+          <div className="card-base" style={{ padding: 24 }}>
+            Loading locations...
+          </div>
+        ) : locError ? (
+          <div className="card-base" style={{ padding: 24 }}>
+            {locError}
+          </div>
+        ) : (
+          <div className="location-grid">
+            {locations
+              .filter((loc) => loc.isActive)
+              .map((location) => (
+                <div
+                  key={location.id}
+                  onClick={() => handleLocationChange(location.id)}
+                  className={`card-base card-hover location-card ${selectedLocation === location.id ? "selected" : ""}`}
+                >
+                  <h3 className="location-name">{location.name}</h3>
+                  <p className="location-address">{location.address}</p>
+                  <p className="location-city">
+                    {location.city}, {location.state} {location.zip}
+                  </p>
+                  {location.phone && (
+                    <p className="location-phone">{location.phone}</p>
+                  )}
                 </div>
-                <p className="profile-order-items">{order.itemsText}</p>
-                <p className="profile-order-date" style={{ marginTop: 6 }}>
-                  {order.orderType} • {order.paymentStatus}
-                </p>
-                {order.receiptUrl && (
-                  <a
-                    href={order.receiptUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="profile-order-date"
-                    style={{ marginTop: 6, display: "inline-block" }}
-                  >
-                    View Receipt
-                  </a>
-                )}
+              ))}
+          </div>
+        )}
+      </div>
+
+      {selectedLocation && (
+        <div className="menu-section">
+          <h2 className="menu-section-title">Menu</h2>
+          <div className="menu-tabs">
+            {categories.map((category) => (
+              <button
+                key={category.id}
+                onClick={() => setMenuCat(category.name)}
+                className={`focus-ring menu-tab ${menuCat === category.name ? "menu-tab-active" : "menu-tab-inactive"}`}
+              >
+                {category.name}
+              </button>
+            ))}
+          </div>
+
+          {menuLoading ? (
+            <div
+              className="card-base"
+              style={{ padding: 24, color: Tokens.mocha }}
+            >
+              Loading menu...
+            </div>
+          ) : menuError ? (
+            <div
+              className="card-base"
+              style={{ padding: 24, color: Tokens.mocha }}
+            >
+              {menuError}
+            </div>
+          ) : items.length === 0 ? (
+            <div
+              className="card-base"
+              style={{ padding: 24, color: Tokens.mocha }}
+            >
+              No items are available in this category.
+            </div>
+          ) : (
+            <div className="menu-grid">
+              <div
+                onClick={() => {
+                  setSel(items[0]);
+                  setQty(1);
+                  setNote("");
+                }}
+                className="card-base card-hover menu-featured-card"
+              >
+                <ImageWithFallback
+                  src={getMenuItemImagePath(items[0].id, items[0].category)}
+                  fallbackSrc={getMenuItemFallbackPath(items[0].category)}
+                  alt={items[0].name}
+                  className="menu-featured-image"
+                />
+                <div className="menu-featured-content">
+                  <div className="menu-featured-head">
+                    <div>
+                      <h3 className="menu-featured-title">{items[0].name}</h3>
+                      <span className="menu-featured-price">
+                        ${items[0].price.toFixed(2)}
+                      </span>
+                    </div>
+                    <span className="menu-featured-badge">Featured</span>
+                  </div>
+                  <p className="menu-featured-desc">{items[0].desc}</p>
+                </div>
               </div>
 
-              <div className="profile-order-right">
-                <p className="profile-order-total">${order.total.toFixed(2)}</p>
-                <span className="profile-order-status">{order.status}</span>
-              </div>
+              {items.slice(1).map((item) => (
+                <div
+                  key={item.id}
+                  onClick={() => {
+                    setSel(item);
+                    setQty(1);
+                    setNote("");
+                  }}
+                  className="card-base card-hover menu-item-card"
+                >
+                  <ItemIcon cat={item.category} size={56} />
+                  <div className="menu-flex-1">
+                    <div className="menu-item-head">
+                      <h3 className="menu-item-title">{item.name}</h3>
+                      <span className="menu-item-price">
+                        ${item.price.toFixed(2)}
+                      </span>
+                    </div>
+                    <p className="menu-item-desc">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
     </div>

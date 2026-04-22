@@ -12,11 +12,7 @@ export function DashboardPage() {
   const { setSel, setQty, setNote } = useAppContext();
   const navigate = useNavigate();
   const { featuredItems, loading, error } = useMenuCatalog();
-
-  // All items for the 3D carousel
   const carouselItems = featuredItems;
-
-  // Strictly 4 items for the bottom grid (1 large + 3 small) to fill the empty space
   const popularItems = featuredItems.slice(0, 4);
 
   return (
@@ -32,9 +28,7 @@ export function DashboardPage() {
 
         <div className="hero-content">
           <div className="hero-text-content">
-            <h1 className="hero-title">
-              Bold brews to fuel the pride.
-            </h1>
+            <h1 className="hero-title">Bold brews to fuel the pride.</h1>
             <p className="hero-subtitle">
               Fresh coffee, crepes, and bagels, all made with love.
             </p>
@@ -56,7 +50,14 @@ export function DashboardPage() {
 
           <div className="hero-carousel-wrapper">
             {carouselItems.length > 0 && (
-              <FeaturedCarousel data={carouselItems} />
+              <FeaturedCarousel
+                data={carouselItems}
+                onAddToCart={(item) => {
+                  setSel(item);
+                  setQty(1);
+                  setNote("");
+                }}
+              />
             )}
           </div>
         </div>
@@ -163,7 +164,7 @@ export function DashboardPage() {
               >
                 <div className="secondary-media">
                   <ImageWithFallback
-                    src={index === 0 ? Tokens.crepeImg : Tokens.cafeImg}
+                    src={`/menu-pics/items/${index}.png`}
                     alt={item.name}
                     className="secondary-image"
                   />

@@ -31,20 +31,12 @@
   --palette-chart-3: #104e64;
   --palette-chart-4: #ffb900;
   --palette-chart-5: #fe9a00;
-  --palette-chart-1-dark: #1447e6;
-  --palette-chart-2-dark: #00bc7d;
-  --palette-chart-4-dark: #ad46ff;
-  --palette-chart-5-dark: #ff2056;
   --palette-shadow-rgb: 58, 46, 31;
   --palette-dialog-shadow-rgb: 29, 23, 21;
   --palette-white-rgb: 255, 255, 255;
   --palette-black-rgb: 0, 0, 0;
   --palette-caramel-rgb: 196, 168, 130;
   --palette-focus-ring-rgb: 74, 124, 89;
-  --palette-gold: #d4a017;
-  --palette-silver: #8b8b8b;
-  --palette-bronze: #cd7f32;
-  --palette-visa-blue: #1a1f71;
   --palette-error-50: #fff5f5;
   --palette-error-200: #fed7d7;
   --palette-error-500: #e53e3e;
@@ -125,28 +117,10 @@
     var(--background) 96%,
     var(--foreground)
   );
-  --switch-background: color-mix(
-    in srgb,
-    var(--foreground) 18%,
-    var(--background)
-  );
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   --ring: var(--palette-neutral-400);
-  --chart-1: var(--palette-chart-1);
-  --chart-2: var(--palette-chart-2);
-  --chart-3: var(--palette-chart-3);
-  --chart-4: var(--palette-chart-4);
-  --chart-5: var(--palette-chart-5);
   --radius: 0.625rem;
-  --sidebar: var(--palette-neutral-50);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--primary);
-  --sidebar-primary-foreground: var(--palette-neutral-50);
-  --sidebar-accent: var(--palette-neutral-100);
-  --sidebar-accent-foreground: var(--palette-neutral-900);
-  --sidebar-border: var(--palette-neutral-200);
-  --sidebar-ring: var(--ring);
 }
 
 .dark {
@@ -175,19 +149,6 @@
   --ring: var(--palette-neutral-700);
   --font-weight-medium: 500;
   --font-weight-normal: 400;
-  --chart-1: var(--palette-chart-1-dark);
-  --chart-2: var(--palette-chart-2-dark);
-  --chart-3: var(--palette-chart-5);
-  --chart-4: var(--palette-chart-4-dark);
-  --chart-5: var(--palette-chart-5-dark);
-  --sidebar: var(--palette-neutral-900);
-  --sidebar-foreground: var(--foreground);
-  --sidebar-primary: var(--palette-chart-1-dark);
-  --sidebar-primary-foreground: var(--foreground);
-  --sidebar-accent: var(--secondary);
-  --sidebar-accent-foreground: var(--foreground);
-  --sidebar-border: var(--secondary);
-  --sidebar-ring: var(--ring);
 }
 
 :root {
@@ -212,23 +173,10 @@
   --color-input-background: var(--input-background);
   --color-switch-background: var(--switch-background);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
   background: var(--background);
 }
 
@@ -277,48 +225,6 @@ body {
 
 html {
   font-size: var(--font-size);
-}
-
-h1 {
-  font-size: var(--text-2xl);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-h2 {
-  font-size: var(--text-xl);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-h3 {
-  font-size: var(--text-lg);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-h4 {
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-label {
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-button {
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.5;
-}
-
-input {
-  font-size: var(--text-base);
-  font-weight: var(--font-weight-normal);
-  line-height: 1.5;
 }
 
 .card-hover:hover {

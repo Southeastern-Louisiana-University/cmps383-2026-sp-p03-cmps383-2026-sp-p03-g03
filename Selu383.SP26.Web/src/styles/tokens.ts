@@ -33,16 +33,13 @@ export const Tokens = {
 
   heroImg:
     "https://images.unsplash.com/photo-1764175761007-ae6c79e802b9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcnRpc2FuJTIwY29mZmVlJTIwc2hvcCUyMGludGVyaW9yJTIwbW9vZHklMjB3YXJtJTIwbGlnaHRpbmd8ZW58MXx8fHwxNzc0MzM1OTc4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-  latteImg:
-    "https://images.unsplash.com/photo-1608363087711-9280f549a29e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxsYXR0ZSUyMGFydCUyMG92ZXJoZWFkJTIwY2xvc2V1cCUyMGNvZmZlZXxlbnwxfHx8fDE3NzQzMzU5Nzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  beansImg:
-    "https://images.unsplash.com/photo-1769437082791-8c9af44d7c28?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2ZmZWUlMjBiZWFucyUyMHJvYXN0ZWQlMjBkYXJrJTIwdGV4dHVyZXxlbnwxfHx8fDE3NzQzMzU5Nzl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+  latteImg: "/menu-pics/categories/hot-latte.png",
+  bagelImg: "/menu-pics/categories/bagels.png",
   cafeImg:
     "https://images.unsplash.com/photo-1745851446590-dbb4fe5b7f45?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb3p5JTIwY2FmZSUyMHRhYmxlJTIwcGFzdHJ5JTIwY29mZmVlJTIwd2FybXxlbnwxfHx8fDE3NzQzMzU5ODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  crepeImg:
-    "https://images.unsplash.com/photo-1635709579812-b3256d639756?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmcmVzaCUyMGNyZXBlJTIwZnJ1aXQlMjBicmVha2Zhc3QlMjBwbGF0ZXxlbnwxfHx8fDE3NzQzMzU5ODB8MA&ixlib=rb-4.1.0&q=80&w=1080",
-  icedImg:
-    "https://images.unsplash.com/photo-1773632996574-45b0d56ff809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpY2VkJTIwY29mZmVlJTIwZ2xhc3MlMjBzdW1tZXIlMjBkcmlua3xlbnwxfHx8fDE3NzQzMzU5ODN8MA&ixlib=rb-4.1.0&q=80&w=1080",
+  sweetCrepeImg: "/menu-pics/categories/sweet-crepes.png",
+  savoryCrepeImg: "/menu-pics/categories/savory-crepes.png",
+  icedImg: "/menu-pics/categories/iced-latte.png",
   dineImg:
     "https://images.unsplash.com/photo-1762806883627-4bcbfad98a2c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxyZXN0YXVyYW50JTIwaW50ZXJpb3IlMjB3YXJtJTIwd29vZGVuJTIwY296eSUyMGV2ZW5pbmd8ZW58MXx8fHwxNzc0MzM1OTgzfDA&ixlib=rb-4.1.0&q=80&w=1080",
 };
