@@ -11,7 +11,6 @@ namespace Selu383.SP26.Api.Data;
 public static class SeedHelper
 {
     private const string SeedLocationPhone = "555-555-5555";
-    private const string SeedLocationState = "LA";
     private const int BobTestPoints = 10000;
     private static readonly TimeOnly SeedOpeningTime = new(6, 0);
     private static readonly TimeOnly SeedClosingTime = new(18, 0);
@@ -193,13 +192,13 @@ public static class SeedHelper
         dataContext.Locations.AddRange(
             new Location
             {
-                Name = "Campus Coffee Shop",
+                Name = "Caffeinated Lions - Hammond",
                 Type = "Corporate",
                 Phone = SeedLocationPhone,
-                Address = "Student Union",
+                Address = "110 N Cate St",
                 City = "Hammond",
-                State = SeedLocationState,
-                Zip = "70402",
+                State = "LA",
+                Zip = "70403",
                 OpeningTime = SeedOpeningTime,
                 ClosingTime = SeedClosingTime,
                 IsActive = true,
@@ -207,13 +206,13 @@ public static class SeedHelper
             },
             new Location
             {
-                Name = "Library Cafe",
+                Name = "Caffeinated Lions - New York",
                 Type = "Corporate",
                 Phone = SeedLocationPhone,
-                Address = "Main Library",
-                City = "Baton Rouge",
-                State = SeedLocationState,
-                Zip = "70806",
+                Address = "72 E 1st St",
+                City = "New York",
+                State = "NY",
+                Zip = "10003",
                 OpeningTime = SeedOpeningTime,
                 ClosingTime = SeedClosingTime,
                 IsActive = true,
@@ -221,13 +220,13 @@ public static class SeedHelper
             },
             new Location
             {
-                Name = "Downtown Coffee Bar",
+                Name = "Caffeinated Lions - New Orleans",
                 Type = "Corporate",
                 Phone = SeedLocationPhone,
-                Address = "101 Market St",
-                City = "Denham Springs",
-                State = SeedLocationState,
-                Zip = "70706",
+                Address = "1140 S Carrollton Ave",
+                City = "New Orleans",
+                State = "LA",
+                Zip = "70118",
                 OpeningTime = SeedOpeningTime,
                 ClosingTime = SeedClosingTime,
                 IsActive = true,
@@ -257,9 +256,20 @@ public static class SeedHelper
         for (var i = 0; i < locations.Count && i < seededManagers.Length; i++)
         {
             var manager = seededManagers[i];
-            if (manager != null && locations[i].ManagerId != manager.Id)
+            if (manager == null)
+            {
+                continue;
+            }
+
+            if (locations[i].ManagerId != manager.Id)
             {
                 locations[i].ManagerId = manager.Id;
+                updated = true;
+            }
+
+            if (manager.LocationId != locations[i].Id)
+            {
+                manager.LocationId = locations[i].Id;
                 updated = true;
             }
         }
@@ -298,19 +308,52 @@ public static class SeedHelper
             updated = true;
         }
 
+        var targetName = position switch
+        {
+            1 => "Caffeinated Lions - Hammond",
+            2 => "Caffeinated Lions - New York",
+            _ => "Caffeinated Lions - New Orleans",
+        };
+
+        var targetAddress = position switch
+        {
+            1 => "110 N Cate St",
+            2 => "72 E 1st St",
+            _ => "1140 S Carrollton Ave",
+        };
+
         var targetCity = position switch
         {
             1 => "Hammond",
-            2 => "Baton Rouge",
-            _ => "Denham Springs",
+            2 => "New York",
+            _ => "New Orleans",
+        };
+
+        var targetState = position switch
+        {
+            1 => "LA",
+            2 => "NY",
+            _ => "LA",
         };
 
         var targetZip = position switch
         {
-            1 => "70402",
-            2 => "70806",
-            _ => "70706",
+            1 => "70403",
+            2 => "10003",
+            _ => "70118",
         };
+
+        if (location.Name != targetName)
+        {
+            location.Name = targetName;
+            updated = true;
+        }
+
+        if (location.Address != targetAddress)
+        {
+            location.Address = targetAddress;
+            updated = true;
+        }
 
         if (location.City != targetCity)
         {
@@ -318,9 +361,9 @@ public static class SeedHelper
             updated = true;
         }
 
-        if (location.State != SeedLocationState)
+        if (location.State != targetState)
         {
-            location.State = SeedLocationState;
+            location.State = targetState;
             updated = true;
         }
 
