@@ -22,6 +22,7 @@ public class DataContext : IdentityDbContext<User, Role, int, IdentityUserClaim<
     public DbSet<MenuCategory> MenuCategories { get; set; }
     public DbSet<MenuCategoryLocation> MenuCategoryLocations { get; set; }
     public DbSet<MenuItem> MenuItems { get; set; }
+    public DbSet<MenuItemLocationOverride> MenuItemLocationOverrides { get; set; }
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Receipt> Receipts { get; set; }

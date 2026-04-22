@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Locations;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Payments;
 using Stripe;
@@ -41,6 +42,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<ReceiptPdfService>();
 builder.Services.AddScoped<BlobStorageService>();
 builder.Services.AddScoped<StripePaymentService>();
+builder.Services.AddScoped<ILocationAccessService, LocationAccessService>();
 
 builder.Services.AddCors(options =>
 {
@@ -117,7 +119,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app
     .UseRouting()
