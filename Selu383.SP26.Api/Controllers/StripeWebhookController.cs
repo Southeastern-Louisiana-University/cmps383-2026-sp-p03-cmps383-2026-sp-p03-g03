@@ -40,7 +40,7 @@ public class StripeWebhookController : ControllerBase
         var json = await new StreamReader(Request.Body).ReadToEndAsync();
         var stripeSignature = Request.Headers["Stripe-Signature"];
 
-        _logger.LogInformation("[Webhook] Received event");
+        _logger.LogInformation("Received Stripe webhook event.");
 
         try
         {
@@ -48,29 +48,26 @@ public class StripeWebhookController : ControllerBase
 
             if (string.IsNullOrWhiteSpace(webhookSecret))
             {
-                _logger.LogWarning("[Webhook] Stripe webhook secret is missing");
+                _logger.LogWarning("Stripe webhook secret is missing.");
                 return BadRequest("Stripe webhook secret is missing.");
             }
 
             var stripeEvent = EventUtility.ConstructEvent(json, stripeSignature, webhookSecret);
-            _logger.LogInformation("[Webhook] Event type: {EventType}", stripeEvent.Type);
 
             if (stripeEvent.Type == "checkout.session.completed")
             {
                 var session = stripeEvent.Data.Object as Session;
                 if (session == null)
                 {
-                    _logger.LogWarning("[Webhook] Invalid Stripe checkout session");
+                    _logger.LogWarning("Invalid Stripe checkout session.");
                     return BadRequest("Invalid Stripe checkout session.");
                 }
 
                 if (!TryResolveOrderId(session, out var orderId))
                 {
-                    _logger.LogWarning("[Webhook] Could not resolve orderId from metadata or client_reference_id");
+                    _logger.LogWarning("Could not resolve order ID from webhook payload.");
                     return Ok();
                 }
-
-                _logger.LogInformation("[Webhook] Processing payment for order {OrderId}", orderId);
 
                 var order = await _context.Orders
                     .Include(o => o.OrderItems)
@@ -82,19 +79,15 @@ public class StripeWebhookController : ControllerBase
 
                 if (order == null)
                 {
-                    _logger.LogInformation("[Webhook] Order {OrderId} not found in this environment; event may belong to a different database/app instance", orderId);
+                    _logger.LogWarning("Order {OrderId} was not found for the webhook event.", orderId);
                     return Ok();
                 }
-
-                _logger.LogInformation("[Webhook] Order found. Current status: {Status}, Current payment status: {PaymentStatus}", 
-                    order.Status, order.PaymentStatus);
 
                 var transactionId = session.PaymentIntentId ?? session.Id;
                 var existingPayment = order.Payments.FirstOrDefault(p => p.TransactionId == transactionId);
 
                 if (existingPayment == null)
                 {
-                    _logger.LogInformation("[Webhook] Creating new Payment record for order {OrderId}", orderId);
                     order.Payments.Add(new Payment
                     {
                         OrderId = order.Id,
@@ -108,23 +101,18 @@ public class StripeWebhookController : ControllerBase
                 }
                 else
                 {
-                    _logger.LogInformation("[Webhook] Updating existing Payment for order {OrderId}", orderId);
                     existingPayment.Status = PaymentStatuses.Paid;
                 }
 
                 var wasAlreadyPaid = order.PaymentStatus == PaymentStatuses.Paid;
 
                 order.PaymentStatus = PaymentStatuses.Paid;
-                order.Status = OrderStatuses.Confirmed;
-                _logger.LogInformation("[Webhook] Order status updated to {Status}, payment status to {PaymentStatus}", 
-                    order.Status, order.PaymentStatus);
 
                 if (!wasAlreadyPaid && order.CreatedByUser != null && !string.Equals(order.OrderType, OrderTypes.CoverCharge, StringComparison.OrdinalIgnoreCase))
                 {
                     var isFirstWeekCustomer = order.CreatedByUser.CreatedAt >= DateTime.UtcNow.AddDays(-7);
                     var pointsRate = isFirstWeekCustomer ? 20 : 10;
                     var pointsEarned = (int)Math.Round(order.Total * pointsRate);
-                    _logger.LogInformation("[Webhook] Adding {Points} loyalty points to user {UserId} (first week bonus: {FirstWeekBonus})", pointsEarned, order.CreatedByUser.Id, isFirstWeekCustomer);
 
                     var loyaltyExists = await _context.Set<LoyaltyLedger>()
                         .AnyAsync(x => x.OrderId == order.Id);
@@ -144,11 +132,9 @@ public class StripeWebhookController : ControllerBase
                     }
                 }
 
-                // Save the payment/order state FIRST so webhook success does not depend on receipt upload
                 await _context.SaveChangesAsync();
-                _logger.LogInformation("[Webhook] Changes saved to database");
+                _logger.LogInformation("Recorded payment for order {OrderId}.", order.Id);
 
-                // Receipt generation is best-effort only
                 if (order.Receipt == null)
                 {
                     try
@@ -168,7 +154,7 @@ public class StripeWebhookController : ControllerBase
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "[Webhook] Receipt generation/upload failed for order {OrderId}", order.Id);
+                        _logger.LogError(ex, "Receipt generation or upload failed for order {OrderId}.", order.Id);
                     }
                 }
             }
@@ -177,10 +163,12 @@ public class StripeWebhookController : ControllerBase
         }
         catch (StripeException ex)
         {
+            _logger.LogWarning(ex, "Stripe webhook validation failed.");
             return BadRequest($"Stripe webhook error: {ex.Message}");
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Unhandled webhook processing error.");
             return BadRequest($"Webhook error: {ex.Message}");
         }
     }

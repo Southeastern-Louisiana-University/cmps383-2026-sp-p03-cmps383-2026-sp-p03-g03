@@ -19,4 +19,6 @@ public class MenuItem
     public DateTime? DisabledAt { get; set; }
     public int? DisabledByUserId { get; set; }
     public virtual User? DisabledByUser { get; set; }
+
+    public virtual ICollection<MenuItemLocationOverride> LocationOverrides { get; set; } = new List<MenuItemLocationOverride>();
 }

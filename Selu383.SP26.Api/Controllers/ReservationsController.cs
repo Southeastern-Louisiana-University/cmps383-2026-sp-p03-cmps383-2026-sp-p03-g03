@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Locations;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Payments;
 using Selu383.SP26.Api.Features.Reservations;
@@ -20,11 +21,16 @@ public class ReservationsController : ControllerBase
 
     private readonly DataContext _context;
     private readonly StripePaymentService _stripePaymentService;
+    private readonly ILocationAccessService _locationAccessService;
 
-    public ReservationsController(DataContext context, StripePaymentService stripePaymentService)
+    public ReservationsController(
+        DataContext context,
+        StripePaymentService stripePaymentService,
+        ILocationAccessService locationAccessService)
     {
         _context = context;
         _stripePaymentService = stripePaymentService;
+        _locationAccessService = locationAccessService;
     }
 
     [HttpGet("my")]
@@ -93,6 +99,9 @@ public class ReservationsController : ControllerBase
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
     public async Task<ActionResult<List<ReservationDto>>> GetByLocation(int locationId)
     {
+        if (!await _locationAccessService.CanAccessLocationAsync(User, locationId))
+            return Forbid();
+
         var reservations = await _context.Reservations
             .Where(x => x.LocationId == locationId)
             .OrderBy(x => x.ReservedFor)
@@ -225,6 +234,12 @@ public class ReservationsController : ControllerBase
         if (reservation == null)
             return NotFound();
 
+        if (!await _locationAccessService.CanAccessLocationAsync(User, reservation.LocationId))
+            return Forbid();
+
+        if (!await _locationAccessService.CanAccessLocationAsync(User, dto.LocationId))
+            return Forbid();
+
         var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize, id);
         if (validationMessage != null)
             return BadRequest(validationMessage);
@@ -266,6 +281,9 @@ public class ReservationsController : ControllerBase
 
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
         if (!isPrivileged && reservation.UserId != userId.Value)
+            return Forbid();
+
+        if (isPrivileged && !await _locationAccessService.CanAccessLocationAsync(User, reservation.LocationId))
             return Forbid();
 
         if (reservation.ReservedFor < DateTime.UtcNow)
