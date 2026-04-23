@@ -1,0 +1,89 @@
+.orders-page {
+  display: block;
+}
+
+.orders-header {
+  margin-bottom: 24px;
+}
+
+.orders-title {
+  font-family: var(--font-display);
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0 0 12px;
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+}
+
+.location-selection {
+  margin-bottom: 24px;
+}
+
+.location-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0 0 24px;
+  line-height: 1.15;
+}
+
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.location-card {
+  cursor: pointer;
+  padding: 24px;
+  transition: border-color 0.2s;
+}
+
+.location-card.selected {
+  border-color: var(--green);
+  background: var(--bg-green-muted);
+}
+
+.location-name {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0 0 8px;
+}
+
+.location-address {
+  font-family: var(--font-body);
+  font-size: 16px;
+  color: var(--mocha);
+  margin: 0 0 4px;
+}
+
+.location-city {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--mocha);
+  margin: 0 0 4px;
+}
+
+.location-phone {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--mocha);
+  margin: 0;
+}
+
+.menu-section {
+  margin-top: 48px;
+}
+
+.menu-section-title {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--dark-brew);
+  margin: 0 0 24px;
+  line-height: 1.15;
+}

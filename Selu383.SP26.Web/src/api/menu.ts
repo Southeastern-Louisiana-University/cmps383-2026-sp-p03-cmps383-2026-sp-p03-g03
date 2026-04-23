@@ -28,13 +28,19 @@ function compareCategoryNames(left: string, right: string) {
   return left.localeCompare(right);
 }
 
-function toMenuItem(item: ApiMenuItemDto, categoryName: string): MenuItem {
+function toMenuItem(
+  item: ApiMenuItemDto,
+  categoryName: string,
+  categoryIconPath?: string,
+): MenuItem {
   return {
     id: item.id,
     name: item.name,
     price: Number(item.basePrice),
     desc: item.description?.trim() || "Freshly prepared to order.",
     category: categoryName,
+    imagePath: item.imagePath,
+    categoryIconPath,
   };
 }
 
@@ -70,6 +76,10 @@ export function useMenuCatalog() {
       activeCategories.map((category) => [category.id, category.name]),
     );
 
+    const categoryIcons = new Map(
+      activeCategories.map((category) => [category.id, category.iconPath]),
+    );
+
     // Group items
     const itemsByCategoryId = new Map<number, MenuItem[]>();
     for (const item of itemDtos) {
@@ -82,8 +92,9 @@ export function useMenuCatalog() {
         continue;
       }
 
+      const categoryIconPath = categoryIcons.get(item.categoryId);
       const categoryItems = itemsByCategoryId.get(item.categoryId) ?? [];
-      categoryItems.push(toMenuItem(item, categoryName));
+      categoryItems.push(toMenuItem(item, categoryName, categoryIconPath));
       itemsByCategoryId.set(item.categoryId, categoryItems);
     }
 
@@ -92,6 +103,7 @@ export function useMenuCatalog() {
       .map((category) => ({
         id: category.id,
         name: category.name,
+        iconPath: category.iconPath,
         isSeasonal: category.isSeasonal,
         isActive: category.isActive,
         items: (itemsByCategoryId.get(category.id) ?? []).sort((left, right) =>

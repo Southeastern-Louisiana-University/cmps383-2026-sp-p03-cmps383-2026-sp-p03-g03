@@ -3,13 +3,14 @@ import { Tokens, LOGO } from "../../styles/tokens";
 import { Ic } from "../../components/icons";
 import { useAppContext } from "../../api/context-providers/app-context";
 import { ImageWithFallback } from "../../components/image-with-fallback";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../../navigation/routes";
 import "./auth.css";
 
 export function AuthPage() {
   const { login, signup } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [name, setName] = useState("");
   const [credential, setCredential] = useState("");
@@ -18,7 +19,7 @@ export function AuthPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -29,7 +30,11 @@ export function AuthPage() {
         : await signup(name, credential, password);
 
     if (!result.ok) setError(result.error || "Something went wrong.");
-    if (result.ok) navigate(APP_ROUTES.home);
+    if (result.ok) {
+      const state = location.state as { from?: string } | null;
+      const destination = state?.from ?? APP_ROUTES.orders;
+      navigate(destination, { replace: true });
+    }
     setLoading(false);
   };
 
@@ -55,45 +60,28 @@ export function AuthPage() {
         <div className="auth-hero-content">
           <img src={LOGO} alt="" className="auth-hero-logo" />
           <h1 className="auth-hero-title">
-            {mode === "login" ? "Welcome\nback." : "Join the\npride."}
+            {mode === "login" ? "Welcome back." : "Join the pride."}
           </h1>
           <p className="auth-hero-subtitle">
             {mode === "login"
               ? "Sign in to earn rewards, reorder your favorites, and skip the line."
               : "Create an account to start earning points on every order and unlock exclusive perks."}
           </p>
-
-          <div className="auth-stats">
-            {[
-              { n: "10K+", l: "Happy customers" },
-              { n: "50K+", l: "Drinks served" },
-              { n: "4.9", l: "Average rating" },
-            ].map((s) => (
-              <div key={s.l}>
-                <p className="auth-stat-number">{s.n}</p>
-                <p className="auth-stat-label">{s.l}</p>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
 
       <div className="auth-form-pane">
         <div className="auth-form-shell">
-          <div className="auth-form-header">
-            <p className="auth-kicker">
-              {mode === "login" ? "Sign In" : "Create Account"}
-            </p>
+          <div>
             <h2 className="auth-heading">
-              {mode === "login"
-                ? "Sign in to your account"
-                : "Create your account"}
+              {mode === "login" ? "Sign in" : "Create your account"}
             </h2>
             <p className="auth-copy">
               {mode === "login"
                 ? "Enter your credentials below to continue."
                 : "Fill in the details below to get started."}
             </p>
+            <br></br>
           </div>
 
           {error && (
@@ -105,7 +93,7 @@ export function AuthPage() {
 
           <form onSubmit={handleSubmit}>
             {mode === "signup" && (
-              <div className="auth-field-block">
+              <div>
                 <label className="label-base">Full Name</label>
                 <div className="auth-input-wrap">
                   <div className="auth-input-icon">
@@ -116,13 +104,14 @@ export function AuthPage() {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your full name"
-                    className="input-base auth-input-with-left-icon"
+                    className="input-base auth-input"
                   />
                 </div>
+                <br></br>
               </div>
             )}
 
-            <div className="auth-field-block">
+            <div>
               <label className="label-base">
                 {mode === "login" ? "Username" : "Email Address"}
               </label>
@@ -138,12 +127,13 @@ export function AuthPage() {
                     mode === "login" ? "Your username" : "you@email.com"
                   }
                   autoComplete={mode === "login" ? "username" : "email"}
-                  className="input-base auth-input-with-left-icon"
+                  className="input-base auth-input"
                 />
               </div>
+              <br></br>
             </div>
 
-            <div className="auth-password-block">
+            <div>
               <label className="label-base">Password</label>
               <div className="auth-input-wrap">
                 <div className="auth-input-icon">
@@ -158,7 +148,7 @@ export function AuthPage() {
                       ? "At least 6 characters"
                       : "Your password"
                   }
-                  className="input-base auth-input-with-both-icons"
+                  className="input-base auth-input"
                 />
                 <button
                   type="button"
@@ -178,17 +168,8 @@ export function AuthPage() {
                 </button>
               )}
             </div>
-
-            {mode === "login" && (
-              <div className="auth-demo-box">
-                <p className="auth-demo-title">Demo login</p>
-                <p className="auth-demo-copy">
-                  Username: <strong>bob</strong> &nbsp;·&nbsp; Password:{" "}
-                  <strong>password123</strong>
-                </p>
-              </div>
-            )}
-
+            <br></br>
+            <br></br>
             <button
               type="submit"
               disabled={loading}
