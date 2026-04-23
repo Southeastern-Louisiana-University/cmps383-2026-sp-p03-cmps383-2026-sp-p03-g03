@@ -8,7 +8,7 @@ export function HapticTab(props: BottomTabBarButtonProps) {
       {...props}
       onPressIn={(ev) => {
         if (process.env.EXPO_OS === 'ios') {
-          // Add a soft haptic feedback when pressing down on the tabs.
+          // iOS only — light tap feel on tab press
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
         props.onPressIn?.(ev);

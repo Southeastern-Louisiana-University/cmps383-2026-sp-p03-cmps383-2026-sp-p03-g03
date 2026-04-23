@@ -6,18 +6,23 @@ import { ThemedText } from '@/components/themed-text';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { getColors } from '@/constants/styles';
 import { useAuth } from '@/hooks/useAuth';
+import { getUserPermissions } from '@/utils/role-helpers';
 
 type PageHeaderActionsProps = {
   showHome?: boolean;
   showLogout?: boolean;
+  showPortal?: boolean;
+  inline?: boolean;
 };
 
-export function PageHeaderActions({ showHome = true, showLogout = false }: PageHeaderActionsProps) {
+export function PageHeaderActions({ showHome = true, showLogout = false, showPortal = false, inline = false }: PageHeaderActionsProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+
+  const { isPrivileged } = getUserPermissions(user?.roles);
 
   const performLogout = async () => {
     try {
@@ -44,7 +49,7 @@ export function PageHeaderActions({ showHome = true, showLogout = false }: PageH
   };
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, inline && styles.rowInline]}>
       {showHome ? (
         <TouchableOpacity
           style={[styles.actionButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
@@ -53,6 +58,17 @@ export function PageHeaderActions({ showHome = true, showLogout = false }: PageH
         >
           <MaterialIcons name="home" size={16} color={colors.text} style={styles.actionIcon} />
           <ThemedText style={styles.actionText}>Home</ThemedText>
+        </TouchableOpacity>
+      ) : null}
+
+      {showPortal && isPrivileged ? (
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.cardBackground, borderColor: colors.border, marginLeft: 8 }]}
+          onPress={() => router.push('/(tabs)/portal' as any)}
+          activeOpacity={0.8}
+        >
+          <MaterialIcons name="dashboard" size={16} color={colors.text} style={styles.actionIcon} />
+          <ThemedText style={styles.actionText}>Portal</ThemedText>
         </TouchableOpacity>
       ) : null}
 
@@ -91,10 +107,16 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   actionText: {
-    fontFamily: 'Corben_700Bold',
+    fontFamily: 'Inter_700Bold',
     fontSize: 13,
   },
   spacer: {
     flex: 1,
+  },
+  rowInline: {
+    width: undefined,
+    marginBottom: 0,
+    flex: 0,
+    flexShrink: 1,
   },
 });
