@@ -47,13 +47,20 @@ function AppLayout() {
 
 function ProtectedProfileRoute() {
   const { isLoggedIn, authReady } = useAppContext();
+  const location = useLocation();
 
   if (!authReady) {
     return null;
   }
 
   if (!isLoggedIn) {
-    return <Navigate to={APP_ROUTES.auth} replace />;
+    return (
+      <Navigate
+        to={APP_ROUTES.auth}
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   }
 
   return <ProfilePage />;
@@ -61,13 +68,20 @@ function ProtectedProfileRoute() {
 
 function ProtectedOrdersRoute() {
   const { isLoggedIn, authReady } = useAppContext();
+  const location = useLocation();
 
   if (!authReady) {
     return null;
   }
 
   if (!isLoggedIn) {
-    return <Navigate to={APP_ROUTES.auth} replace />;
+    return (
+      <Navigate
+        to={APP_ROUTES.auth}
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   }
 
   return <OrdersPage />;

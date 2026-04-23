@@ -448,24 +448,28 @@ public static class SeedHelper
             new MenuCategory
             {
                 Name = "Drinks",
+                IconPath = "/menu-pics/icons/drinks.png",
                 IsSeasonal = false,
                 IsActive = true
             },
             new MenuCategory
             {
                 Name = "Crepes - Sweet",
+                IconPath = "/menu-pics/icons/crepes-sweet.png",
                 IsSeasonal = false,
                 IsActive = true
             },
             new MenuCategory
             {
                 Name = "Crepes - Savory",
+                IconPath = "/menu-pics/icons/crepes-savory.png",
                 IsSeasonal = false,
                 IsActive = true
             },
             new MenuCategory
             {
                 Name = "Bagels",
+                IconPath = "/menu-pics/icons/bagels.png",
                 IsSeasonal = false,
                 IsActive = true
             }

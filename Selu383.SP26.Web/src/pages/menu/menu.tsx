@@ -6,7 +6,7 @@ import { useMenuCatalog } from "../../api/menu.ts";
 import {
   getMenuItemImagePath,
   getMenuItemFallbackPath,
-} from "../../utils/menu-item-images";
+} from "../../api/menu-item-images.ts";
 import "./menu.css";
 
 const catImages: Record<string, string> = {
@@ -20,6 +20,9 @@ export function MenuPage() {
   const { setSel, setQty, setNote } = useAppContext();
   const { categories, defaultCategory, loading, error } = useMenuCatalog();
   const [menuCat, setMenuCat] = useState("");
+  const activeCategory =
+    categories.find((category) => category.name === menuCat) ?? categories[0];
+  const items = activeCategory?.items ?? [];
 
   useEffect(() => {
     if (!categories.length) {
@@ -32,11 +35,7 @@ export function MenuPage() {
     if (!menuCat || !hasCurrentCategory) {
       setMenuCat(defaultCategory || categories[0].name);
     }
-  }, [categories, defaultCategory, menuCat]);
-
-  const activeCategory =
-    categories.find((category) => category.name === menuCat) ?? categories[0];
-  const items = activeCategory?.items ?? [];
+  }, [categories, defaultCategory, menuCat, activeCategory]);
 
   return (
     <div className="menu-page">
@@ -58,7 +57,11 @@ export function MenuPage() {
 
       <div className="menu-banner">
         <ImageWithFallback
-          src={catImages[activeCategory?.name ?? "Drinks"] ?? Tokens.icedImg}
+          src={
+            activeCategory?.iconPath ||
+            catImages[activeCategory?.name ?? "Drinks"] ||
+            Tokens.icedImg
+          }
           alt={activeCategory?.name ?? "Menu"}
           className="menu-banner-image"
         />
@@ -95,8 +98,18 @@ export function MenuPage() {
             className="card-base card-hover menu-featured-card"
           >
             <ImageWithFallback
-              src={getMenuItemImagePath(items[0].id, items[0].category)}
-              fallbackSrc={getMenuItemFallbackPath(items[0].category)}
+              src={(() => {
+                const foo = getMenuItemImagePath( // for debugging purposes, to see the generated path in the console
+                  items[0].name,
+                  items[0].imagePath,
+                );
+                console.log("Generated image path for featured item:", foo);
+                return foo;
+              })()}
+              fallbackSrc={getMenuItemFallbackPath(
+                items[0].category,
+                activeCategory?.iconPath,
+              )}
               alt={items[0].name}
               className="menu-featured-image"
             />
@@ -125,8 +138,11 @@ export function MenuPage() {
               className="card-base card-hover menu-item-card"
             >
               <ImageWithFallback
-                src={getMenuItemImagePath(item.id, item.category)}
-                fallbackSrc={getMenuItemFallbackPath(item.category)}
+                src={getMenuItemImagePath(item.name, item.imagePath)}
+                fallbackSrc={getMenuItemFallbackPath(
+                  item.category,
+                  activeCategory?.iconPath,
+                )}
                 alt={item.name}
                 className="menu-item-image"
               />

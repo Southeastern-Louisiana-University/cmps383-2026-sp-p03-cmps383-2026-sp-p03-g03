@@ -11,9 +11,8 @@ import FeaturedCarousel from "../../components/featured-carousel.tsx";
 export function DashboardPage() {
   const { setSel, setQty, setNote } = useAppContext();
   const navigate = useNavigate();
-  const { featuredItems, loading, error } = useMenuCatalog();
+  const { featuredItems } = useMenuCatalog();
   const carouselItems = featuredItems;
-  const popularItems = featuredItems.slice(0, 4);
 
   return (
     <div className="dashboard-page">
@@ -94,98 +93,44 @@ export function DashboardPage() {
         ))}
       </section>
 
-      <section className="popular-section">
-        <div className="popular-header">
-          <h2 className="section-title">Popular Right Now</h2>
-        </div>
-
-        {loading ? (
-          <div
-            className="card-base"
-            style={{ padding: 24, color: Tokens.mocha }}
-          >
-            Loading menu highlights...
-          </div>
-        ) : error ? (
-          <div
-            className="card-base"
-            style={{ padding: 24, color: Tokens.mocha }}
-          >
-            {error}
-          </div>
-        ) : popularItems.length === 0 ? (
-          <div
-            className="card-base"
-            style={{ padding: 24, color: Tokens.mocha }}
-          >
-            No menu items are available yet.
-          </div>
-        ) : (
-          <div className="popular-grid">
-            <div
-              onClick={() => {
-                setSel(popularItems[0]);
-                setQty(1);
-                setNote("");
-              }}
-              className="card-base card-hover img-zoom featured-card"
-            >
-              <div className="featured-media">
-                <ImageWithFallback
-                  src={Tokens.icedImg}
-                  alt={popularItems[0].name}
-                  className="featured-image"
-                />
-                <div className="featured-overlay" />
-                <span className="staff-pick">Staff Pick</span>
-              </div>
-              <div className="featured-content">
-                <p className="item-kicker">{popularItems[0].category}</p>
-                <h3 className="featured-title">{popularItems[0].name}</h3>
-                <p className="featured-desc">{popularItems[0].desc}</p>
-                <div className="item-footer">
-                  <span className="featured-price">
-                    ${popularItems[0].price.toFixed(2)}
-                  </span>
-                  <span className="item-cta">View →</span>
-                </div>
-              </div>
-            </div>
-
-            {popularItems.slice(1).map((item, index) => (
-              <div
-                key={item.id}
-                onClick={() => {
-                  setSel(item);
-                  setQty(1);
-                  setNote("");
-                }}
-                className="card-base card-hover secondary-card"
-              >
-                <div className="secondary-media">
-                  <ImageWithFallback
-                    src={`/menu-pics/items/${index}.png`}
-                    alt={item.name}
-                    className="secondary-image"
-                  />
-                </div>
-                <div className="secondary-content">
-                  <p className="item-kicker item-kicker-tight">
-                    {item.category}
-                  </p>
-                  <h3 className="secondary-title">{item.name}</h3>
-                  <p className="secondary-desc">{item.desc}</p>
-                  <div className="item-footer">
-                    <span className="secondary-price">
-                      ${item.price.toFixed(2)}
-                    </span>
-                    <span className="item-cta">View →</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      <section className="landing-info">
+        <h2 className="section-title">
+          Filler Text
+        </h2>
+        <br />
+        <p className="landing-info-desc">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec vel
+          sapien eget ipsum efficitur tincidunt. Sed at nunc a enim commodo
+          efficitur. Curabitur ac odio id ligula consectetur convallis. In hac
+          habitasse platea dictumst. Proin ut dui sed metus pharetra hendrerit.
+          Maecenas at nisl nec justo efficitur varius. Nulla facilisi. Donec in
+          consectetur metus, a efficitur nisl. Suspendisse potenti. Phasellus
+          eget sapien sed lectus fermentum convallis. Vestibulum ante ipsum
+          primis in faucibus orci luctus et ultrices posuere cubilia curae;
+          Donec ut ex a metus efficitur tincidunt. Sed at nunc a enim commodo
+          efficitur. Curabitur ac odio id ligula consectetur convallis. In hac
+          habitasse platea dictumst. Proin ut dui sed metus pharetra hendrerit.
+          Maecenas at nisl nec justo efficitur varius. Nulla facilisi. Donec in
+          consectetur metus, a efficitur nisl. Suspendisse potenti. <br />
+          <br />
+          Phasellus eget sapien sed lectus fermentum convallis. Vestibulum ante
+          ipsum primis in faucibus orci luctus et ultrices posuere cubilia
+          curae; Donec ut ex a metus efficitur tincidunt. Sed at nunc a enim
+          commodo efficitur. Curabitur ac odio id ligula consectetur convallis.
+          In hac habitasse platea dictumst. Proin ut dui sed metus pharetra
+          hendrerit. Maecenas at nisl nec justo efficitur varius. Nulla
+          facilisi. Donec in consectetur metus, a efficitur nisl. Suspendisse
+          potenti. Phasellus eget sapien sed lectus fermentum convallis.
+          Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+          posuere cubilia curae; Donec ut ex a metus efficitur tincidunt. Sed at
+          nunc a enim commodo efficitur. Curabitur ac odio id ligula consectetur
+          convallis. In hac habitasse platea dictumst. Proin ut dui sed metus
+          pharetra hendrerit. Maecenas at nisl nec justo efficitur varius. Nulla
+          facilisi. Donec in consectetur metus, a efficitur nisl. Suspendisse
+          potenti. Phasellus eget sapien sed lectus fermentum convallis.
+          Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+          posuere cubilia curae;
+        </p>
       </section>
     </div>
   );

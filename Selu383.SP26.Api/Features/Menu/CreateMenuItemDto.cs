@@ -14,6 +14,9 @@ public class CreateMenuItemDto
     [MaxLength(500)]
     public string? Description { get; set; }
 
+    [MaxLength(500)]
+    public string? ImagePath { get; set; }
+
     [Required]
     [Range(0.01, 1000)]
     public decimal BasePrice { get; set; }
@@ -29,6 +32,9 @@ public class UpdateMenuItemDto
 
     [MaxLength(500)]
     public string? Description { get; set; }
+
+    [MaxLength(500)]
+    public string? ImagePath { get; set; }
 
     [Required]
     [Range(0.01, 1000)]

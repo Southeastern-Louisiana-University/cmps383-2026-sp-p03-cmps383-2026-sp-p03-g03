@@ -40,8 +40,8 @@
 }
 
 .auth-hero-logo {
-  width: 72px;
-  height: 72px;
+  width: 320px;
+  height: 320px;
   object-fit: contain;
   margin-bottom: 32px;
 }
@@ -62,29 +62,8 @@
   font-size: 18px;
   color: rgba(var(--palette-white-rgb), 0.65);
   margin: 0 0 48px;
-  max-width: 360px;
+  max-width: 420px;
   line-height: 1.6;
-}
-
-.auth-stats {
-  display: flex;
-  gap: 32px;
-}
-
-.auth-stat-number {
-  font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 700;
-  color: var(--white);
-  margin: 0 0 2px;
-  line-height: 1;
-}
-
-.auth-stat-label {
-  font-family: var(--font-body);
-  font-size: 13px;
-  color: var(--caramel);
-  margin: 0;
 }
 
 .auth-form-pane {
@@ -98,20 +77,6 @@
 .auth-form-shell {
   width: 100%;
   max-width: 420px;
-}
-
-.auth-form-header {
-  margin-bottom: 40px;
-}
-
-.auth-kicker {
-  font-family: var(--font-body);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--green);
-  margin: 0 0 8px;
 }
 
 .auth-heading {
@@ -148,10 +113,6 @@
   color: var(--palette-error-700);
 }
 
-.auth-field-block {
-  margin-bottom: 20px;
-}
-
 .auth-input-wrap {
   position: relative;
 }
@@ -163,11 +124,7 @@
   transform: translateY(-50%);
 }
 
-.auth-input-with-left-icon {
-  padding-left: 42px;
-}
-
-.auth-input-with-both-icons {
+.auth-input {
   padding-left: 42px;
   padding-right: 44px;
 }
@@ -182,10 +139,6 @@
   cursor: pointer;
   padding: 6px;
   border-radius: 6px;
-}
-
-.auth-password-block {
-  margin-bottom: 28px;
 }
 
 .auth-forgot-button {

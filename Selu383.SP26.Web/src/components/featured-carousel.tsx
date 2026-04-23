@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { MenuItem } from "../api/dto-interfaces";
-import { Tokens } from "../styles/tokens.ts";
 import { ImageWithFallback } from "./image-with-fallback.tsx";
 import {
   getMenuItemImagePath,
   getMenuItemFallbackPath,
-} from "../utils/menu-item-images";
+} from "../api/menu-item-images.ts";
 import "./featured-carousel.css";
 
 const bgColors = ["#4A3B32", "#2A3C24", "#6B4423", "#382E29"];
@@ -145,8 +144,11 @@ const SliderContent = ({
     <div className="sliderContent">
       <div className="slide-media">
         <ImageWithFallback
-          src={getMenuItemImagePath(item.id, item.category)}
-          fallbackSrc={getMenuItemFallbackPath(item.category)}
+          src={getMenuItemImagePath(item.name, item.imagePath)}
+          fallbackSrc={getMenuItemFallbackPath(
+            item.category,
+            item.categoryIconPath,
+          )}
           alt={item.name}
           className="slide-image"
         />

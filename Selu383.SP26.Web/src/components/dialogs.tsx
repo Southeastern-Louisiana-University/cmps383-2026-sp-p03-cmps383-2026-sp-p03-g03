@@ -1,9 +1,14 @@
 import { Tokens, card, btnP, lbl, inp } from "../styles/tokens";
-import { Ic, ItemIcon } from "./icons";
+import { Ic } from "./icons";
 import { Dialog } from "./dialog";
 import { useAppContext } from "../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../navigation/routes";
+import {
+  getMenuItemFallbackPath,
+  getMenuItemImagePath,
+} from "../api/menu-item-images";
+import { ImageWithFallback } from "./image-with-fallback";
 
 export function ItemDialog() {
   const navigate = useNavigate();
@@ -19,54 +24,18 @@ export function ItemDialog() {
   } = useAppContext();
 
   return (
-    <Dialog open={!!sel} onClose={() => setSel(null)} width={720}>
+    <Dialog open={!!sel} onClose={() => setSel(null)} width={1000}>
       {sel && (
-        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr" }}>
-          <div
-            style={{
-              background: Tokens.cream,
-              padding: "48px 32px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: `${Tokens.rLg} 0 0 ${Tokens.rLg}`,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: 20,
-                left: 20,
-                fontFamily: Tokens.font,
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "1.5px",
-                textTransform: "uppercase",
-                color: Tokens.mocha,
-              }}
-            >
-              {sel.category}
-            </span>
-
-            <ItemIcon cat={sel.category} size={120} />
-
-            <div style={{ marginTop: 32, textAlign: "center" }}>
-              <span
-                style={{
-                  fontFamily: Tokens.fontDisplay,
-                  fontSize: 36,
-                  fontWeight: 700,
-                  color: Tokens.darkBrew,
-                }}
-              >
-                ${sel.price.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
+        <div style={{ display: "grid", gridTemplateColumns: "320px 1fr" }}>
+          <ImageWithFallback
+            src={getMenuItemImagePath(sel.name, sel.imagePath)}
+            fallbackSrc={getMenuItemFallbackPath(
+              sel.category,
+              sel.categoryIconPath,
+            )}
+            alt={sel.name}
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />
           <div style={{ padding: "40px 36px 36px" }}>
             <h2
               style={{

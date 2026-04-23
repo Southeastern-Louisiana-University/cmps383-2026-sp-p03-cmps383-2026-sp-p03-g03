@@ -2,12 +2,11 @@ import { useState, useEffect } from "react";
 import { useLocations } from "../../api/locations";
 import { useMenuCatalog } from "../../api/menu";
 import { Tokens } from "../../styles/tokens";
-import { ItemIcon } from "../../components/icons";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import {
   getMenuItemImagePath,
   getMenuItemFallbackPath,
-} from "../../utils/menu-item-images";
+} from "../../api/menu-item-images";
 import { useAppContext } from "../../api/context-providers/app-context";
 import "./orders.css";
 
@@ -127,8 +126,11 @@ export function OrdersPage() {
                 className="card-base card-hover menu-featured-card"
               >
                 <ImageWithFallback
-                  src={getMenuItemImagePath(items[0].id, items[0].category)}
-                  fallbackSrc={getMenuItemFallbackPath(items[0].category)}
+                  src={getMenuItemImagePath(items[0].name, items[0].imagePath)}
+                  fallbackSrc={getMenuItemFallbackPath(
+                    items[0].category,
+                    activeCategory?.iconPath,
+                  )}
                   alt={items[0].name}
                   className="menu-featured-image"
                 />
@@ -156,7 +158,15 @@ export function OrdersPage() {
                   }}
                   className="card-base card-hover menu-item-card"
                 >
-                  <ItemIcon cat={item.category} size={56} />
+                  <ImageWithFallback
+                    src={getMenuItemImagePath(item.name, item.imagePath)}
+                    fallbackSrc={getMenuItemFallbackPath(
+                      item.category,
+                      activeCategory?.iconPath,
+                    )}
+                    alt={item.name}
+                    className="menu-item-image"
+                  />
                   <div className="menu-flex-1">
                     <div className="menu-item-head">
                       <h3 className="menu-item-title">{item.name}</h3>

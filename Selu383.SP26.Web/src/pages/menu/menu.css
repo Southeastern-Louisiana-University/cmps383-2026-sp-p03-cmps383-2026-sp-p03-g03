@@ -131,8 +131,8 @@
 }
 
 .menu-featured-image {
-  width: 220px;
-  height: 180px;
+  width: 200px;
+  height: 200px;
   flex-shrink: 0;
   background: var(--cream);
   display: flex;
@@ -193,16 +193,16 @@
 
 .menu-item-card {
   cursor: pointer;
-  padding: 24px;
   display: flex;
   gap: 16px;
   align-items: flex-start;
 }
 
 .menu-item-image {
-  width: 56px;
-  height: 56px;
-  border-radius: 8px;
+  width: 120px;
+  height: 120px;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
   object-fit: cover;
   flex-shrink: 0;
   background: var(--cream);
@@ -213,6 +213,8 @@
 
 .menu-flex-1 {
   flex: 1;
+  padding: 18px;
+  align-self: center;
 }
 
 .menu-item-head {
