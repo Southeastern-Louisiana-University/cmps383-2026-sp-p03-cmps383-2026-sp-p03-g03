@@ -6,14 +6,14 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingRight: 18,
-    paddingBottom: 6,
+    paddingHorizontal: 20,
+    paddingRight: 20,
+    paddingBottom: 8,
     elevation: 2,
-    shadowColor: '#000',
+    shadowColor: 'rgba(58,46,31,0.8)',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowRadius: 6,
     zIndex: 10,
   },
   logoContainer: {
@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
   backText: {
     fontSize: 16,
     color: Colors.brandGreen,
-    fontFamily: 'Corben_700Bold',
+    fontFamily: 'Inter_700Bold',
   },
   logo: {
     width: 24,
@@ -45,7 +45,7 @@ export const styles = StyleSheet.create({
   logoText: {
     fontSize: 17,
     lineHeight: 21,
-    fontFamily: 'Corben_700Bold',
+    fontFamily: 'Inter_700Bold',
     color: Colors.brandGreen,
     opacity: 0.92,
     flexShrink: 1,
@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     color: Colors.brandGreen,
     fontWeight: '700',
     fontSize: 14,
-    fontFamily: 'Corben_700Bold',
+    fontFamily: 'Inter_700Bold',
   },
   headerSpacer: {
     width: 70,
