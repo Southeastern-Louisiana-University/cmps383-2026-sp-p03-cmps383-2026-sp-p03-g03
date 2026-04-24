@@ -64,10 +64,6 @@ export function WorkAccessSection({
               : 'Use the Orders tab to process the assigned location orders you are allowed to handle.'}
         </ThemedText>
 
-        {!!user.locationId && (
-          <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>Assigned location ID: {user.locationId}</ThemedText>
-        )}
-
         {isManager && managedLocations.length > 0 && (
           <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>Managed locations: {managedLocations.map((location) => location.name).join(', ')}</ThemedText>
         )}

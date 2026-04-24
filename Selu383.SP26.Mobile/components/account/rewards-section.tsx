@@ -37,44 +37,55 @@ export function RewardsSection({
       <ThemedText style={CommonStyles.cardTitle}>Rewards</ThemedText>
 
       <View style={[styles.pointsBanner, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}>
-        <ThemedText style={[styles.pointsLabel, { color: colors.textSecondary }]}>Your Points</ThemedText>
+        <ThemedText style={[styles.pointsLabel, { color: colors.textSecondary }]}>Available Points</ThemedText>
         <ThemedText style={[styles.pointsValue, { color: colors.primary }]}>{availablePoints}</ThemedText>
+        <ThemedText style={[styles.pointsSubcopy, { color: colors.textSecondary }]}>
+          Earn points with every paid order.
+        </ThemedText>
       </View>
 
-      <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Redeemable Perks</ThemedText>
+      <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Redeemable Rewards</ThemedText>
       {rewards.length === 0 ? (
-        <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No perks available yet — keep earning!</ThemedText>
+        <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No rewards available yet. Keep earning points!</ThemedText>
       ) : (
         <View style={styles.stack}>
           {rewards.map((reward) => {
             const canRedeem = availablePoints >= reward.pointsCost;
             const isRedeeming = redeemingRewardId === reward.id;
+            const pointsNeeded = Math.max(reward.pointsCost - availablePoints, 0);
             const rewardItemName = getRewardItemName(reward.name, reward.description);
             const rewardImage = getRewardImageSource(`${reward.name} ${reward.description}`);
 
             return (
               <View key={reward.id} style={[styles.rewardCard, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}>
-                <Image source={rewardImage} style={styles.rewardItemImage} resizeMode="cover" />
-                <View style={styles.rewardTextWrap}>
-                  <ThemedText style={[styles.rewardName, { color: colors.text }]}>{reward.name}</ThemedText>
-                  <ThemedText style={[styles.rewardItemName, { color: colors.textSecondary }]}>Item: {rewardItemName}</ThemedText>
-                  <ThemedText style={[styles.rewardDescription, { color: colors.textSecondary }]}>{reward.description}</ThemedText>
-                  <ThemedText style={[styles.rewardCost, { color: colors.primary }]}>{reward.pointsCost} pts</ThemedText>
+                <View style={styles.rewardTopRow}>
+                  <Image source={rewardImage} style={styles.rewardItemImage} resizeMode="cover" />
+                  <View style={styles.rewardTextWrap}>
+                    <ThemedText style={[styles.rewardName, { color: colors.text }]}>{reward.name}</ThemedText>
+                    <ThemedText style={[styles.rewardItemName, { color: colors.textSecondary }]}>Item: {rewardItemName}</ThemedText>
+                    <ThemedText style={[styles.rewardDescription, { color: colors.textSecondary }]}>{reward.description}</ThemedText>
+                  </View>
                 </View>
-                <TouchableOpacity
-                  style={[
-                    styles.actionButton,
-                    {
-                      backgroundColor: canRedeem ? colors.primary : colors.border,
-                      opacity: isRedeeming ? 0.7 : 1,
-                    },
-                  ]}
-                  onPress={() => onRedeemReward(reward)}
-                  disabled={!canRedeem || isRedeeming}
-                  activeOpacity={0.85}
-                >
-                  <ThemedText style={styles.actionButtonText}>{isRedeeming ? 'Redeeming...' : 'Redeem'}</ThemedText>
-                </TouchableOpacity>
+
+                <View style={styles.rewardBottomRow}>
+                  <ThemedText style={[styles.rewardCost, { color: colors.primary }]}>{reward.pointsCost} pts</ThemedText>
+                  <TouchableOpacity
+                    style={[
+                      styles.actionButton,
+                      {
+                        backgroundColor: canRedeem ? colors.primary : colors.border,
+                        opacity: isRedeeming ? 0.7 : 1,
+                      },
+                    ]}
+                    onPress={() => onRedeemReward(reward)}
+                    disabled={!canRedeem || isRedeeming}
+                    activeOpacity={0.85}
+                  >
+                    <ThemedText style={styles.actionButtonText}>
+                      {isRedeeming ? 'Redeeming...' : canRedeem ? 'Redeem' : `${pointsNeeded} more`}
+                    </ThemedText>
+                  </TouchableOpacity>
+                </View>
               </View>
             );
           })}
@@ -83,7 +94,7 @@ export function RewardsSection({
 
       <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Recent Activity</ThemedText>
       {visibleHistory.length === 0 ? (
-        <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No reward activity yet — start earning!</ThemedText>
+        <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No reward activity yet. Start earning points!</ThemedText>
       ) : (
         <View style={styles.stack}>
           {visibleHistory.map((entry) => {
@@ -117,7 +128,7 @@ export function RewardsSection({
                       : `Reward: ${activityRewardName} (${entry.pointsRedeemed} pts)`}
                   </ThemedText>
                   {isRewardRedemption && (
-                    <ThemedText style={[styles.tapHint, { color: colors.textSecondary }]}>Tap to view perk details</ThemedText>
+                    <ThemedText style={[styles.tapHint, { color: colors.textSecondary }]}>Tap to view reward details</ThemedText>
                   )}
                 </View>
                 <View style={{ alignItems: 'flex-end' }}>

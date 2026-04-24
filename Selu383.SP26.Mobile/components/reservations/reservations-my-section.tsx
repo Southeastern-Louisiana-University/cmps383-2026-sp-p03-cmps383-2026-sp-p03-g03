@@ -95,7 +95,7 @@ export function ReservationsMySection({
         const isCompleted = reservation.status?.toLowerCase() === 'completed' || reservation.status?.toLowerCase() === 'noshow';
         const statusColorMap: Record<string, string> = {
           confirmed: '#10b981',
-          pending: '#10b981',
+          pending: '#f59e0b',
           cancelled: '#ef4444',
           completed: '#6b7280',
           noshow: '#6b7280',
@@ -104,7 +104,7 @@ export function ReservationsMySection({
           ? '#6b7280'
           : statusColorMap[reservation.status?.toLowerCase() ?? ''] ?? '#6b7280';
         const statusLabel = isCancelled ? 'Cancelled' : isPast ? 'Past'
-          : (reservation.status?.toLowerCase() === 'pending' ? 'Confirmed' : reservation.status ?? 'Confirmed');
+          : (reservation.status?.toLowerCase() === 'pending' ? 'Placed' : reservation.status ?? 'Placed');
 
         return (
           <View
