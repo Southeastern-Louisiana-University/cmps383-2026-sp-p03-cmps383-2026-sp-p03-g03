@@ -104,10 +104,10 @@ const s = StyleSheet.create({
   wrap: { marginBottom: 12 },
   navRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   navBtn: { padding: 6 },
-  monthLabel: { fontFamily: 'Corben_700Bold', fontSize: 15 },
+  monthLabel: { fontFamily: 'Inter_700Bold', fontSize: 15 },
   headerRow: { flexDirection: 'row', marginBottom: 4 },
   grid: { flexDirection: 'row', flexWrap: 'wrap' },
   cell: { width: `${100 / 7}%` as any, aspectRatio: 1, justifyContent: 'center', alignItems: 'center' },
-  dayHeader: { width: `${100 / 7}%` as any, textAlign: 'center', fontFamily: 'Corben_700Bold', fontSize: 12 },
-  dayText: { fontFamily: 'Corben_400Regular', fontSize: 14 },
+  dayHeader: { width: `${100 / 7}%` as any, textAlign: 'center', fontFamily: 'Inter_700Bold', fontSize: 12 },
+  dayText: { fontFamily: 'Lato_400Regular', fontSize: 14 },
 });

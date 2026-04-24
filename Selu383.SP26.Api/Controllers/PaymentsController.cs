@@ -398,7 +398,6 @@ public class PaymentsController : ControllerBase
                     CreatedAt = DateTime.UtcNow
                 });
                 orderWithPayments.PaymentStatus = PaymentStatuses.Paid;
-                orderWithPayments.Status = OrderStatuses.Confirmed;
                 await _context.SaveChangesAsync();
             }
 

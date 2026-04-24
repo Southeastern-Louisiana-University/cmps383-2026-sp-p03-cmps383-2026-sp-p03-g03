@@ -3,19 +3,23 @@ import { View, Text, Image, ScrollView, Dimensions, TouchableOpacity } from 'rea
 import { getMenuItemImage } from '@/constants/menu-item-images';
 import { styles } from '@/styles/screens/featured-carousel.styles';
 
-const BG_COLORS = ['#4A3B32', '#2A3C24', '#6B4423', '#382E29'];
+const BG_COLORS = ['#4A3B32', '#3B4A2E', '#6B4423', '#2a2018', '#3d2e1f', '#2e3b22'];
 
 const ALL_FEATURED_ITEMS = [
-  { name: 'Caramel Macchiato', category: 'Drinks', desc: 'Rich espresso with vanilla and caramel drizzle over steamed milk.', price: 5.25 },
-  { name: 'Iced Latte', category: 'Drinks', desc: 'Smooth espresso poured over cold milk and ice.', price: 4.75 },
-  { name: 'Supernova', category: 'Drinks', desc: 'A bold energy blend with tropical fruit and sparkling refreshment.', price: 5.50 },
-  { name: 'Roaring Frappe', category: 'Drinks', desc: 'Frozen blended coffee with whipped cream and chocolate drizzle.', price: 6.00 },
-  { name: 'Strawberry Limeade', category: 'Drinks', desc: 'Fresh strawberry and lime shaken for a refreshing twist.', price: 5.00 },
+  { name: 'Black & White Cold Brew', category: 'Drinks', desc: 'Smooth cold brew with a swirl of sweet cream.', price: 5.25 },
   { name: 'Crepe Fromage', category: 'Crepes - Savory', desc: 'A warm crepe filled with melted cheese and herbs.', price: 8.00 },
+  { name: 'Supernova', category: 'Drinks', desc: 'A bold energy blend with tropical fruit and sparkling refreshment.', price: 5.50 },
+  { name: 'Breakfast Bagel', category: 'Bagels', desc: 'Toasted bagel with egg, cheese, and your choice of protein.', price: 7.50 },
+  { name: 'Roaring Frappe', category: 'Drinks', desc: 'Frozen blended coffee with whipped cream and chocolate drizzle.', price: 6.00 },
+  { name: 'Mannino Honey Crepe', category: 'Crepes - Sweet', desc: 'Sweet crepe drizzled with local honey and powdered sugar.', price: 9.00 },
+  { name: 'Shaken Lemonade', category: 'Drinks', desc: 'Hand-shaken lemonade with a bright citrus kick.', price: 4.50 },
+  { name: 'Downtowner', category: 'Bagels', desc: 'A hearty downtown-inspired bagel loaded with savory toppings.', price: 8.50 },
+  { name: 'Strawberry Limeade', category: 'Drinks', desc: 'Fresh strawberry and lime shaken for a refreshing twist.', price: 5.00 },
+  { name: 'Le S\'mores', category: 'Crepes - Sweet', desc: 'Graham cracker, chocolate, and toasted marshmallow crepe.', price: 9.50 },
 ];
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const CARD_WIDTH = SCREEN_WIDTH * 0.72;
+const CARD_WIDTH = SCREEN_WIDTH * 0.74;
 const CARD_SPACING = 14;
 const AUTO_SCROLL_INTERVAL = 4000;
 
@@ -31,9 +35,10 @@ function getDailyItems() {
 
 interface FeaturedCarouselProps {
   isDark?: boolean;
+  onItemPress?: (itemName: string) => void;
 }
 
-export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = false }) => {
+export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = false, onItemPress }) => {
   const items = useRef(getDailyItems()).current;
   const scrollRef = useRef<ScrollView>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -83,8 +88,10 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = fal
           const bgColor = BG_COLORS[index % BG_COLORS.length];
           const isActive = index === currentIndex;
           return (
-            <View
+            <TouchableOpacity
               key={item.name}
+              activeOpacity={0.9}
+              onPress={() => onItemPress?.(item.name)}
               style={[
                 styles.itemCard,
                 {
@@ -97,15 +104,19 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = fal
                 },
               ]}
             >
-              <Image source={getMenuItemImage(item.name)} style={styles.itemImage} />
-              <View style={styles.imageShade} />
-              <View style={styles.itemContent}>
-                <Text style={styles.itemCategory}>{item.category.toUpperCase()}</Text>
-                <Text style={styles.itemName}>{item.name}</Text>
-                <Text style={styles.itemDesc} numberOfLines={2}>{item.desc}</Text>
-                <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+              <View style={styles.cardInner}>
+                <View style={styles.imageWrap}>
+                  <Image source={getMenuItemImage(item.name)} style={styles.itemImage} />
+                  <View style={styles.imageShade} />
+                </View>
+                <View style={styles.itemContent}>
+                  <Text style={styles.itemCategory}>{item.category.toUpperCase()}</Text>
+                  <Text style={styles.itemName}>{item.name}</Text>
+                  <Text style={styles.itemDesc} numberOfLines={2}>{item.desc}</Text>
+                  <Text style={styles.itemPrice}>${item.price.toFixed(2)}</Text>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           );
         })}
       </ScrollView>
@@ -141,7 +152,7 @@ export const FeaturedCarousel: React.FC<FeaturedCarouselProps> = ({ isDark = fal
             key={i}
             style={[
               styles.dot,
-              { backgroundColor: i === currentIndex ? '#4CAF50' : 'rgba(255,255,255,0.4)' },
+              { backgroundColor: i === currentIndex ? '#65a30d' : 'rgba(255,255,255,0.35)' },
             ]}
           />
         ))}
