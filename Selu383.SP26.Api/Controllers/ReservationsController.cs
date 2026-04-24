@@ -205,7 +205,7 @@ public class ReservationsController : ControllerBase
             TableId = dto.TableId,
             ReservedFor = dto.ReservedFor,
             PartySize = dto.PartySize,
-            Status = ReservationStatuses.Confirmed,
+            Status = ReservationStatuses.Pending,//update to pending instead of auto confirmed 
             SpecialRequests = dto.SpecialRequests?.Trim()
         };
 
@@ -240,9 +240,18 @@ public class ReservationsController : ControllerBase
         if (!await _locationAccessService.CanAccessLocationAsync(User, dto.LocationId))
             return Forbid();
 
-        var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize, id);
-        if (validationMessage != null)
-            return BadRequest(validationMessage);
+        // Only validate if details changed, not just status updates (staff marking completed/cancelled)
+        var isDetailsChange = dto.LocationId != reservation.LocationId 
+            || dto.TableId != reservation.TableId 
+            || dto.ReservedFor != reservation.ReservedFor 
+            || dto.PartySize != reservation.PartySize;
+
+        if (isDetailsChange)
+        {
+            var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize, id);
+            if (validationMessage != null)
+                return BadRequest(validationMessage);
+        }
 
         reservation.LocationId = dto.LocationId;
         reservation.TableId = dto.TableId;
@@ -286,6 +295,15 @@ public class ReservationsController : ControllerBase
         if (isPrivileged && !await _locationAccessService.CanAccessLocationAsync(User, reservation.LocationId))
             return Forbid();
 
+        // Staff/managers can permanently delete reservations for system management
+        if (isPrivileged)
+        {
+            _context.Reservations.Remove(reservation);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Reservation deleted." });
+        }
+
+        // Customers can only mark as cancelled, and only for future reservations
         if (reservation.ReservedFor < DateTime.UtcNow)
             return BadRequest("Cannot cancel a reservation for a past date/time.");
 
