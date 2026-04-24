@@ -247,7 +247,6 @@ public class StripePaymentService
         }
 
         order.PaymentStatus = PaymentStatuses.Paid;
-        order.Status = OrderStatuses.Confirmed;
 
         await _context.SaveChangesAsync();
 
@@ -322,7 +321,6 @@ public class StripePaymentService
         }
 
         order.PaymentStatus = PaymentStatuses.Paid;
-        order.Status = OrderStatuses.Confirmed;
 
         await _context.SaveChangesAsync();
 
