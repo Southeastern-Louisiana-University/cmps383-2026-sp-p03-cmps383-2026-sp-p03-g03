@@ -11,25 +11,27 @@ import type { MenuItemDto } from '@/services/api';
 type Props = {
   colors: ReturnType<typeof getColors>;
   filteredItems: MenuItemDto[];
-  featuredItemId: number | null;
+  highlightedItemId: number | null;
   searchQuery: string;
   hasMenuOpsAccess: boolean;
   updatingItemId: number | null;
   onSelectItem: (item: MenuItemDto) => void;
   onDisableItem: (item: MenuItemDto) => void;
   onEnableItem: (item: MenuItemDto) => void;
+  onDeleteItem: (item: MenuItemDto) => void;
 };
 
 export function MenuItemList({
   colors,
   filteredItems,
-  featuredItemId,
+  highlightedItemId,
   searchQuery,
   hasMenuOpsAccess,
   updatingItemId,
   onSelectItem,
   onDisableItem,
   onEnableItem,
+  onDeleteItem,
 }: Props) {
   if (filteredItems.length === 0) {
     return (
@@ -50,9 +52,9 @@ export function MenuItemList({
         {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''}
       </Text>
 
-      {featuredItemId && filteredItems.some((item) => item.id === featuredItemId) ? (
+      {highlightedItemId && filteredItems.some((item) => item.id === highlightedItemId) ? (
         <Text style={[styles.featuredHint, { color: colors.primary }]}>
-          Showing your selected featured item first
+          Showing your selected item first
         </Text>
       ) : null}
 
@@ -61,7 +63,7 @@ export function MenuItemList({
           <MenuItemCard
             item={item}
             onPress={onSelectItem}
-            highlighted={featuredItemId === item.id}
+            highlighted={highlightedItemId === item.id}
           />
 
           {hasMenuOpsAccess ? (
@@ -95,6 +97,19 @@ export function MenuItemList({
                   <ThemedText style={styles.managerButtonText}>Enable</ThemedText>
                 </AnimatedButton>
               )}
+              <AnimatedButton
+                style={[
+                  styles.managerButton,
+                  {
+                    backgroundColor: '#8b5cf6',
+                    opacity: updatingItemId === item.id ? 0.7 : 1,
+                  },
+                ]}
+                onPress={() => onDeleteItem(item)}
+                disabled={updatingItemId === item.id}
+              >
+                <ThemedText style={styles.managerButtonText}>Delete</ThemedText>
+              </AnimatedButton>
             </View>
           ) : null}
         </View>

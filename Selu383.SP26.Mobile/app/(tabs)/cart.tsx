@@ -11,17 +11,15 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCart } from '@/hooks/useCart';
 import { CommonStyles, getColors } from '@/constants/styles';
 import { styles } from '@/styles/screens/cart.styles';
+import { calculateCartTotals, SALES_TAX_RATE } from '@/utils/checkout-utils';
 
 export default function CartScreen() {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = getColors(isDark);
+  const colors = getColors(colorScheme === 'dark');
   const { cart, removeItem, updateQuantity, clearCart } = useCart();
   const router = useRouter();
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.0875;
-  const total = subtotal + tax;
+  const { subtotal, tax, total } = calculateCartTotals(cart);
 
   return (
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
@@ -107,7 +105,7 @@ export default function CartScreen() {
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${subtotal.toFixed(2)}</ThemedText>
                 </View>
                 <View style={styles.totalRow}>
-                  <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax (8.75%)</ThemedText>
+                  <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax ({(SALES_TAX_RATE * 100).toFixed(2)}%)</ThemedText>
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${tax.toFixed(2)}</ThemedText>
                 </View>
                 <View style={[styles.totalRow, styles.totalRowFinal]}>

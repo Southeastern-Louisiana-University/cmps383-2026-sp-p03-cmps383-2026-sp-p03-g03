@@ -41,19 +41,23 @@
         <a id="openApp" class="btn" href="selu383sp26mobile://">Return to App</a>
         <a class="btn secondary" href="https://selu383-sp26-p03-g03.azurewebsites.net/checkout/success.html">Stay on this page</a>
       </div>
-      <p class="hint">If the app does not open, switch back to the app manually.</p>
+      <p class="hint">If the app does not open, switch back to the app manually — or tap "Return to App" again.</p>
     </div>
   </div>
   <script>
     const sessionId = window.__stripeSessionId;
     const appLink = document.getElementById("openApp");
-    if (sessionId) {
-      appLink.setAttribute("href", `selu383sp26mobile://?session_id=${encodeURIComponent(sessionId)}`);
-    }
+
+    // Build a list of possible redirect URLs to try (custom scheme + Expo Go)
+    const customScheme = sessionId
+      ? `selu383sp26mobile://?session_id=${encodeURIComponent(sessionId)}`
+      : "selu383sp26mobile://";
+
+    appLink.setAttribute("href", customScheme);
 
     // Attempt auto-return after a short delay.
     setTimeout(() => {
-      window.location.href = appLink.getAttribute("href");
+      window.location.href = customScheme;
     }, 1200);
   </script>
 </body>

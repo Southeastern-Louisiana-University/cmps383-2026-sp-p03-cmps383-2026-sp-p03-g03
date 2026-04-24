@@ -7,7 +7,8 @@ import { ThemedView } from '@/components/themed-view';
 export default function ModalScreen() {
   return (
     <ThemedView style={styles.container}>
-      <ThemedText type="title">This is a modal</ThemedText>
+      <ThemedText type="title">Quick Link</ThemedText>
+      <ThemedText style={styles.copy}>This route is kept for lightweight in-app navigation.</ThemedText>
       <Link href="/" dismissTo style={styles.link}>
         <ThemedText type="link">Go to home screen</ThemedText>
       </Link>
@@ -21,6 +22,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 20,
+  },
+  copy: {
+    marginTop: 8,
+    textAlign: 'center',
   },
   link: {
     marginTop: 15,

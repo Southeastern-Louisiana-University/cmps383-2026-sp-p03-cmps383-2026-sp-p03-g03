@@ -62,7 +62,7 @@ export function ReservationsBookSection({
     <>
       <View style={styles.heroWrap}>
         <Image
-          source={require('@/assets/images/featured-caramel-latte.jpg')}
+          source={require('@/assets/images/table.jpg')}
           style={styles.heroImage}
           resizeMode="cover"
         />
