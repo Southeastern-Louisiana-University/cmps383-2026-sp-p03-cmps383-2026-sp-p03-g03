@@ -1,436 +1,67 @@
-const AZURE_API_BASE_URL = "https://selu383-sp26-p03-g03.azurewebsites.net";
-const LOCAL_API_BASE_URL = "https://localhost:7116";
-const TIMEOUT = 30000;
+import { API_BASE_URL, apiCall, ApiError } from '@/services/api-core';
+export { API_BASE_URL, apiCall, ApiError } from '@/services/api-core';
+export type {
+  CreateOrderDto,
+  CreateOrderItemDto,
+  CreatePaymentMethodDto,
+  CreateReservationDto,
+  CreateUserAccountDto,
+  LocationDto,
+  LocationMenuCategoryDto,
+  LoyaltySummaryDto,
+  MenuCategoryDto,
+  MenuItemAvailabilityDto,
+  MenuItemDto,
+  OrderDto,
+  OrderItemDto,
+  OrderPaymentDto,
+  PayWithSavedMethodResultDto,
+  PaymentMethodDto,
+  RedeemRewardDto,
+  RegisterUserDto,
+  RemovePaymentDto,
+  ReservationAvailabilityDto,
+  ReservationCoverChargeRequiredDto,
+  ReservationDto,
+  RewardDto,
+  StripePaymentSyncResultDto,
+  TableDto,
+} from '@/services/api-types';
+import type {
+  CreateOrderDto,
+  CreatePaymentMethodDto,
+  CreateReservationDto,
+  CreateUserAccountDto,
+  LocationDto,
+  LocationMenuCategoryDto,
+  LoyaltySummaryDto,
+  MenuCategoryDto,
+  MenuItemAvailabilityDto,
+  MenuItemDto,
+  OrderDto,
+  OrderPaymentDto,
+  PayWithSavedMethodResultDto,
+  PaymentMethodDto,
+  RedeemRewardDto,
+  RegisterUserDto,
+  RemovePaymentDto,
+  ReservationAvailabilityDto,
+  ReservationDto,
+  RewardDto,
+  StripePaymentSyncResultDto,
+  TableDto,
+} from '@/services/api-types';
 
-const getApiBaseUrl = (): string => {
-  const envUrl = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
-  const envTarget = process.env.EXPO_PUBLIC_API_TARGET?.trim().toLowerCase();
-  const azureEnvUrl = process.env.EXPO_PUBLIC_AZURE_API_BASE_URL?.trim();
-  const localEnvUrl = process.env.EXPO_PUBLIC_LOCAL_API_BASE_URL?.trim();
-
-  if (envUrl) {
-    return envUrl.replace(/\/$/, "");
-  }
-
-  if (envTarget === "local") {
-    return (localEnvUrl || LOCAL_API_BASE_URL).replace(/\/$/, "");
-  }
-
-  return (azureEnvUrl || AZURE_API_BASE_URL).replace(/\/$/, "");
-};
-
-const API_BASE_URL = getApiBaseUrl();
 let hasWarnedPaymentMethods500 = false;
 
-export class ApiError<T = unknown> extends Error {
-  status: number;
-  data?: T;
-
-  constructor(message: string, status: number, data?: T) {
-    super(message);
-    this.name = "ApiError";
-    this.status = status;
-    this.data = data;
-  }
-}
-
-export interface MenuItemDto {
-  id: number;
-  categoryId: number;
-  name: string;
-  description?: string;
-  basePrice: number;
-  isAvailable: boolean;
-  unavailableReason?: string;
-}
-
-export interface MenuCategoryDto {
-  id: number;
-  name: string;
-  locationIds?: number[];
-  isSeasonal: boolean;
-  isActive: boolean;
-}
-
-export interface OrderItemDto {
-  id: number;
-  menuItemId: number;
-  menuItemName?: string;
-  quantity: number;
-  unitPrice: number;
-  lineTotal: number;
-  itemNote?: string;
-}
-
-export interface OrderDto {
-  id: number;
-  locationId: number;
-  createdByUserId: number;
-  orderCode: string;
-  orderType: string;
-  status: string;
-  paymentStatus: string;
-  orderTime: string;
-  scheduledPickupTime?: string;
-  subtotal?: number;
-  tax?: number;
-  total: number;
-  note?: string;
-  pickupName?: string;
-  items: OrderItemDto[];
-  receiptUrl?: string;
-}
-
-export interface LocationDto {
-  id: number;
-  name: string;
-  type: string;
-  phone?: string;
-  address: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  openingTime?: string;
-  closingTime?: string;
-  layoutJson?: string;
-  isActive: boolean;
-  tableCount?: number;
-  managerId?: number;
-  managerDisplayName?: string;
-  managerName?: string;
-}
-
-export interface CreateOrderItemDto {
-  menuItemId: number;
-  quantity: number;
-  itemNote?: string;
-}
-
-export interface CreateOrderDto {
-  locationId: number;
-  orderType: string;
-  note?: string;
-  pickupName?: string;
-  scheduledPickupTime?: string;
-  items: CreateOrderItemDto[];
-}
-
-export interface RegisterUserDto {
-  userName: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-}
-
-export interface CreateUserAccountDto {
-  userName: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  email?: string;
-  phoneNumber?: string;
-  roles: string[];
-  locationId?: number;
-}
-
-export interface PaymentMethodDto {
-  id: number;
-  cardholderName: string;
-  brand: string;
-  last4: string;
-  expMonth: number;
-  expYear: number;
-  isDefault: boolean;
-}
-
-export interface CreatePaymentMethodDto {
-  cardholderName: string;
-  cardNumber?: string; // Full card number for Stripe tokenization
-  cvc?: string; // CVV for Stripe tokenization
-  brand: string;
-  last4: string;
-  expMonth: number;
-  expYear: number;
-  isDefault?: boolean;
-}
-
-export interface OrderPaymentDto {
-  id: number;
-  provider: string;
-  paymentMethodType: string;
-  transactionId?: string;
-  amount: number;
-  status: string;
-  createdAt: string;
-  removedAt?: string;
-  removedReason?: string;
-}
-
-export interface RemovePaymentDto {
-  reason: string;
-}
-
-export interface ReservationCoverChargeRequiredDto {
-  message: string;
-  coverChargeAmount: number;
-  coverChargeOrderId: number;
-  checkoutUrl?: string | null;
-}
-
-export interface StripePaymentSyncResultDto {
-  orderId: number;
-  paymentStatus: string;
-  orderStatus: string;
-  updated: boolean;
-}
-
-export interface PayWithSavedMethodResultDto {
-  succeeded: boolean;
-  requiresCheckout: boolean;
-  message: string;
-  paymentStatus?: string;
-}
-
-export interface ReservationDto {
-  id: number;
-  locationId: number;
-  userId: number;
-  tableId: number;
-  reservedFor: string;
-  createdAt?: string;
-  partySize: number;
-  status: string;
-  specialRequests?: string;
-}
-
-export interface ReservationAvailabilityDto {
-  locationId: number;
-  reservedFor: string;
-  takenTableIds: number[];
-}
-
-export interface CreateReservationDto {
-  locationId: number;
-  tableId: number;
-  reservedFor: string;
-  partySize: number;
-  coverChargeOrderId?: number;
-  specialRequests?: string;
-}
-
-export interface TableDto {
-  id: number;
-  locationId: number;
-  tableNumber: string;
-  seats: number;
-  isBarSeat: boolean;
-  isActive: boolean;
-}
-
-export interface LoyaltyLedgerEntryDto {
-  id: number;
-  orderId?: number;
-  rewardId?: number;
-  rewardName?: string;
-  pointsEarned: number;
-  pointsRedeemed: number;
-  createdAt: string;
-}
-
-export interface LoyaltySummaryDto {
-  points: number;
-  history: LoyaltyLedgerEntryDto[];
-}
-
-export interface RewardDto {
-  id: number;
-  name: string;
-  description: string;
-  pointsCost: number;
-  isActive: boolean;
-}
-
-export interface RedeemRewardDto {
-  rewardId: number;
-}
-
-const apiCall = async (
-  endpoint: string,
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" = "GET",
-  data?: unknown,
-): Promise<any> => {
-  const url = `${API_BASE_URL}${endpoint}`;
-
-  const headers: HeadersInit = {
-    "Content-Type": "application/json",
-  };
-
-  const options: RequestInit = {
-    method,
-    headers,
-    credentials: "include",
-  };
-
-  if (data && ["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-    options.body = JSON.stringify(data);
-  }
-
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), TIMEOUT);
-
-    let response: Response;
-    try {
-      response = await fetch(url, {
-        ...options,
-        signal: controller.signal,
-      });
-    } finally {
-      clearTimeout(timeout);
-    }
-
-    const contentType = response.headers.get("content-type") ?? "";
-
-    if (!response.ok) {
-      let errorData: unknown;
-      let errorText = "";
-
-      if (contentType.includes("application/json")) {
-        try {
-          errorData = await response.json();
-        } catch {
-          errorData = undefined;
-        }
-      } else {
-        errorText = (await response.text())?.trim();
-      }
-
-      if (!errorText && typeof errorData === "string") {
-        errorText = errorData.trim();
-      } else if (
-        !errorText &&
-        errorData &&
-        typeof errorData === "object" &&
-        "message" in errorData &&
-        typeof (errorData as { message?: unknown }).message === "string"
-      ) {
-        errorText = (errorData as { message: string }).message.trim();
-      } else if (
-        !errorText &&
-        errorData &&
-        typeof errorData === "object" &&
-        "error" in errorData &&
-        typeof (errorData as { error?: unknown }).error === "string"
-      ) {
-        errorText = (errorData as { error: string }).error.trim();
-      } else if (
-        !errorText &&
-        errorData &&
-        typeof errorData === "object" &&
-        "details" in errorData &&
-        typeof (errorData as { details?: unknown }).details === "string"
-      ) {
-        errorText = (errorData as { details: string }).details.trim();
-      } else if (
-        !errorText &&
-        errorData &&
-        typeof errorData === "object" &&
-        "detail" in errorData &&
-        typeof (errorData as { detail?: unknown }).detail === "string"
-      ) {
-        errorText = (errorData as { detail: string }).detail.trim();
-      } else if (
-        !errorText &&
-        errorData &&
-        typeof errorData === "object" &&
-        "title" in errorData &&
-        typeof (errorData as { title?: unknown }).title === "string"
-      ) {
-        errorText = (errorData as { title: string }).title.trim();
-      } else if (
-        !errorText &&
-        errorData &&
-        typeof errorData === "object" &&
-        "errors" in errorData &&
-        (errorData as { errors?: unknown }).errors &&
-        typeof (errorData as { errors: unknown }).errors === "object"
-      ) {
-        const validationErrors = Object.values((errorData as { errors: Record<string, string[]> }).errors)
-          .flat()
-          .filter((v): v is string => typeof v === "string" && v.trim().length > 0);
-
-        if (validationErrors.length > 0) {
-          errorText = validationErrors[0];
-        }
-      }
-
-      if (response.status === 401) {
-        throw new ApiError(
-          errorText || "Unauthorized. Please log in again.",
-          response.status,
-          errorData,
-        );
-      }
-
-      if (response.status === 402) {
-        throw new ApiError(
-          errorText || "Payment required.",
-          response.status,
-          errorData,
-        );
-      }
-
-      if (response.status === 403) {
-        throw new ApiError(
-          errorText || "Access denied for this account.",
-          response.status,
-          errorData,
-        );
-      }
-
-      throw new ApiError(
-        `API Error: ${response.status} - ${errorText || "Request failed"}`,
-        response.status,
-        errorData,
-      );
-    }
-
-    if (response.status === 204 || !contentType.includes("application/json")) {
-      return null;
-    }
-
-    return await response.json();
-  } catch (error: any) {
-    if (error instanceof ApiError) {
-      throw error;
-    }
-
-    if (error?.name === "AbortError") {
-      throw new Error(`Request timed out after ${TIMEOUT / 1000} seconds`);
-    }
-
-    if (error?.message === "Network request failed") {
-      throw new Error(
-        `Network request failed. Verify API host is reachable: ${API_BASE_URL}. If testing on a physical phone, localhost will not point to your PC; use your machine LAN IP or a dev tunnel URL.`,
-      );
-    }
-
-    throw new Error(error.message || "Network request failed");
-  }
-};
-
-export const login = async (username: string, password: string): Promise<any> => {
+export const login = async (username: string, password: string) => {
   return apiCall("/api/authentication/login", "POST", {
     UserName: username,
     Password: password,
   });
 };
 
-export const register = async (dto: RegisterUserDto): Promise<any> => {
+export const register = async (dto: RegisterUserDto) => {
   return apiCall("/api/authentication/register", "POST", {
     UserName: dto.userName,
     Password: dto.password,
@@ -442,7 +73,7 @@ export const register = async (dto: RegisterUserDto): Promise<any> => {
   });
 };
 
-export const createUserAccount = async (dto: CreateUserAccountDto): Promise<any> => {
+export const createUserAccount = async (dto: CreateUserAccountDto) => {
   return apiCall("/api/users", "POST", {
     UserName: dto.userName,
     Password: dto.password,
@@ -456,7 +87,7 @@ export const createUserAccount = async (dto: CreateUserAccountDto): Promise<any>
   });
 };
 
-export const getCurrentUser = async (): Promise<any> => {
+export const getCurrentUser = async () => {
   return apiCall("/api/authentication/me", "GET");
 };
 
@@ -472,10 +103,7 @@ export const getMenuCategories = async (): Promise<MenuCategoryDto[]> => {
   return apiCall(`/api/menu/categories?ts=${Date.now()}`, "GET");
 };
 
-export const disableMenuItem = async (
-  id: number,
-  reason: string,
-): Promise<MenuItemDto> => {
+export const disableMenuItem = async (id: number, reason: string): Promise<MenuItemDto> => {
   return apiCall(`/api/menu/items/${id}/disable`, "POST", { reason });
 };
 
@@ -483,18 +111,52 @@ export const enableMenuItem = async (id: number): Promise<MenuItemDto> => {
   return apiCall(`/api/menu/items/${id}/enable`, "POST");
 };
 
-export const getMyOrders = async (): Promise<OrderDto[]> => {
-  return apiCall("/api/orders/my-orders", "GET");
+export const createMenuItem = async (data: {
+  categoryId: number;
+  locationId?: number;
+  name: string;
+  description?: string;
+  basePrice: number;
+}): Promise<MenuItemDto> => {
+  return apiCall("/api/menu/items", "POST", data);
 };
 
-export const getAllOrders = async (): Promise<OrderDto[]> => {
-  return apiCall("/api/orders", "GET");
+export const deleteMenuItem = async (id: number): Promise<void> => {
+  return apiCall(`/api/menu/items/${id}`, "DELETE");
 };
 
-export const updateOrderStatus = async (
-  orderId: number,
-  status: string,
-): Promise<OrderDto> => {
+export const getMenuByLocation = async (
+  locationId: number,
+): Promise<LocationMenuCategoryDto[]> => {
+  return apiCall(`/api/menu/location/${locationId}?ts=${Date.now()}`, "GET");
+};
+
+export const getLocationAvailability = async (
+  locationId: number,
+): Promise<MenuItemAvailabilityDto[]> => {
+  return apiCall(`/api/menu/items/location/${locationId}/availability?ts=${Date.now()}`, "GET");
+};
+
+export const disableMenuItemAtLocation = async (
+  itemId: number,
+  locationId: number,
+  reason: string,
+): Promise<MenuItemAvailabilityDto> => {
+  return apiCall(`/api/menu/items/${itemId}/location/${locationId}/disable`, "POST", { reason });
+};
+
+export const enableMenuItemAtLocation = async (
+  itemId: number,
+  locationId: number,
+): Promise<MenuItemAvailabilityDto> => {
+  return apiCall(`/api/menu/items/${itemId}/location/${locationId}/enable`, "POST");
+};
+
+export const getMyOrders = async (): Promise<OrderDto[]> => apiCall("/api/orders/my-orders", "GET");
+
+export const getAllOrders = async (): Promise<OrderDto[]> => apiCall("/api/orders", "GET");
+
+export const updateOrderStatus = async (orderId: number, status: string): Promise<OrderDto> => {
   return apiCall(`/api/orders/${orderId}/status`, "PUT", { status });
 };
 
@@ -567,7 +229,7 @@ export const getPaymentMethods = async (): Promise<PaymentMethodDto[]> => {
   try {
     const response = await apiCall("/api/payments/methods", "GET");
     return Array.isArray(response) ? response : [];
-  } catch (error: unknown) {
+  } catch (error: any) {
     if (error instanceof ApiError && error.status >= 500) {
       if (!hasWarnedPaymentMethods500) {
         console.warn("[API] payment methods endpoint returned 500; using empty list for now", error);
@@ -647,17 +309,13 @@ export const updateReservation = async (
   return apiCall(`/api/reservations/${reservationId}`, "PUT", reservationData);
 };
 
-export const cancelReservation = async (reservationId: number): Promise<any> => {
+export const cancelReservation = async (reservationId: number) => {
   return apiCall(`/api/reservations/${reservationId}`, "DELETE");
 };
 
-export const getTables = async (): Promise<TableDto[]> => {
-  return apiCall("/api/tables", "GET");
-};
+export const getTables = async (): Promise<TableDto[]> => apiCall("/api/tables", "GET");
 
-export const getMyLoyalty = async (): Promise<LoyaltySummaryDto> => {
-  return apiCall("/api/loyalty/me", "GET");
-};
+export const getMyLoyalty = async (): Promise<LoyaltySummaryDto> => apiCall("/api/loyalty/me", "GET");
 
 export const getRewards = async (): Promise<RewardDto[]> => {
   const response = await apiCall("/api/loyalty/rewards", "GET");
@@ -682,6 +340,11 @@ export default {
   getMenuCategories,
   disableMenuItem,
   enableMenuItem,
+  createMenuItem,
+  getMenuByLocation,
+  getLocationAvailability,
+  disableMenuItemAtLocation,
+  enableMenuItemAtLocation,
   getMyOrders,
   getAllOrders,
   updateOrderStatus,
@@ -710,5 +373,4 @@ export default {
   getMyLoyalty,
   getRewards,
   redeemReward,
-  apiCall,
 };
