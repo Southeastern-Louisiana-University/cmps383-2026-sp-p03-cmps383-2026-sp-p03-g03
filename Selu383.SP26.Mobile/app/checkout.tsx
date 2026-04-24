@@ -37,8 +37,18 @@ import {
   type TableDto,
 } from '@/services/api';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { CalendarPicker } from '@/components/calendar-picker';
 import { HOUR_SLOTS, formatHour } from '@/utils/date-utils';
+import {
+  buildReservationDateTime,
+  buildReservationCreatePayload,
+  calculateCartTotals,
+  isReservationTooSoon,
+  resolveCoverChargeCheckoutUrl,
+  retryReservationCreateAfterPayment,
+  SALES_TAX_RATE,
+} from '@/utils/checkout-utils';
 
 type OrderType = 'Pickup' | 'DineIn' | 'DriveThru';
 type PaymentChoice = 'stripe' | 'saved';
@@ -47,10 +57,11 @@ export default function CheckoutScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  const { cart, removeItem, updateQuantity, clearCart } = useCart();
-  const { user } = useAuth();
+  const { cart, removeItem, updateQuantity, clearCart, addGuestOrderId, locationId: cartLocationId } = useCart();
+  const { user, isGuest } = useAuth();
   const router = useRouter();
 
+  // TODO: consolidate reservation + order fields into a shared checkout step
   const [locations, setLocations] = useState<LocationDto[]>([]);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethodDto[]>([]);
   const [tables, setTables] = useState<TableDto[]>([]);
@@ -71,9 +82,7 @@ export default function CheckoutScreen() {
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
   const [placing, setPlacing] = useState(false);
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.0875;
-  const total = subtotal + tax;
+  const { subtotal, tax, total } = calculateCartTotals(cart);
 
   const eligibleTables = useMemo(
     () =>
@@ -104,24 +113,33 @@ export default function CheckoutScreen() {
         const active = data.filter((l) => l.isActive);
         setLocations(active);
         if (active.length > 0) {
-          setSelectedLocationId(active[0].id);
+          const preferred = cartLocationId && active.some((l) => l.id === cartLocationId)
+            ? cartLocationId
+            : active[0].id;
+          setSelectedLocationId(preferred);
         }
       })
       .catch(() => {})
       .finally(() => setLoadingLocations(false));
 
-    getPaymentMethods()
-      .then((data) => {
-        setPaymentMethods(data);
-        const defaultMethod = data.find((method) => method.isDefault) ?? data[0];
-        if (defaultMethod) {
-          setSelectedPaymentMethodId(defaultMethod.id);
-        }
-      })
-      .catch(() => {
-        setPaymentMethods([]);
-      })
-      .finally(() => setLoadingPaymentMethods(false));
+    if (user && !isGuest) {
+      getPaymentMethods()
+        .then((data) => {
+          setPaymentMethods(data);
+          const defaultMethod = data.find((method) => method.isDefault) ?? data[0];
+          if (defaultMethod) {
+            setSelectedPaymentMethodId(defaultMethod.id);
+          }
+        })
+        .catch(() => {
+          setPaymentMethods([]);
+        })
+        .finally(() => setLoadingPaymentMethods(false));
+    } else {
+      setPaymentMethods([]);
+      setLoadingPaymentMethods(false);
+      setSelectedPaymentChoice('stripe');
+    }
 
     getTables()
       .then((data) => {
@@ -130,6 +148,7 @@ export default function CheckoutScreen() {
       .catch(() => {
         setTables([]);
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -150,14 +169,7 @@ export default function CheckoutScreen() {
       return;
     }
 
-    const reservedFor = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
-      selectedHour,
-      0,
-      0,
-    ).toISOString();
+    const reservedFor = buildReservationDateTime(selectedDate, selectedHour).toISOString();
 
     getReservationAvailability(selectedLocationId, reservedFor)
       .then((data) => {
@@ -183,25 +195,19 @@ export default function CheckoutScreen() {
       return { success: false, message: 'Reservation details were incomplete.' };
     }
 
-    const reservedFor = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
-      selectedHour,
-      0,
-      0,
-    );
+    const reservedFor = buildReservationDateTime(selectedDate, selectedHour);
+    const reservationPayload = buildReservationCreatePayload({
+      locationId: selectedLocationId,
+      tableId: selectedTableId,
+      reservedForIso: reservedFor.toISOString(),
+      partySize,
+      specialRequests: reservationRequests,
+    });
 
     try {
-      await createReservation({
-        locationId: selectedLocationId,
-        tableId: selectedTableId,
-        reservedFor: reservedFor.toISOString(),
-        partySize,
-        specialRequests: reservationRequests.trim() || undefined,
-      });
+      await createReservation(reservationPayload);
 
-      return { success: true, message: 'Your table reservation is confirmed.' };
+      return { success: true, message: 'Your table reservation request was placed. Payment is received and staff will confirm it shortly.' };
     } catch (e: any) {
       if (e instanceof ApiError && e.status === 402) {
         const paymentInfo = e.data as ReservationCoverChargeRequiredDto | undefined;
@@ -212,22 +218,18 @@ export default function CheckoutScreen() {
         Alert.alert(
           'Reservation Cover Charge',
           amount
-            ? `Your order is placed. A $${amount.toFixed(2)} cover charge is still required to confirm this table if your paid order does not qualify yet.`
-            : 'Your order is placed, but a cover charge may still be required to confirm the table.',
+            ? `Your order is placed. A $${amount.toFixed(2)} cover charge is still required to secure this table if your paid order does not qualify yet.`
+            : 'Your order is placed, but a cover charge may still be required to secure the table.',
           [
             { text: 'Later', style: 'cancel' },
             {
               text: 'Pay Now',
               onPress: async () => {
-                let urlToOpen = checkoutUrl;
-
-                if (!urlToOpen && coverChargeOrderId) {
-                  try {
-                    urlToOpen = await createStripeCheckoutSession(coverChargeOrderId);
-                  } catch {
-                    urlToOpen = null;
-                  }
-                }
+                const urlToOpen = await resolveCoverChargeCheckoutUrl(
+                  coverChargeOrderId,
+                  checkoutUrl,
+                  createStripeCheckoutSession,
+                );
 
                 if (!urlToOpen) {
                   Alert.alert('Payment Required', 'Checkout could not be opened automatically.');
@@ -235,7 +237,8 @@ export default function CheckoutScreen() {
                 }
 
                 try {
-                  await WebBrowser.openBrowserAsync(urlToOpen);
+                  const coverRedirectUrl = Linking.createURL('/');
+                  await WebBrowser.openAuthSessionAsync(urlToOpen, coverRedirectUrl);
                   if (coverChargeOrderId) {
                     try {
                       await syncStripePaymentStatus(coverChargeOrderId);
@@ -244,30 +247,25 @@ export default function CheckoutScreen() {
                     }
                   }
 
-                  let created = false;
-                  for (let attempt = 0; attempt < 3; attempt++) {
-                    try {
-                      await createReservation({
+                  const created = await retryReservationCreateAfterPayment({
+                    createReservation: () => createReservation(
+                      buildReservationCreatePayload({
                         locationId: selectedLocationId,
                         tableId: selectedTableId,
-                        reservedFor: reservedFor.toISOString(),
+                        reservedForIso: reservedFor.toISOString(),
                         partySize,
                         coverChargeOrderId,
-                        specialRequests: reservationRequests.trim() || undefined,
-                      });
-                      created = true;
-                      break;
-                    } catch (createErr: any) {
-                      if (!(createErr instanceof ApiError) || createErr.status !== 402) {
-                        throw createErr;
-                      }
-                    }
-                  }
+                        specialRequests: reservationRequests,
+                      }),
+                    ),
+                    isPendingError: (error) => error instanceof ApiError && error.status === 402,
+                    maxAttempts: 3,
+                  });
 
                   Alert.alert(
-                    created ? 'Reservation Confirmed' : 'Payment Received',
+                    created ? 'Reservation Placed' : 'Payment Received',
                     created
-                      ? 'Your table reservation is now confirmed.'
+                      ? 'Your reservation request is placed and payment is received. Staff will confirm it shortly.'
                       : 'Cover charge payment was received. If the reservation does not appear yet, refresh and try once more.',
                   );
                 } catch (err: any) {
@@ -285,7 +283,7 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handlePlaceOrder = async () => {
+  const placeOrder = async () => {
     if (cart.length === 0) {
       Alert.alert('Empty Cart', 'Add items to your cart before checking out.');
       return;
@@ -322,16 +320,9 @@ export default function CheckoutScreen() {
         return;
       }
 
-      const reservedFor = new Date(
-        selectedDate.getFullYear(),
-        selectedDate.getMonth(),
-        selectedDate.getDate(),
-        selectedHour,
-        0,
-        0,
-      );
+      const reservedFor = buildReservationDateTime(selectedDate, selectedHour);
 
-      if (reservedFor.getTime() - Date.now() < 2 * 60 * 60 * 1000) {
+      if (isReservationTooSoon(reservedFor)) {
         Alert.alert('Reservation Too Soon', 'Reservations must be made at least 2 hours in advance.');
         return;
       }
@@ -368,6 +359,10 @@ export default function CheckoutScreen() {
         })),
       });
 
+      if (isGuest) {
+        addGuestOrderId(order.id);
+      }
+
       if (selectedPaymentChoice === 'saved' && selectedPaymentMethodId) {
         try {
           const savedResult = await payOrderWithSavedMethod(order.id, selectedPaymentMethodId);
@@ -379,65 +374,73 @@ export default function CheckoutScreen() {
               Alert.alert(
                 'Payment Successful',
                 reservationResult.message
-                  ? `Your order #${order.orderCode} was paid using your saved card. ${reservationResult.message}`
-                  : `Your order #${order.orderCode} was paid using your saved card.`
+                  ? `Your order #${order.orderCode} was paid using your saved card and is waiting for staff confirmation. ${reservationResult.message}`
+                  : `Your order #${order.orderCode} was paid using your saved card and is waiting for staff confirmation.`
               );
             }, 300);
             return;
           }
         } catch {
-          // fall through to Stripe checkout if saved card payment fails
+          // saved card failed, fall back to Stripe checkout
         }
       }
 
+      let stripeUrl: string | null = null;
       try {
-        const stripeUrl = await createStripeCheckoutSession(order.id);
-        await WebBrowser.openBrowserAsync(stripeUrl);
-
-        let paymentCompleted = false;
-        for (let attempt = 0; attempt < 3; attempt++) {
-          try {
-            const syncResult = await syncStripePaymentStatus(order.id);
-            if (syncResult.paymentStatus === 'Paid') {
-              paymentCompleted = true;
-              break;
-            }
-          } catch {
-            // best effort
-          }
-        }
-
-        const reservationResult = paymentCompleted ? await tryCreateReservationForOrder() : { success: false, message: '' };
-        clearCart();
-        router.replace('/(tabs)/orders');
-
-        setTimeout(() => {
-          if (!paymentCompleted) {
-            Alert.alert('Payment Pending', `Your order #${order.orderCode} was created, but payment was not completed in Stripe yet.`);
-          } else if (reservationResult.success) {
-            Alert.alert('Order & Reservation Confirmed', `Your order #${order.orderCode} is paid. ${reservationResult.message}`);
-          } else {
-            Alert.alert(
-              'Order Paid',
-              reservationResult.message
-                ? `Your order #${order.orderCode} was paid successfully. ${reservationResult.message}`
-                : `Your order #${order.orderCode} was paid successfully.`
-            );
-          }
-        }, 300);
-      } catch {
-        const reservationResult = await tryCreateReservationForOrder();
+        stripeUrl = await createStripeCheckoutSession(order.id);
+      } catch (stripeErr: any) {
         clearCart();
         router.replace('/(tabs)/orders');
         setTimeout(() => {
           Alert.alert(
-            'Order Placed!',
-            reservationResult.message
-              ? `Your order #${order.orderCode} is confirmed. ${reservationResult.message}`
-              : `Your order #${order.orderCode} is confirmed. Payment can be completed at the counter.`
+            'Payment Error',
+            stripeErr?.message || 'Could not create Stripe checkout session. Your order has been placed — you can retry payment from your orders.',
           );
         }, 300);
+        return;
       }
+
+      try {
+        const redirectUrl = Linking.createURL('/');
+        await WebBrowser.openAuthSessionAsync(stripeUrl, redirectUrl);
+      } catch {
+        // dismissed or errored — sync will still catch a completed payment
+      }
+
+      let paymentCompleted = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          const syncResult = await syncStripePaymentStatus(order.id);
+          if (syncResult.paymentStatus === 'Paid') {
+            paymentCompleted = true;
+            break;
+          }
+        } catch {
+          // best effort
+        }
+      }
+
+      const reservationResult = paymentCompleted ? await tryCreateReservationForOrder() : { success: false, message: '' };
+      clearCart();
+      router.replace('/(tabs)/orders');
+
+      setTimeout(() => {
+        if (!paymentCompleted) {
+          Alert.alert(
+            'Payment Pending',
+            `Your order #${order.orderCode} was created, but payment has not been confirmed yet. Check your orders to see when it updates.`,
+          );
+        } else if (reservationResult.success) {
+          Alert.alert('Order Paid', `Your order #${order.orderCode} is paid and waiting for staff confirmation. ${reservationResult.message}`);
+        } else {
+          Alert.alert(
+            'Order Paid',
+            reservationResult.message
+              ? `Your order #${order.orderCode} was paid and is waiting for staff confirmation. ${reservationResult.message}`
+              : `Your order #${order.orderCode} was paid and is waiting for staff confirmation.`
+          );
+        }
+      }, 300);
     } catch (err: any) {
       Alert.alert('Order Failed', err.message || 'Could not place order. Please try again.');
     } finally {
@@ -520,7 +523,7 @@ export default function CheckoutScreen() {
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${subtotal.toFixed(2)}</ThemedText>
                 </View>
                 <View style={styles.totalRow}>
-                  <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax (8.75%)</ThemedText>
+                  <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax ({(SALES_TAX_RATE * 100).toFixed(2)}%)</ThemedText>
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${tax.toFixed(2)}</ThemedText>
                 </View>
                 <View style={styles.totalRow}>
@@ -585,16 +588,19 @@ export default function CheckoutScreen() {
                   />
                   <View style={styles.locationText}>
                     <ThemedText style={[styles.locationName, { color: colors.text }]}>{loc.name}</ThemedText>
-                    <ThemedText style={[styles.locationAddr, { color: colors.textSecondary }]}> 
-                      {loc.address}, {loc.city}
+                    <ThemedText style={[styles.locationAddr, { color: colors.textSecondary }]}>
+                      {loc.address}, {loc.city}, {loc.state} {loc.zip}
                     </ThemedText>
                   </View>
                 </TouchableOpacity>
               ))
             )}
+            <ThemedText style={[styles.reservationHint, { color: colors.textSecondary, marginTop: 6 }]}>
+              Accessibility: ADA compliant. No pets allowed except trained service animals.
+            </ThemedText>
           </View>
 
-          {orderType === 'DineIn' ? (
+          {orderType === 'DineIn' && !isGuest ? (
             <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
               <View style={styles.reservationHeaderRow}>
                 <View style={{ flex: 1 }}>
@@ -661,13 +667,8 @@ export default function CheckoutScreen() {
                       <ThemedText style={[styles.miniLabel, { color: colors.text }]}>Time</ThemedText>
                       <View style={styles.timeGrid}>
                         {HOUR_SLOTS.map((h) => {
-                          const slotDate = new Date(
-                            selectedDate.getFullYear(),
-                            selectedDate.getMonth(),
-                            selectedDate.getDate(),
-                            h,
-                          );
-                          const tooSoon = slotDate.getTime() - Date.now() < 2 * 60 * 60 * 1000;
+                          const slotDate = buildReservationDateTime(selectedDate, h);
+                          const tooSoon = isReservationTooSoon(slotDate);
                           const isSelected = selectedHour === h;
 
                           return (
@@ -811,9 +812,9 @@ export default function CheckoutScreen() {
               </View>
             </TouchableOpacity>
 
-            {loadingPaymentMethods ? (
+            {!isGuest && loadingPaymentMethods ? (
               <ActivityIndicator color={colors.primary} style={styles.paymentLoading} />
-            ) : paymentMethods.length > 0 ? (
+            ) : !isGuest && paymentMethods.length > 0 ? (
               paymentMethods.map((method) => (
                 <TouchableOpacity
                   key={method.id}
@@ -852,13 +853,15 @@ export default function CheckoutScreen() {
                 </TouchableOpacity>
               ))
             ) : (
-              <ThemedText style={[styles.noPaymentMethodsText, { color: colors.textSecondary }]}>No saved cards yet. Add one from Account.</ThemedText>
+              <ThemedText style={[styles.noPaymentMethodsText, { color: colors.textSecondary }]}>
+                {isGuest ? 'Sign in to use saved payment methods.' : 'No saved cards yet. Add one from Account.'}
+              </ThemedText>
             )}
           </View>
 
           <AnimatedButton
             style={[styles.placeButton, { backgroundColor: placing || cart.length === 0 ? colors.border : colors.primary }]}
-            onPress={handlePlaceOrder}
+            onPress={placeOrder}
           >
             {placing ? (
               <ActivityIndicator color="#fff" />

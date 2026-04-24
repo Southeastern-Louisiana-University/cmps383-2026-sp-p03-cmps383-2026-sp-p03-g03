@@ -3,25 +3,19 @@ import {
   View,
   ScrollView,
   Image,
-  ActivityIndicator,
   TouchableOpacity,
-  TextInput,
   RefreshControl,
   Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import * as WebBrowser from 'expo-web-browser';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { AnimatedButton } from '@/components/animated-button';
 import { PageHeaderActions } from '@/components/page-header-actions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/hooks/useAuth';
 import { CommonStyles, getColors } from '@/constants/styles';
 import { styles } from '@/styles/screens/reservations.styles';
-import { CalendarPicker } from '@/components/calendar-picker';
-import { HOUR_SLOTS, formatHour, formatReservationDate } from '@/utils/date-utils';
 import {
   ApiError,
   getReservations,
@@ -39,6 +33,17 @@ import {
   type TableDto,
   type ReservationCoverChargeRequiredDto,
 } from '@/services/api';
+import { ReservationsMySection } from '../../components/reservations/reservations-my-section';
+import { ReservationsBookSection } from '../../components/reservations/reservations-book-section';
+import { ReservationsManageSection } from '../../components/reservations/reservations-manage-section';
+import { getUserPermissions } from '@/utils/role-helpers';
+import {
+  buildReservationDateTime,
+  buildReservationCreatePayload,
+  isReservationTooSoon,
+  resolveCoverChargeCheckoutUrl,
+  retryReservationCreateAfterPayment,
+} from '@/utils/checkout-utils';
 
 type Tab = 'my' | 'book' | 'manage';
 
@@ -46,10 +51,11 @@ export default function ReservationsScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  const { user } = useAuth();
-  const isPrivileged = !!user?.roles?.some((role) => ['admin', 'manager', 'staff'].includes(role.toLowerCase()));
-  const isStaffOrManager = !!user?.roles?.some((role) => ['manager', 'staff'].includes(role.toLowerCase()));
+  const { user, isGuest } = useAuth();
+  const { isPrivileged, isAdmin, isManager, isStaff } = getUserPermissions(user?.roles);
+  const isStaffOrManager = isManager || isStaff;
 
+  // NOTE: guests can view their own reservations by confirmation link, but can't book from here
   const [tab, setTab] = useState<Tab>(isStaffOrManager ? 'manage' : 'my');
 
   const [myRes, setMyRes] = useState<ReservationDto[]>([]);
@@ -79,8 +85,9 @@ export default function ReservationsScreen() {
 
   const reservationTabs: Tab[] = useMemo(() => {
     if (isStaffOrManager) return ['manage'];
+    if (isGuest && !user) return ['my'];
     return ['my', 'book', ...(isPrivileged ? ['manage'] : [])] as Tab[];
-  }, [isStaffOrManager, isPrivileged]);
+  }, [isStaffOrManager, isPrivileged, isGuest, user]);
 
   useEffect(() => {
     if (!reservationTabs.includes(tab)) {
@@ -89,6 +96,11 @@ export default function ReservationsScreen() {
   }, [reservationTabs, tab]);
 
   const loadReservations = useCallback(async (isRefresh = false) => {
+    if (isGuest && !user) {
+      setMyRes([]);
+      setLoadingRes(false);
+      return;
+    }
     if (isRefresh) setRefreshing(true);
     else setLoadingRes(true);
 
@@ -115,7 +127,7 @@ export default function ReservationsScreen() {
       setLoadingRes(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [isGuest, user]);
 
   useEffect(() => {
     Promise.all([getLocations(), getTables()])
@@ -134,6 +146,13 @@ export default function ReservationsScreen() {
   useEffect(() => {
     loadReservations();
   }, [loadReservations]);
+
+  const managedLocations = useMemo(() => {
+    if (isAdmin) return locations;
+    if (isManager) return locations.filter((l) => l.managerId === user?.id);
+    if (isStaff && user?.locationId) return locations.filter((l) => l.id === user.locationId);
+    return locations;
+  }, [isAdmin, isManager, isStaff, locations, user]);
 
   const eligibleTables = useMemo(
     () =>
@@ -180,14 +199,7 @@ export default function ReservationsScreen() {
       return;
     }
 
-    const reservedFor = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
-      selectedHour,
-      0,
-      0,
-    ).toISOString();
+    const reservedFor = buildReservationDateTime(selectedDate, selectedHour).toISOString();
 
     getReservationAvailability(selectedLocationId, reservedFor)
       .then((data) => {
@@ -200,9 +212,12 @@ export default function ReservationsScreen() {
 
   useEffect(() => {
     if (tab === 'manage') {
+      if (managedLocations.length && !managedLocations.some((l) => l.id === selectedLocationId)) {
+        setSelectedLocationId(managedLocations[0].id);
+      }
       void loadLocationReservations();
     }
-  }, [tab, loadLocationReservations]);
+  }, [tab, loadLocationReservations, managedLocations, selectedLocationId]);
 
   useEffect(() => {
     if (selectedTableId && takenTableIds.includes(selectedTableId)) {
@@ -229,7 +244,7 @@ export default function ReservationsScreen() {
       .finally(() => setCancellingId(null));
   };
 
-  const handleManageStatus = async (reservation: ReservationDto, status: string) => {
+  const updateStatus = async (reservation: ReservationDto, status: string) => {
     try {
       setManagingReservationId(reservation.id);
       setManageError(null);
@@ -250,7 +265,7 @@ export default function ReservationsScreen() {
     }
   };
 
-  const handleBook = async () => {
+  const bookReservation = async () => {
     if (booking) return;
 
     setBookingError(null);
@@ -285,16 +300,16 @@ export default function ReservationsScreen() {
       return;
     }
 
-    const reservedFor = new Date(
-      selectedDate.getFullYear(),
-      selectedDate.getMonth(),
-      selectedDate.getDate(),
-      selectedHour,
-      0,
-      0,
-    );
+    const reservedFor = buildReservationDateTime(selectedDate, selectedHour);
+    const reservationPayload = buildReservationCreatePayload({
+      locationId: selectedLocationId,
+      tableId: selectedTableId,
+      reservedForIso: reservedFor.toISOString(),
+      partySize,
+      specialRequests,
+    });
 
-    if (reservedFor.getTime() - Date.now() < 2 * 60 * 60 * 1000) {
+    if (isReservationTooSoon(reservedFor)) {
       setBookingError('Must be at least 2 hours from now.');
       return;
     }
@@ -302,13 +317,7 @@ export default function ReservationsScreen() {
     setBooking(true);
 
     try {
-      await createReservation({
-        locationId: selectedLocationId,
-        tableId: selectedTableId,
-        reservedFor: reservedFor.toISOString(),
-        partySize,
-        specialRequests: specialRequests.trim() || undefined,
-      });
+      await createReservation(reservationPayload);
 
       setSelectedDate(null);
       setSelectedHour(null);
@@ -318,7 +327,7 @@ export default function ReservationsScreen() {
       setTab('my');
       await loadReservations(true);
 
-      Alert.alert('Reservation Confirmed', 'Your reservation has been created.');
+      Alert.alert('Reservation Placed', 'Your reservation request was created. Payment is received and staff will confirm it shortly.');
     } catch (e: any) {
       if (e instanceof ApiError && e.status === 402) {
         const paymentInfo = e.data as ReservationCoverChargeRequiredDto | undefined;
@@ -336,46 +345,40 @@ export default function ReservationsScreen() {
             {
               text: 'Pay Now',
               onPress: async () => {
-                let urlToOpen = checkoutUrl;
-
-                if (!urlToOpen && coverChargeOrderId) {
-                  try {
-                    urlToOpen = await createStripeCheckoutSession(coverChargeOrderId);
-                  } catch {
-                    urlToOpen = null;
-                  }
-                }
+                const urlToOpen = await resolveCoverChargeCheckoutUrl(
+                  coverChargeOrderId,
+                  checkoutUrl,
+                  createStripeCheckoutSession,
+                );
 
                 if (urlToOpen) {
                   try {
                     await WebBrowser.openBrowserAsync(urlToOpen);
-                    // Payment updates can be delayed briefly; retry sync/create a few times.
-                    let created = false;
-                    for (let attempt = 0; attempt < 3; attempt++) {
-                      if (coverChargeOrderId) {
-                        try { await syncStripePaymentStatus(coverChargeOrderId); } catch { /* best effort */ }
-                      }
-
-                      try {
-                        await createReservation({
+                    // Stripe webhook can lag a few seconds; try a couple times before giving up.
+                    const created = await retryReservationCreateAfterPayment({
+                      createReservation: () => createReservation(
+                        buildReservationCreatePayload({
                           locationId: selectedLocationId!,
                           tableId: selectedTableId!,
-                          reservedFor: reservedFor.toISOString(),
+                          reservedForIso: reservedFor.toISOString(),
                           partySize,
                           coverChargeOrderId,
-                          specialRequests: specialRequests.trim() || undefined,
-                        });
-                        created = true;
-                        break;
-                      } catch (createErr: any) {
-                        if (!(createErr instanceof ApiError) || createErr.status !== 402) {
-                          throw createErr;
+                          specialRequests,
+                        }),
+                      ),
+                      isPendingError: (error) => error instanceof ApiError && error.status === 402,
+                      maxAttempts: 3,
+                      retryDelayMs: 900,
+                      onBeforeAttempt: async () => {
+                        if (coverChargeOrderId) {
+                          try {
+                            await syncStripePaymentStatus(coverChargeOrderId);
+                          } catch {
+                            // best effort
+                          }
                         }
-                        if (attempt < 2) {
-                          await new Promise((resolve) => setTimeout(resolve, 900));
-                        }
-                      }
-                    }
+                      },
+                    });
 
                     setTab('my');
                     await loadReservations(true);
@@ -386,7 +389,7 @@ export default function ReservationsScreen() {
                       setSelectedTableId(null);
                       setSpecialRequests('');
                       setPartySize(2);
-                      Alert.alert('Reservation Completed', 'Payment received. Your reservation is confirmed and now listed in My Reservations.');
+                      Alert.alert('Reservation Placed', 'Payment received. Your reservation request is now listed in My Reservations and is awaiting staff confirmation.');
                     } else {
                       Alert.alert('Payment Received', 'Cover charge payment was received. Pull to refresh and try booking once more if it does not appear yet.');
                     }
@@ -458,390 +461,63 @@ export default function ReservationsScreen() {
           </View>
 
           {tab === 'my' && (
-            loadingRes ? (
-              <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
-            ) : resError ? (
-              <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>{resError}</ThemedText>
-                <TouchableOpacity onPress={() => loadReservations()} style={[styles.retryBtn, { borderColor: colors.primary }]}>
-                  <ThemedText style={[styles.retryText, { color: colors.primary }]}>Retry</ThemedText>
-                </TouchableOpacity>
-              </View>
-            ) : myRes.length === 0 ? (
-              <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                <MaterialIcons name="event-seat" size={40} color={colors.textSecondary} style={{ marginBottom: 10 }} />
-                <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>No reservations yet</ThemedText>
-                <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
-                  Book your first table below.
-                </ThemedText>
-                <TouchableOpacity style={[styles.bookBtn, { backgroundColor: colors.primary }]} onPress={() => setTab('book')}>
-                  <ThemedText style={styles.bookBtnText}>Book a Table</ThemedText>
-                </TouchableOpacity>
-              </View>
-            ) : (
-              <>
-                {cancelError ? (
-                  <View style={[styles.inlineError, { backgroundColor: '#ef444418', borderColor: '#ef4444' }]}>
-                    <MaterialIcons name="error-outline" size={16} color="#ef4444" />
-                    <ThemedText style={styles.inlineErrorText}>{cancelError}</ThemedText>
-                    <TouchableOpacity onPress={() => setCancelError(null)}>
-                      <MaterialIcons name="close" size={16} color="#ef4444" />
-                    </TouchableOpacity>
-                  </View>
-                ) : null}
-
-                {myRes.map((res) => {
-                  const isPast = new Date(
-                    res.reservedFor.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(res.reservedFor)
-                      ? res.reservedFor
-                      : res.reservedFor + 'Z',
-                  ) < new Date();
-
-                  const isCancelled = res.status?.toLowerCase() === 'cancelled';
-                  const isCompleted = res.status?.toLowerCase() === 'completed' || res.status?.toLowerCase() === 'noshow';
-                  const statusColorMap: Record<string, string> = {
-                    confirmed: '#10b981',
-                    pending: '#10b981',
-                    cancelled: '#ef4444',
-                    completed: '#6b7280',
-                    noshow: '#6b7280',
-                  };
-                  const statusColor = isPast && !isCancelled
-                    ? '#6b7280'
-                    : statusColorMap[res.status?.toLowerCase() ?? ''] ?? '#6b7280';
-                  const statusLabel = isCancelled ? 'Cancelled' : isPast ? 'Past'
-                    : (res.status?.toLowerCase() === 'pending' ? 'Confirmed' : res.status ?? 'Confirmed');
-
-                  return (
-                    <View
-                      key={res.id}
-                      style={[styles.resCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                    >
-                      <View style={styles.resHeader}>
-                        <View style={styles.resHeaderInfo}>
-                          <ThemedText style={[styles.resDate, { color: colors.text }]}>
-                            {formatReservationDate(res.reservedFor)}
-                          </ThemedText>
-                          <ThemedText style={[styles.resMeta, { color: colors.textSecondary }]}>
-                            Party of {res.partySize} - Table #{res.tableId}
-                          </ThemedText>
-                        </View>
-
-                        <View style={[styles.statusBadge, { backgroundColor: statusColor + '22', borderColor: statusColor }]}>
-                          <ThemedText style={[styles.statusText, { color: statusColor }]}>
-                            {statusLabel}
-                          </ThemedText>
-                        </View>
-                      </View>
-
-                      {res.specialRequests ? (
-                        <ThemedText style={[styles.specialReq, { color: colors.textSecondary }]}>
-                          &quot;{res.specialRequests}&quot;
-                        </ThemedText>
-                      ) : null}
-
-                      {!isCancelled && !isPast && !isCompleted && (
-                        confirmingId === res.id ? (
-                          <View style={styles.confirmRow}>
-                            <ThemedText style={[styles.confirmText, { color: colors.textSecondary }]}>Sure?</ThemedText>
-                            <TouchableOpacity
-                              style={[styles.confirmYes, { backgroundColor: '#ef4444' }]}
-                              onPress={() => doCancel(res.id)}
-                              activeOpacity={0.8}
-                            >
-                              {cancellingId === res.id
-                                ? <ActivityIndicator size="small" color="#fff" />
-                                : <ThemedText style={styles.confirmYesText}>Yes, cancel</ThemedText>}
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                              style={[styles.confirmNo, { borderColor: colors.border }]}
-                              onPress={() => setConfirmingId(null)}
-                              activeOpacity={0.8}
-                            >
-                              <ThemedText style={[styles.confirmNoText, { color: colors.text }]}>Keep it</ThemedText>
-                            </TouchableOpacity>
-                          </View>
-                        ) : (
-                          <TouchableOpacity
-                            style={[styles.cancelBtn, { borderColor: '#ef4444', opacity: cancellingId === res.id ? 0.6 : 1 }]}
-                            onPress={() => setConfirmingId(res.id)}
-                            activeOpacity={0.8}
-                            disabled={cancellingId !== null}
-                          >
-                            <ThemedText style={styles.cancelBtnText}>Cancel Reservation</ThemedText>
-                          </TouchableOpacity>
-                        )
-                      )}
-                    </View>
-                  );
-                })}
-              </>
-            )
+            <ReservationsMySection
+              colors={colors}
+              loadingRes={loadingRes}
+              resError={resError}
+              myRes={myRes}
+              isGuest={isGuest}
+              cancelError={cancelError}
+              confirmingId={confirmingId}
+              cancellingId={cancellingId}
+              onRetry={() => loadReservations()}
+              onGoToBook={() => setTab('book')}
+              onDismissCancelError={() => setCancelError(null)}
+              onConfirmCancel={setConfirmingId}
+              onKeepReservation={() => setConfirmingId(null)}
+              onCancelReservation={doCancel}
+            />
           )}
 
           {tab === 'book' && (
-            loadingMeta ? (
-              <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
-            ) : (
-              <>
-                <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                  <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Location</ThemedText>
-                  {locations.map((loc) => (
-                    <TouchableOpacity
-                      key={loc.id}
-                      style={[
-                        styles.locationOption,
-                        {
-                          borderColor: selectedLocationId === loc.id ? colors.primary : colors.border,
-                          backgroundColor: selectedLocationId === loc.id ? colors.primary + '18' : 'transparent',
-                        },
-                      ]}
-                      onPress={() => setSelectedLocationId(loc.id)}
-                      activeOpacity={0.85}
-                    >
-                      <MaterialIcons
-                        name={selectedLocationId === loc.id ? 'radio-button-checked' : 'radio-button-unchecked'}
-                        size={18}
-                        color={selectedLocationId === loc.id ? colors.primary : colors.textSecondary}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <ThemedText style={[styles.locationName, { color: colors.text }]}>{loc.name}</ThemedText>
-                        <ThemedText style={[styles.locationAddr, { color: colors.textSecondary }]}>
-                          {loc.address}, {loc.city}
-                        </ThemedText>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                  <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Party Size</ThemedText>
-                  <View style={styles.partySizeRow}>
-                    {[2, 3, 4, 5, 6].map((n) => (
-                      <TouchableOpacity
-                        key={n}
-                        style={[
-                          styles.sizeBtn,
-                          {
-                            borderColor: partySize === n ? colors.primary : colors.border,
-                            backgroundColor: partySize === n ? colors.primary : 'transparent',
-                          },
-                        ]}
-                        onPress={() => setPartySize(n)}
-                      >
-                        <ThemedText style={[styles.sizeBtnText, { color: partySize === n ? '#fff' : colors.text }]}>
-                          {n}
-                        </ThemedText>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                </View>
-
-                <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                  <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Date</ThemedText>
-                  <CalendarPicker
-                    selected={selectedDate}
-                    onSelect={(d) => {
-                      setSelectedDate(d);
-                      setSelectedHour(null);
-                    }}
-                    colors={colors}
-                    minDaysAhead={1}
-                  />
-                </View>
-
-                {selectedDate && (
-                  <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                    <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Time (6 AM - 6 PM)</ThemedText>
-                    <View style={styles.timeGrid}>
-                      {HOUR_SLOTS.map((h) => {
-                        const slotDate = new Date(
-                          selectedDate.getFullYear(),
-                          selectedDate.getMonth(),
-                          selectedDate.getDate(),
-                          h,
-                        );
-                        const tooSoon = slotDate.getTime() - Date.now() < 2 * 60 * 60 * 1000;
-                        const isSelected = selectedHour === h;
-
-                        return (
-                          <TouchableOpacity
-                            key={h}
-                            style={[
-                              styles.timeBtn,
-                              {
-                                borderColor: isSelected ? colors.primary : colors.border,
-                                backgroundColor: isSelected ? colors.primary : 'transparent',
-                                opacity: tooSoon ? 0.35 : 1,
-                              },
-                            ]}
-                            onPress={() => !tooSoon && setSelectedHour(h)}
-                            activeOpacity={tooSoon ? 1 : 0.8}
-                          >
-                            <ThemedText style={[styles.timeBtnText, { color: isSelected ? '#fff' : colors.text }]}>
-                              {formatHour(h)}
-                            </ThemedText>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  </View>
-                )}
-
-                {selectedDate && selectedHour !== null && (
-                  <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                    <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Table</ThemedText>
-                    {eligibleTables.length === 0 ? (
-                      <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
-                        No tables available for party of {partySize} at this location.
-                      </ThemedText>
-                    ) : eligibleTables.map((t) => {
-                      const isTaken = takenTableIds.includes(t.id);
-
-                      return (
-                        <TouchableOpacity
-                          key={t.id}
-                          style={[
-                            styles.tableOption,
-                            {
-                              borderColor: selectedTableId === t.id ? colors.primary : colors.border,
-                              backgroundColor: selectedTableId === t.id ? colors.primary + '18' : 'transparent',
-                              opacity: isTaken ? 0.45 : 1,
-                            },
-                          ]}
-                          onPress={() => !isTaken && setSelectedTableId(t.id)}
-                          activeOpacity={isTaken ? 1 : 0.85}
-                        >
-                          <MaterialIcons
-                            name={selectedTableId === t.id ? 'radio-button-checked' : 'radio-button-unchecked'}
-                            size={18}
-                            color={selectedTableId === t.id ? colors.primary : colors.textSecondary}
-                          />
-                          <ThemedText style={[styles.tableText, { color: colors.text }]}>
-                            Table {t.tableNumber} - {t.seats} seats{isTaken ? ' - Taken' : ''}
-                          </ThemedText>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-
-                <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                  <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Special Requests</ThemedText>
-                  <View style={[styles.inputWrap, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}>
-                    <TextInput
-                      style={[styles.input, { color: colors.text }]}
-                      placeholder="Allergies, occasion, seating preference... (optional)"
-                      placeholderTextColor={colors.textSecondary}
-                      value={specialRequests}
-                      onChangeText={setSpecialRequests}
-                      multiline
-                      numberOfLines={3}
-                      textAlignVertical="top"
-                    />
-                  </View>
-                </View>
-
-                {bookingError ? (
-                  <ThemedText style={styles.errorText}>{bookingError}</ThemedText>
-                ) : null}
-
-                <AnimatedButton
-                  style={[styles.bookSubmitBtn, { backgroundColor: booking ? colors.border : colors.primary }]}
-                  onPress={handleBook}
-                >
-                  {booking
-                    ? <ActivityIndicator color="#fff" />
-                    : <ThemedText style={styles.bookSubmitText}>Confirm Reservation</ThemedText>}
-                </AnimatedButton>
-              </>
-            )
+            <ReservationsBookSection
+              colors={colors}
+              loadingMeta={loadingMeta}
+              locations={locations}
+              selectedLocationId={selectedLocationId}
+              setSelectedLocationId={setSelectedLocationId}
+              partySize={partySize}
+              setPartySize={setPartySize}
+              selectedDate={selectedDate}
+              setSelectedDate={setSelectedDate}
+              selectedHour={selectedHour}
+              setSelectedHour={setSelectedHour}
+              eligibleTables={eligibleTables}
+              takenTableIds={takenTableIds}
+              selectedTableId={selectedTableId}
+              setSelectedTableId={setSelectedTableId}
+              specialRequests={specialRequests}
+              setSpecialRequests={setSpecialRequests}
+              bookingError={bookingError}
+              booking={booking}
+              onBook={bookReservation}
+            />
           )}
 
           {tab === 'manage' && isPrivileged && (
-            loadingMeta ? (
-              <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 32 }} />
-            ) : (
-              <>
-                <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                  <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Manage by Location</ThemedText>
-                  {locations.map((loc) => (
-                    <TouchableOpacity
-                      key={loc.id}
-                      style={[
-                        styles.locationOption,
-                        {
-                          borderColor: selectedLocationId === loc.id ? colors.primary : colors.border,
-                          backgroundColor: selectedLocationId === loc.id ? colors.primary + '18' : 'transparent',
-                        },
-                      ]}
-                      onPress={() => setSelectedLocationId(loc.id)}
-                      activeOpacity={0.85}
-                    >
-                      <MaterialIcons
-                        name={selectedLocationId === loc.id ? 'radio-button-checked' : 'radio-button-unchecked'}
-                        size={18}
-                        color={selectedLocationId === loc.id ? colors.primary : colors.textSecondary}
-                      />
-                      <View style={{ flex: 1 }}>
-                        <ThemedText style={[styles.locationName, { color: colors.text }]}>{loc.name}</ThemedText>
-                        <ThemedText style={[styles.locationAddr, { color: colors.textSecondary }]}>
-                          {loc.address}, {loc.city}
-                        </ThemedText>
-                      </View>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-
-                {manageError ? (
-                  <ThemedText style={styles.errorText}>{manageError}</ThemedText>
-                ) : null}
-
-                {loadingLocationReservations ? (
-                  <ActivityIndicator size="large" color={colors.primary} style={{ marginTop: 16 }} />
-                ) : locationReservations.length === 0 ? (
-                  <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                    <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>No reservations for this location</ThemedText>
-                    <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>Everything is open right now.</ThemedText>
-                  </View>
-                ) : (
-                  locationReservations.map((res) => (
-                    <View key={res.id} style={[styles.resCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                      <View style={styles.resHeader}>
-                        <View style={styles.resHeaderInfo}>
-                          <ThemedText style={[styles.resDate, { color: colors.text }]}>{formatReservationDate(res.reservedFor)}</ThemedText>
-                          <ThemedText style={[styles.resMeta, { color: colors.textSecondary }]}>Party of {res.partySize} - Table #{res.tableId}</ThemedText>
-                        </View>
-                        <View style={[styles.statusBadge, { backgroundColor: '#3b82f622', borderColor: '#3b82f6' }]}>
-                          <ThemedText style={[styles.statusText, { color: '#3b82f6' }]}>{res.status}</ThemedText>
-                        </View>
-                      </View>
-
-                      {res.specialRequests ? (
-                        <ThemedText style={[styles.specialReq, { color: colors.textSecondary }]}>{res.specialRequests}</ThemedText>
-                      ) : null}
-
-                      <View style={styles.manageRow}>
-                        <TouchableOpacity
-                          style={[styles.manageButton, { backgroundColor: colors.primary, opacity: managingReservationId === res.id ? 0.7 : 1 }]}
-                          onPress={() => handleManageStatus(res, 'Completed')}
-                          disabled={managingReservationId === res.id}
-                        >
-                          <ThemedText style={styles.manageButtonText}>Mark Completed</ThemedText>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                          style={[styles.manageButton, styles.manageDangerButton, { opacity: managingReservationId === res.id ? 0.7 : 1 }]}
-                          onPress={() => doCancel(res.id)}
-                          disabled={managingReservationId === res.id}
-                        >
-                          <ThemedText style={styles.manageButtonText}>Cancel</ThemedText>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))
-                )}
-              </>
-            )
+            <ReservationsManageSection
+              colors={colors}
+              loadingMeta={loadingMeta}
+              managedLocations={managedLocations}
+              selectedLocationId={selectedLocationId}
+              setSelectedLocationId={setSelectedLocationId}
+              manageError={manageError}
+              loadingLocationReservations={loadingLocationReservations}
+              locationReservations={locationReservations}
+              managingReservationId={managingReservationId}
+              onCompleteReservation={(reservation) => updateStatus(reservation, 'Completed')}
+              onCancelReservation={doCancel}
+            />
           )}
         </ThemedView>
       </ScrollView>

@@ -4,7 +4,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  TextInput,
   ActivityIndicator,
   RefreshControl,
   Alert,
@@ -12,6 +11,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useIsFocused } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -20,6 +21,16 @@ import { CommonStyles, getColors } from '@/constants/styles';
 import { styles } from '@/styles/screens/account.styles';
 import { useThemeMode } from '@/contexts/ThemeContext';
 import { PageHeaderActions } from '@/components/page-header-actions';
+import { getUserPermissions } from '@/utils/role-helpers';
+import { AccountProfileSection } from '../../components/account/account-profile-section';
+import { WorkAccessSection } from '../../components/account/work-access-section';
+import { RewardsSection } from '../../components/account/rewards-section';
+import { PaymentMethodsSection } from '../../components/account/payment-methods-section';
+import {
+  detectCardBrand,
+  formatHistoryDate,
+  getRewardImageSource,
+} from '../../components/account/account-formatters';
 import {
   addPaymentMethod,
   createUserAccount,
@@ -37,98 +48,17 @@ import {
   type RewardDto,
 } from '@/services/api';
 
-function formatHistoryDate(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-function formatCardLabel(method: PaymentMethodDto) {
-  return `${method.brand} •••• ${method.last4}`;
-}
-
-function getDigitsOnly(value: string) {
-  return value.replace(/\D/g, '');
-}
-
-function detectCardBrand(cardNumber: string) {
-  if (/^4/.test(cardNumber)) return 'Visa';
-  if (/^(5[1-5]|2[2-7])/.test(cardNumber)) return 'MasterCard';
-  if (/^3[47]/.test(cardNumber)) return 'American Express';
-  if (/^6(?:011|5)/.test(cardNumber)) return 'Discover';
-  return 'Card';
-}
-
-function formatCardNumberInput(value: string) {
-  const digits = getDigitsOnly(value).slice(0, 19);
-  return digits.replace(/(\d{4})(?=\d)/g, '$1 ').trim();
-}
-
-function getRewardImageSource(name: string) {
-  const normalized = name.toLowerCase();
-  
-  if (normalized.includes('iced latte') || normalized.includes('latte')) {
-    return require('@/assets/images/featured-caramel-latte.jpg');
-  }
-  if (normalized.includes('mannino honey crepe') || normalized.includes('mannino')) {
-    return require('@/assets/images/mannino honey crape.png');
-  }
-  if (normalized.includes('turkey club') || normalized.includes('turkey')) {
-    return require('@/assets/images/turkeyclub.png');
-  }
-  if (normalized.includes('classic') || normalized.includes('bagel')) {
-    return require('@/assets/images/classic.png');
-  }
-  if (normalized.includes('supernova')) {
-    return require('@/assets/images/supernova.png');
-  }
-  if (normalized.includes('roaring') || normalized.includes('frappe')) {
-    return require('@/assets/images/roaringfrape.png');
-  }
-  if (normalized.includes('strawberry') || normalized.includes('lemonade') || normalized.includes('lemond') || normalized.includes('limeade')) {
-    return require('@/assets/images/strawberry.png');
-  }
-  if (normalized.includes('shaken')) {
-    return require('@/assets/images/shaken.png');
-  }
-  if (normalized.includes('black') || normalized.includes('cold brew')) {
-    return require('@/assets/images/blackwhitecoldbrew.png');
-  }
-  if (normalized.includes('turkey')) {
-    return require('@/assets/images/turkeyclub.png');
-  }
-
-  return require('@/assets/images/ConceptLogo2-FpjOWRtT.png');
-}
-
-function getRewardItemName(name: string, description?: string) {
-  const combined = `${name} ${description ?? ''}`.toLowerCase();
-
-  if (combined.includes('supernova')) return 'Supernova';
-  if (combined.includes('strawberry') && (combined.includes('lemonade') || combined.includes('lemond') || combined.includes('limeade'))) return 'Strawberry Lemonade';
-  if (combined.includes('strawberry')) return 'Strawberry Lemonade';
-  if (combined.includes('the classic')) return 'The Classic';
-  if (combined.includes('bagel')) return 'The Classic';
-  if (combined.includes('10%')) return 'Any menu item';
-  return name;
-}
-
 export default function AccountScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  const { user, checkAuth, isLoading: authLoading } = useAuth();
+  const router = useRouter();
+  const { user, checkAuth, isLoading: authLoading, isGuest } = useAuth();
   const isFocused = useIsFocused();
   const { toggleMode } = useThemeMode();
 
-  const normalizedRoles = user?.roles?.map((role) => role.toLowerCase()) ?? [];
-  const isAdmin = normalizedRoles.includes('admin');
-  const isManager = normalizedRoles.includes('manager');
-  const isStaff = normalizedRoles.includes('staff');
-  const hasWorkAccess = isAdmin || isManager || isStaff;
+  const { isAdmin, isManager, isPrivileged } = getUserPermissions(user?.roles);
+  const hasWorkAccess = isPrivileged;
 
   const [loyalty, setLoyalty] = useState<LoyaltySummaryDto | null>(null);
   const [locations, setLocations] = useState<LocationDto[]>([]);
@@ -139,8 +69,10 @@ export default function AccountScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // payment method form state
+  // TODO: payment form has grown – consider breaking into its own modal or screen
   const [cardholderName, setCardholderName] = useState('');
-  const [cardNumber, setCardNumber] = useState(''); // stores raw digits only
+  const [cardNumber, setCardNumber] = useState(''); // raw digits, no spaces
   const [cvv, setCvv] = useState('');
   const [expMonth, setExpMonth] = useState('');
   const [expYear, setExpYear] = useState('');
@@ -188,7 +120,7 @@ export default function AccountScreen() {
       return `Reward #${entry.rewardId}`;
     }
 
-    // Fallback for older ledger rows that only stored points redeemed.
+    // older ledger rows only recorded points redeemed, not the reward ID
     const matchesByCost = rewards.filter((r) => r.pointsCost === entry.pointsRedeemed);
     if (matchesByCost.length === 1) {
       return matchesByCost[0].name;
@@ -255,7 +187,6 @@ export default function AccountScreen() {
         }
 
         if (methodsResult.status === 'fulfilled') {
-          console.log('[Account] Payment methods loaded:', methodsResult.value);
           setPaymentMethods(methodsResult.value);
         } else {
           console.error('[Account] Payment methods load failed:', methodsResult.reason);
@@ -291,11 +222,11 @@ export default function AccountScreen() {
     loadAccountData();
   }, [authLoading, isFocused, loadAccountData]);
 
-  const handleAddPaymentMethod = async () => {
+  const addCard = async () => {
     if (addingMethod) return;
 
     const cleanCardholder = cardholderName.trim();
-    const cardDigits = cardNumber; // already raw digits
+    const cardDigits = cardNumber;
     const cleanLast4 = cardDigits.slice(-4);
     const inferredBrand = detectCardBrand(cardDigits);
     const month = Number(expMonth);
@@ -331,21 +262,10 @@ export default function AccountScreen() {
       setAddingMethod(true);
       setError(null);
 
-      console.log('[Account] Adding payment method:', {
-        cardholderName: cleanCardholder,
-        cardNumber: cardDigits, // Send full card number for Stripe tokenization
-        cvc: cvv.trim(), // Send CVV for Stripe tokenization
-        brand: inferredBrand,
-        last4: cleanLast4,
-        expMonth: month,
-        expYear: year,
-        isDefault: setAsDefault,
-      });
-
       await addPaymentMethod({
         cardholderName: cleanCardholder,
-        cardNumber: cardDigits, // Full card number for tokenization
-        cvc: cvv.trim(), // CVV for tokenization
+        cardNumber: cardDigits, // full number for tokenization only
+        cvc: cvv.trim(),
         brand: inferredBrand,
         last4: cleanLast4,
         expMonth: month,
@@ -353,9 +273,8 @@ export default function AccountScreen() {
         isDefault: setAsDefault,
       });
 
-      console.log('[Account] Payment method added successfully');
       setCardholderName('');
-      setCardNumber(''); // reset raw digits
+      setCardNumber('');
       setCvv('');
       setExpMonth('');
       setExpYear('');
@@ -370,7 +289,7 @@ export default function AccountScreen() {
     }
   };
 
-  const handleSetDefault = async (id: number) => {
+  const setDefault = async (id: number) => {
     try {
       setUpdatingMethodId(id);
       setError(null);
@@ -383,7 +302,7 @@ export default function AccountScreen() {
     }
   };
 
-  const handleDelete = (id: number) => {
+  const deleteMethod = (id: number) => {
     Alert.alert('Remove Payment Method', 'Delete this saved card?', [
       { text: 'Cancel', style: 'cancel' },
       {
@@ -405,7 +324,7 @@ export default function AccountScreen() {
     ]);
   };
 
-  const handleRedeemReward = async (reward: RewardDto) => {
+  const claimReward = async (reward: RewardDto) => {
     if (redeemingRewardId) return;
 
     const points = loyalty?.points ?? user?.loyaltyPoints ?? 0;
@@ -420,10 +339,7 @@ export default function AccountScreen() {
       await redeemReward(reward.id);
       await loadAccountData(true);
 
-      // Refresh auth-derived user fields (like loyalty points) without
-      // flipping the global app loader or failing redemption UX.
       void checkAuth(true).catch(() => {
-        // Best effort only; account data is already refreshed.
       });
     } catch (e: any) {
       setError(e.message || 'Could not redeem reward.');
@@ -446,7 +362,7 @@ export default function AccountScreen() {
     }
   }, [isAdmin, teamRole]);
 
-  const handleCreateTeamMember = async () => {
+  const createTeamMember = async () => {
     if (!user || (!isAdmin && !isManager)) {
       return;
     }
@@ -552,492 +468,95 @@ export default function AccountScreen() {
             </View>
           ) : null}
 
-          {user && (
-            <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
-              <ThemedText style={CommonStyles.cardTitle}>Profile Information</ThemedText>
-
-              <View style={CommonStyles.infoRow}>
-                <ThemedText style={CommonStyles.label}>Username:</ThemedText>
-                <ThemedText style={CommonStyles.value}>{user.userName}</ThemedText>
-              </View>
-
-              {user.email && (
-                <View style={CommonStyles.infoRow}>
-                  <ThemedText style={CommonStyles.label}>Email:</ThemedText>
-                  <ThemedText style={CommonStyles.value}>{user.email}</ThemedText>
-                </View>
-              )}
-
-              <View style={CommonStyles.infoRow}>
-                <ThemedText style={CommonStyles.label}>Loyalty Points:</ThemedText>
-                <ThemedText style={[CommonStyles.value, { color: colors.primary, fontWeight: 'bold' }]}>
-                  {user.loyaltyPoints} ⭐
-                </ThemedText>
-              </View>
-
-              {user.roles && user.roles.length > 0 && (
-                <View style={CommonStyles.infoRow}>
-                  <ThemedText style={CommonStyles.label}>Role:</ThemedText>
-                  <ThemedText style={CommonStyles.value}>{user.roles.join(', ')}</ThemedText>
-                </View>
-              )}
+          {isGuest && !user && (
+            <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground, alignItems: 'center', paddingVertical: 32 }]}>
+              <MaterialIcons name="person-outline" size={48} color={colors.textSecondary} style={{ marginBottom: 12 }} />
+              <ThemedText style={[CommonStyles.cardTitle, { color: colors.text, textAlign: 'center' }]}>
+                Browsing as Guest
+              </ThemedText>
+              <ThemedText style={{ color: colors.textSecondary, textAlign: 'center', marginTop: 6, marginBottom: 16 }}>
+                Sign in to unlock Rewards, saved payment methods, and your order history.
+              </ThemedText>
+              <TouchableOpacity
+                style={[{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }]}
+                onPress={() => router.push('/login')}
+              >
+                <ThemedText style={{ color: '#fff', fontWeight: '600', fontFamily: 'Inter_700Bold' }}>Sign In / Register</ThemedText>
+              </TouchableOpacity>
             </View>
           )}
+
+          {user && <AccountProfileSection user={user} colors={colors} />}
 
           {user && hasWorkAccess && (
-            <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
-              <ThemedText style={CommonStyles.cardTitle}>Work Access</ThemedText>
-
-              <View style={[styles.workSummaryBox, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}>
-                <ThemedText style={[styles.workSummaryText, { color: colors.text }]}>
-                  {isAdmin
-                    ? 'Create manager and staff accounts for any location directly from mobile.'
-                    : isManager
-                      ? 'Create staff accounts for the locations you manage and use the Orders and Menu tabs for daily operations.'
-                      : 'Use the Orders tab to process the assigned location orders you are allowed to handle.'}
-                </ThemedText>
-
-                {!!user.locationId && (
-                  <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>
-                    Assigned location ID: {user.locationId}
-                  </ThemedText>
-                )}
-
-                {isManager && managedLocations.length > 0 && (
-                  <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>
-                    Managed locations: {managedLocations.map((location) => location.name).join(', ')}
-                  </ThemedText>
-                )}
-              </View>
-
-              {(isAdmin || isManager) && (
-                <>
-                  <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Create Team Account</ThemedText>
-
-                  {isAdmin && (
-                    <View style={styles.pillRow}>
-                      {(['Staff', 'Manager'] as const).map((role) => {
-                        const selected = teamRole === role;
-                        return (
-                          <TouchableOpacity
-                            key={role}
-                            style={[
-                              styles.pill,
-                              {
-                                borderColor: selected ? colors.primary : colors.border,
-                                backgroundColor: selected ? `${colors.primary}22` : 'transparent',
-                              },
-                            ]}
-                            onPress={() => setTeamRole(role)}
-                            activeOpacity={0.85}
-                          >
-                            <ThemedText style={[styles.pillText, { color: selected ? colors.primary : colors.text }]}>{role}</ThemedText>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </View>
-                  )}
-
-                  <View style={styles.formStack}>
-                    <TextInput
-                      style={[
-                        CommonStyles.input,
-                        {
-                          borderColor: colors.border,
-                          backgroundColor: colors.inputBackground,
-                          color: colors.text,
-                        },
-                      ]}
-                      value={teamMemberUserName}
-                      onChangeText={setTeamMemberUserName}
-                      placeholder="Username"
-                      placeholderTextColor={colors.textSecondary}
-                      autoCapitalize="none"
-                    />
-
-                    <TextInput
-                      style={[
-                        CommonStyles.input,
-                        {
-                          borderColor: colors.border,
-                          backgroundColor: colors.inputBackground,
-                          color: colors.text,
-                        },
-                      ]}
-                      value={teamMemberDisplayName}
-                      onChangeText={setTeamMemberDisplayName}
-                      placeholder="Display name"
-                      placeholderTextColor={colors.textSecondary}
-                    />
-
-                    <TextInput
-                      style={[
-                        CommonStyles.input,
-                        {
-                          borderColor: colors.border,
-                          backgroundColor: colors.inputBackground,
-                          color: colors.text,
-                        },
-                      ]}
-                      value={teamMemberEmail}
-                      onChangeText={setTeamMemberEmail}
-                      placeholder="Email (optional)"
-                      placeholderTextColor={colors.textSecondary}
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                    />
-
-                    <TextInput
-                      style={[
-                        CommonStyles.input,
-                        {
-                          borderColor: colors.border,
-                          backgroundColor: colors.inputBackground,
-                          color: colors.text,
-                        },
-                      ]}
-                      value={teamMemberPassword}
-                      onChangeText={setTeamMemberPassword}
-                      placeholder="Temporary password"
-                      placeholderTextColor={colors.textSecondary}
-                      secureTextEntry
-                    />
-
-                    <ThemedText style={[styles.helperText, { color: colors.textSecondary }]}>
-                      {isAdmin && teamRole === 'Manager'
-                        ? 'Select the location that this new manager should control.'
-                        : 'Select the location this staff member should work at.'}
-                    </ThemedText>
-
-                    {assignableLocations.length === 0 ? (
-                      <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
-                        {isManager
-                          ? 'No managed locations are assigned to your account yet.'
-                          : 'No locations are available right now.'}
-                      </ThemedText>
-                    ) : (
-                      <View style={styles.pillRow}>
-                        {assignableLocations.map((location) => {
-                          const selected = selectedTeamLocationId === location.id;
-                          return (
-                            <TouchableOpacity
-                              key={location.id}
-                              style={[
-                                styles.pill,
-                                {
-                                  borderColor: selected ? colors.primary : colors.border,
-                                  backgroundColor: selected ? `${colors.primary}22` : 'transparent',
-                                },
-                              ]}
-                              onPress={() => setSelectedTeamLocationId(location.id)}
-                              activeOpacity={0.85}
-                            >
-                              <ThemedText style={[styles.pillText, { color: selected ? colors.primary : colors.text }]}>
-                                {location.name}
-                              </ThemedText>
-                            </TouchableOpacity>
-                          );
-                        })}
-                      </View>
-                    )}
-
-                    <TouchableOpacity
-                      style={[
-                        styles.addButton,
-                        {
-                          backgroundColor: colors.primary,
-                          opacity: creatingTeamMember ? 0.7 : 1,
-                        },
-                      ]}
-                      onPress={handleCreateTeamMember}
-                      disabled={creatingTeamMember}
-                      activeOpacity={0.85}
-                    >
-                      <ThemedText style={styles.addButtonText}>
-                        {creatingTeamMember
-                          ? 'Creating...'
-                          : isAdmin && teamRole === 'Manager'
-                            ? 'Create Manager'
-                            : 'Create Staff Account'}
-                      </ThemedText>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </View>
+            <WorkAccessSection
+              user={user}
+              colors={colors}
+              isAdmin={isAdmin}
+              isManager={isManager}
+              managedLocations={managedLocations}
+              assignableLocations={assignableLocations}
+              teamMemberUserName={teamMemberUserName}
+              setTeamMemberUserName={setTeamMemberUserName}
+              teamMemberDisplayName={teamMemberDisplayName}
+              setTeamMemberDisplayName={setTeamMemberDisplayName}
+              teamMemberEmail={teamMemberEmail}
+              setTeamMemberEmail={setTeamMemberEmail}
+              teamMemberPassword={teamMemberPassword}
+              setTeamMemberPassword={setTeamMemberPassword}
+              teamRole={teamRole}
+              setTeamRole={setTeamRole}
+              selectedTeamLocationId={selectedTeamLocationId}
+              setSelectedTeamLocationId={setSelectedTeamLocationId}
+              creatingTeamMember={creatingTeamMember}
+              onCreateTeamMember={createTeamMember}
+            />
           )}
 
-          <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}> 
-            <ThemedText style={CommonStyles.cardTitle}>Loyalty</ThemedText>
+          <RewardsSection
+            colors={colors}
+            user={user}
+            loyalty={loyalty}
+            rewards={rewards}
+            redeemingRewardId={redeemingRewardId}
+            visibleHistory={visibleHistory}
+            resolveRewardName={resolveRewardName}
+            onRedeemReward={claimReward}
+            onSelectRedemption={setSelectedRedemption}
+          />
 
-            <View style={[styles.pointsBanner, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}> 
-              <ThemedText style={[styles.pointsLabel, { color: colors.textSecondary }]}>Current Points</ThemedText>
-              <ThemedText style={[styles.pointsValue, { color: colors.primary }]}>{loyalty?.points ?? user?.loyaltyPoints ?? 0}</ThemedText>
-            </View>
-
-            <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Available Rewards</ThemedText>
-            {rewards.length === 0 ? (
-              <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No active rewards yet.</ThemedText>
-            ) : (
-              <View style={styles.stack}>
-                {rewards.map((reward) => {
-                  const canRedeem = (loyalty?.points ?? user?.loyaltyPoints ?? 0) >= reward.pointsCost;
-                  const isRedeeming = redeemingRewardId === reward.id;
-                  const rewardItemName = getRewardItemName(reward.name, reward.description);
-                  const rewardImage = getRewardImageSource(`${reward.name} ${reward.description}`);
-
-                  return (
-                    <View key={reward.id} style={[styles.rewardCard, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}> 
-                      <Image source={rewardImage} style={styles.rewardItemImage} resizeMode="cover" />
-                      <View style={styles.rewardTextWrap}>
-                        <ThemedText style={[styles.rewardName, { color: colors.text }]}>{reward.name}</ThemedText>
-                        <ThemedText style={[styles.rewardItemName, { color: colors.textSecondary }]}>Item: {rewardItemName}</ThemedText>
-                        <ThemedText style={[styles.rewardDescription, { color: colors.textSecondary }]}>{reward.description}</ThemedText>
-                        <ThemedText style={[styles.rewardCost, { color: colors.primary }]}>{reward.pointsCost} pts</ThemedText>
-                      </View>
-                      <TouchableOpacity
-                        style={[
-                          styles.actionButton,
-                          {
-                            backgroundColor: canRedeem ? colors.primary : colors.border,
-                            opacity: isRedeeming ? 0.7 : 1,
-                          },
-                        ]}
-                        onPress={() => handleRedeemReward(reward)}
-                        disabled={!canRedeem || isRedeeming}
-                        activeOpacity={0.85}
-                      >
-                        <ThemedText style={styles.actionButtonText}>{isRedeeming ? 'Redeeming...' : 'Redeem'}</ThemedText>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Recent Loyalty Activity</ThemedText>
-            {visibleHistory.length === 0 ? (
-              <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No loyalty activity yet.</ThemedText>
-            ) : (
-              <View style={styles.stack}>
-                {visibleHistory.map((entry) => {
-                  const isRewardRedemption = !entry.orderId && entry.pointsRedeemed > 0;
-                  const activityRewardName = isRewardRedemption ? resolveRewardName(entry) : '';
-
-                  return (
-                  <TouchableOpacity
-                    key={entry.id}
-                    style={[styles.historyRow, { borderColor: colors.border }]}
-                    activeOpacity={isRewardRedemption ? 0.85 : 1}
-                    disabled={!isRewardRedemption}
-                    onPress={() => {
-                      if (isRewardRedemption) {
-                        setSelectedRedemption(entry);
-                      }
-                    }}
-                  >
-                    {isRewardRedemption && (
-                      <Image
-                        source={getRewardImageSource(activityRewardName)}
-                        style={styles.historyRewardImage}
-                        resizeMode="cover"
-                      />
-                    )}
-                    <View style={{ flex: 1 }}>
-                      <ThemedText style={[styles.historyDate, { color: colors.textSecondary }]}>{formatHistoryDate(entry.createdAt)}</ThemedText>
-                      <ThemedText style={[styles.historyMeta, { color: colors.text }]}>
-                        {entry.orderId
-                          ? `Order #${entry.orderId}`
-                          : `Reward: ${activityRewardName} (${entry.pointsRedeemed} pts)`}
-                      </ThemedText>
-                      {isRewardRedemption && (
-                        <ThemedText style={[styles.tapHint, { color: colors.textSecondary }]}>Tap to view redeemed item details</ThemedText>
-                      )}
-                    </View>
-                    <View style={{ alignItems: 'flex-end' }}>
-                      <ThemedText style={[styles.historyPoints, { color: entry.pointsEarned > 0 ? colors.success : colors.error }]}>
-                        {entry.pointsEarned > 0 ? `+${entry.pointsEarned}` : `-${entry.pointsRedeemed}`}
-                      </ThemedText>
-                    </View>
-                  </TouchableOpacity>
-                );})}
-              </View>
-            )}
-          </View>
-
-          <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}> 
-            <ThemedText style={CommonStyles.cardTitle}>Saved Payment Methods</ThemedText>
-
-            {paymentMethods.length === 0 ? (
-              <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>No saved cards yet.</ThemedText>
-            ) : (
-              <View style={styles.stack}>
-                {paymentMethods.map((method) => {
-                  const isBusy = updatingMethodId === method.id;
-                  return (
-                    <View key={method.id} style={[styles.methodCard, { borderColor: colors.border, backgroundColor: colors.inputBackground }]}> 
-                      <View style={styles.methodHead}>
-                        <ThemedText style={[styles.methodTitle, { color: colors.text }]}>{formatCardLabel(method)}</ThemedText>
-                        {method.isDefault && (
-                          <View style={[styles.defaultBadge, { backgroundColor: `${colors.primary}22`, borderColor: colors.primary }]}> 
-                            <ThemedText style={[styles.defaultBadgeText, { color: colors.primary }]}>Default</ThemedText>
-                          </View>
-                        )}
-                      </View>
-
-                      <ThemedText style={[styles.methodSub, { color: colors.textSecondary }]}>Cardholder: {method.cardholderName}</ThemedText>
-                      <ThemedText style={[styles.methodSub, { color: colors.textSecondary }]}>Exp: {String(method.expMonth).padStart(2, '0')}/{method.expYear}</ThemedText>
-
-                      <View style={styles.methodActions}>
-                        {!method.isDefault && (
-                          <TouchableOpacity
-                            style={[styles.secondaryButton, { borderColor: colors.border }]}
-                            onPress={() => handleSetDefault(method.id)}
-                            disabled={isBusy}
-                            activeOpacity={0.85}
-                          >
-                            <ThemedText style={[styles.secondaryButtonText, { color: colors.text }]}>{isBusy ? 'Saving...' : 'Set Default'}</ThemedText>
-                          </TouchableOpacity>
-                        )}
-
-                        <TouchableOpacity
-                          style={[styles.secondaryButton, { borderColor: colors.error }]}
-                          onPress={() => handleDelete(method.id)}
-                          disabled={isBusy}
-                          activeOpacity={0.85}
-                        >
-                          <ThemedText style={[styles.secondaryButtonText, { color: colors.error }]}>Delete</ThemedText>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-
-            <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Add Payment Method</ThemedText>
-            <View style={styles.formStack}>
-              <TextInput
-                style={[
-                  CommonStyles.input,
-                  {
-                    borderColor: colors.border,
-                    backgroundColor: colors.inputBackground,
-                    color: colors.text,
-                  },
-                ]}
-                value={cardholderName}
-                onChangeText={setCardholderName}
-                placeholder="Cardholder name"
-                placeholderTextColor={colors.textSecondary}
-              />
-
-              <TextInput
-                style={[
-                  CommonStyles.input,
-                  {
-                    borderColor: colors.border,
-                    backgroundColor: colors.inputBackground,
-                    color: colors.text,
-                    letterSpacing: 2,
-                  },
-                ]}
-                value={formatCardNumberInput(cardNumber)}
-                onChangeText={(text) => setCardNumber(getDigitsOnly(text).slice(0, 19))}
-                placeholder="Card number"
-                placeholderTextColor={colors.textSecondary}
-                keyboardType="number-pad"
-                maxLength={23}
-              />
-              {cardNumber.length >= 1 && (
-                <ThemedText style={[styles.brandHint, { color: colors.textSecondary }]}>
-                  {detectCardBrand(cardNumber)} · {cardNumber.length} digits
-                </ThemedText>
-              )}
-
-              <View style={styles.formRow}>
-                <TextInput
-                  style={[
-                    CommonStyles.input,
-                    styles.flexInput,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor: colors.inputBackground,
-                      color: colors.text,
-                    },
-                  ]}
-                  value={cvv}
-                  onChangeText={(text) => setCvv(getDigitsOnly(text).slice(0, 4))}
-                  placeholder="CVV"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                />
-
-                <TextInput
-                  style={[
-                    CommonStyles.input,
-                    styles.flexInput,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor: colors.inputBackground,
-                      color: colors.text,
-                    },
-                  ]}
-                  value={expMonth}
-                  onChangeText={setExpMonth}
-                  placeholder="MM"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="number-pad"
-                  maxLength={2}
-                />
-
-                <TextInput
-                  style={[
-                    CommonStyles.input,
-                    styles.flexInput,
-                    {
-                      borderColor: colors.border,
-                      backgroundColor: colors.inputBackground,
-                      color: colors.text,
-                    },
-                  ]}
-                  value={expYear}
-                  onChangeText={setExpYear}
-                  placeholder="YYYY"
-                  placeholderTextColor={colors.textSecondary}
-                  keyboardType="number-pad"
-                  maxLength={4}
-                />
-              </View>
-
-              <TouchableOpacity
-                style={[styles.checkboxRow, { borderColor: colors.border }]}
-                onPress={() => setSetAsDefault((prev) => !prev)}
-                activeOpacity={0.85}
-              >
-                <View style={[styles.checkbox, { borderColor: colors.border, backgroundColor: setAsDefault ? colors.primary : 'transparent' }]} />
-                <ThemedText style={[styles.checkboxLabel, { color: colors.text }]}>Set as default payment method</ThemedText>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.addButton, { backgroundColor: colors.primary, opacity: addingMethod ? 0.7 : 1 }]}
-                onPress={handleAddPaymentMethod}
-                disabled={addingMethod}
-                activeOpacity={0.85}
-              >
-                <ThemedText style={styles.addButtonText}>{addingMethod ? 'Adding...' : 'Add Payment Method'}</ThemedText>
-              </TouchableOpacity>
-            </View>
-          </View>
+          <PaymentMethodsSection
+            colors={colors}
+            paymentMethods={paymentMethods}
+            updatingMethodId={updatingMethodId}
+            onSetDefault={setDefault}
+            onDelete={deleteMethod}
+            cardholderName={cardholderName}
+            setCardholderName={setCardholderName}
+            cardNumber={cardNumber}
+            setCardNumber={setCardNumber}
+            cvv={cvv}
+            setCvv={setCvv}
+            expMonth={expMonth}
+            setExpMonth={setExpMonth}
+            expYear={expYear}
+            setExpYear={setExpYear}
+            setAsDefault={setAsDefault}
+            setSetAsDefault={setSetAsDefault}
+            addingMethod={addingMethod}
+            onAddPaymentMethod={addCard}
+          />
 
           <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
-            <ThemedText style={CommonStyles.cardTitle}>App Info</ThemedText>
+            <ThemedText style={CommonStyles.cardTitle}>About</ThemedText>
             <ThemedText style={styles.description}>
-              Caffeinated Lions Mobile App v1.0.0
+              Caffeinated Lions v1.0.0
             </ThemedText>
             <ThemedText style={[styles.description, { marginTop: 8 }]}>
-              Thank you for using our app! Enjoy your coffee! ☕
+              Fuel the pride — one sip at a time. ☕
+            </ThemedText>
+            <ThemedText style={[styles.description, { marginTop: 8 }]}>
+              Notifications: coming soon (placeholder enabled).
             </ThemedText>
           </View>
         </ThemedView>
@@ -1051,7 +570,7 @@ export default function AccountScreen() {
       >
         <View style={styles.modalBackdrop}>
           <View style={[styles.modalCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}> 
-            <ThemedText style={[styles.modalTitle, { color: colors.text }]}>Redeemed Item</ThemedText>
+            <ThemedText style={[styles.modalTitle, { color: colors.text }]}>Redeemed Perk</ThemedText>
             <ThemedText style={[styles.modalSubtitle, { color: colors.textSecondary }]}> 
               {selectedRewardName}
             </ThemedText>
