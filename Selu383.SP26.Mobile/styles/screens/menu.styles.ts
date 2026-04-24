@@ -96,7 +96,10 @@ export const styles = StyleSheet.create({
 
   /* ─── Manager controls ─── */
   managerRow: {
-    alignItems: 'flex-end',
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
     marginTop: -4,
     marginBottom: 10,
   },
