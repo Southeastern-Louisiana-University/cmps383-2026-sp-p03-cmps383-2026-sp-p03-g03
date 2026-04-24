@@ -7,6 +7,8 @@ public class CreateMenuItemDto
     [Required]
     public int CategoryId { get; set; }
 
+    public int? LocationId { get; set; }
+
     [Required]
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;
