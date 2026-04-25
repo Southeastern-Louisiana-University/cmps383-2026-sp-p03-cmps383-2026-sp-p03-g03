@@ -25,6 +25,10 @@ public static class SeedHelper
 
             await dataContext.Database.MigrateAsync();
 
+            // One-time normalization: legacy rows used "Unpaid"; we now use "Pending".
+            await dataContext.Database.ExecuteSqlRawAsync(
+                "UPDATE Orders SET PaymentStatus = 'Pending' WHERE PaymentStatus = 'Unpaid'");
+
             await AddRoles(serviceProvider);
             await AddUsers(serviceProvider);
             await AddLocations(dataContext);
@@ -46,7 +50,7 @@ public static class SeedHelper
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
 
-        await EnsureSeedUserAsync(userManager, "Elora", 0, RoleNames.Admin, defaultPassword, "galkadi");
+        await EnsureSeedUserAsync(userManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
         await EnsureSeedUserAsync(userManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
         await EnsureSeedUserAsync(userManager, "rylie", 0, RoleNames.Manager, defaultPassword);
         await EnsureSeedUserAsync(userManager, "robert", 0, RoleNames.Manager, defaultPassword);
