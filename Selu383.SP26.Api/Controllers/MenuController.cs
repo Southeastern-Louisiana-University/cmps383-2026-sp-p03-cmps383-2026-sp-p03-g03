@@ -53,6 +53,7 @@ public class MenuController : ControllerBase
                 CategoryId = i.CategoryId,
                 Name = i.Name,
                 Description = i.Description,
+                ImagePath = i.ImagePath,
                 BasePrice = i.BasePrice,
                 IsAvailable = i.IsAvailable,
                 UnavailableReason = i.UnavailableReason
@@ -97,6 +98,7 @@ public class MenuController : ControllerBase
                         CategoryId = i.CategoryId,
                         Name = i.Name,
                         Description = i.Description,
+                        ImagePath = i.ImagePath,
                         BasePrice = i.BasePrice,
                         IsAvailable = i.IsAvailable,
                         UnavailableReason = i.UnavailableReason
@@ -122,6 +124,7 @@ public class MenuController : ControllerBase
                         CategoryId = i.CategoryId,
                         Name = i.Name,
                         Description = i.Description,
+                        ImagePath = i.ImagePath,
                         BasePrice = i.BasePrice,
                         IsAvailable = ov.IsAvailable,
                         UnavailableReason = ov.UnavailableReason
@@ -212,6 +215,7 @@ public class MenuController : ControllerBase
             CategoryId = dto.CategoryId,
             Name = dto.Name.Trim(),
             Description = dto.Description?.Trim(),
+            ImagePath = string.IsNullOrWhiteSpace(dto.ImagePath) ? null : dto.ImagePath.Trim(),
             BasePrice = dto.BasePrice,
             IsAvailable = dto.IsAvailable
         };
@@ -260,6 +264,7 @@ public class MenuController : ControllerBase
 
         item.Name = dto.Name.Trim();
         item.Description = dto.Description?.Trim();
+        item.ImagePath = string.IsNullOrWhiteSpace(dto.ImagePath) ? null : dto.ImagePath.Trim();
         item.BasePrice = dto.BasePrice;
         item.IsAvailable = dto.IsAvailable;
 
@@ -485,6 +490,7 @@ public class MenuController : ControllerBase
             CategoryId = item.CategoryId,
             Name = item.Name,
             Description = item.Description,
+            ImagePath = item.ImagePath,
             BasePrice = item.BasePrice,
             IsAvailable = item.IsAvailable,
             UnavailableReason = item.UnavailableReason
