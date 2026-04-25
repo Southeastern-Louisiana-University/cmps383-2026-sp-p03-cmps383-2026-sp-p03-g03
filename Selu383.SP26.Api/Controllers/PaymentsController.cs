@@ -320,7 +320,7 @@ public class PaymentsController : ControllerBase
         try
         {
             var requestBaseUrl = $"{Request.Scheme}://{Request.Host.Value}";
-            var url = await _stripePaymentService.CreateCheckoutSessionAsync(dto.OrderId, requestBaseUrl);
+            var url = await _stripePaymentService.CreateCheckoutSessionAsync(dto.OrderId, requestBaseUrl, dto.ReturnUrl);
 
             return Ok(new
             {

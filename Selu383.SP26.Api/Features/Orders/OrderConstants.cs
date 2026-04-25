@@ -21,7 +21,6 @@ public static class OrderStatuses
 
 public static class PaymentStatuses
 {
-    public const string Unpaid = "Unpaid";
     public const string Pending = "Pending";
     public const string Paid = "Paid";
     public const string Removed = "Removed";

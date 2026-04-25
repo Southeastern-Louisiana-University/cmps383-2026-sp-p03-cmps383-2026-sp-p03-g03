@@ -23,4 +23,7 @@ public class Reservation
     public int PartySize { get; set; }
     public string Status { get; set; } = ReservationStatuses.Pending;
     public string? SpecialRequests { get; set; }
+
+    [System.ComponentModel.DataAnnotations.MaxLength(100)]
+    public string? CustomerName { get; set; }
 }

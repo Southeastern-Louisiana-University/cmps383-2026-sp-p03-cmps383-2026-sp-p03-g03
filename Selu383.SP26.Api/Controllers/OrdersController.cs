@@ -153,7 +153,7 @@ public class OrdersController : ControllerBase
             OrderCode = $"ORD{DateTime.UtcNow:yyyyMMddHHmmss}",
             OrderType = canonicalOrderType,
             Status = OrderStatuses.Placed,
-            PaymentStatus = PaymentStatuses.Unpaid,
+            PaymentStatus = PaymentStatuses.Pending,
             OrderTime = DateTime.UtcNow,
             ScheduledPickupTime = dto.ScheduledPickupTime,
             Note = dto.Note?.Trim(),
