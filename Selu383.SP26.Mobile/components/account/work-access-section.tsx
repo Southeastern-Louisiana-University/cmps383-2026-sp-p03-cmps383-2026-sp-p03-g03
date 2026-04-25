@@ -1,5 +1,7 @@
 import React from 'react';
 import { TextInput, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { ThemedText } from '@/components/themed-text';
 import { CommonStyles, getColors } from '@/constants/styles';
 import { styles } from '@/styles/screens/account.styles';
@@ -51,6 +53,7 @@ export function WorkAccessSection({
   creatingTeamMember,
   onCreateTeamMember,
 }: Props) {
+  const router = useRouter();
   return (
     <View style={[CommonStyles.card, { backgroundColor: colors.cardBackground }]}>
       <ThemedText style={CommonStyles.cardTitle}>Work Access</ThemedText>
@@ -71,6 +74,34 @@ export function WorkAccessSection({
 
       {(isAdmin || isManager) && (
         <>
+          <TouchableOpacity
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              paddingVertical: 12,
+              paddingHorizontal: 14,
+              borderRadius: 10,
+              borderWidth: 1,
+              borderColor: colors.border,
+              backgroundColor: colors.inputBackground,
+              marginBottom: 16,
+            }}
+            onPress={() => router.push('/team')}
+            activeOpacity={0.85}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+              <MaterialIcons name="badge" size={22} color={colors.primary} style={{ marginRight: 10 }} />
+              <View style={{ flex: 1 }}>
+                <ThemedText style={{ color: colors.text, fontWeight: '600' }}>Manage Existing Team</ThemedText>
+                <ThemedText style={{ color: colors.textSecondary, fontSize: 12 }}>
+                  Edit details, reset passwords, or disable accounts.
+                </ThemedText>
+              </View>
+            </View>
+            <MaterialIcons name="chevron-right" size={22} color={colors.textSecondary} />
+          </TouchableOpacity>
+
           <ThemedText style={[styles.sectionLabel, { color: colors.text }]}>Create Team Account</ThemedText>
 
           {isAdmin && (

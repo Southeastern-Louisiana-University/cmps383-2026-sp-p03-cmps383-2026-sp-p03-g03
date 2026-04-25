@@ -11,6 +11,7 @@ import type { MenuItemDto } from '@/services/api';
 type Props = {
   colors: ReturnType<typeof getColors>;
   filteredItems: MenuItemDto[];
+  categoryNameById: Record<number, string>;
   highlightedItemId: number | null;
   searchQuery: string;
   hasMenuOpsAccess: boolean;
@@ -24,6 +25,7 @@ type Props = {
 export function MenuItemList({
   colors,
   filteredItems,
+  categoryNameById,
   highlightedItemId,
   searchQuery,
   hasMenuOpsAccess,
@@ -64,6 +66,7 @@ export function MenuItemList({
             item={item}
             onPress={onSelectItem}
             highlighted={highlightedItemId === item.id}
+            categoryName={categoryNameById[item.categoryId]}
           />
 
           {hasMenuOpsAccess ? (
