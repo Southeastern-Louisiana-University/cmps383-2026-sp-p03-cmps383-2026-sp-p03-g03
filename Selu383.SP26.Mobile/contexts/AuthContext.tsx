@@ -19,8 +19,8 @@ export interface AuthContextType {
   isGuest: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (username: string, password: string) => Promise<void>;
-  register: (username: string, password: string, displayName?: string) => Promise<void>;
+  login: (username: string, password: string) => Promise<UserDto>;
+  register: (username: string, password: string, displayName?: string) => Promise<UserDto>;
   logout: () => Promise<void>;
   continueAsGuest: () => void;
   checkAuth: (silent?: boolean) => Promise<void>;
@@ -68,9 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const userData = await api.login(username, password);
       setUser(userData);
       setIsGuest(false);
-      void api.getCurrentUser()
-        .then((freshUser) => setUser(freshUser))
-        .catch(() => {});
+      return userData;
     } catch (err: any) {
       const errorMessage = err.message || "Login failed";
       setError(errorMessage);
@@ -94,10 +92,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       setUser(userData);
       setIsGuest(false);
-
-      void api.getCurrentUser()
-        .then((freshUser) => setUser(freshUser))
-        .catch(() => {});
+      return userData;
     } catch (err: any) {
       const errorMessage = err.message || "Registration failed";
       setError(errorMessage);
