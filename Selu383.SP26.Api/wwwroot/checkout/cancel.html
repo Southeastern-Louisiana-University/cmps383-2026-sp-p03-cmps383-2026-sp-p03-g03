@@ -25,15 +25,23 @@
       <h1>Checkout Canceled</h1>
       <p>No payment was captured. You can return to the app and try again.</p>
       <div class="actions">
-        <a class="btn" href="selu383sp26mobile://">Return to App</a>
+        <a id="openApp" class="btn" href="selu383sp26mobile://">Return to App</a>
       </div>
     </div>
   </div>
   <script>
-    if (window.location.search) {
-      const cleanUrl = `${window.location.origin}${window.location.pathname}`;
-      window.history.replaceState({}, document.title, cleanUrl);
-    }
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const returnUrl = params.get("return");
+      const appLink = document.getElementById("openApp");
+      const baseScheme = returnUrl || "selu383sp26mobile://";
+      appLink.setAttribute("href", baseScheme);
+
+      if (window.location.search) {
+        const cleanUrl = `${window.location.origin}${window.location.pathname}`;
+        window.history.replaceState({}, document.title, cleanUrl);
+      }
+    })();
   </script>
 </body>
 </html>
