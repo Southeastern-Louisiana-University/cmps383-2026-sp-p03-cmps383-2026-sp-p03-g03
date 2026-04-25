@@ -36,7 +36,38 @@ const MENU_ITEM_IMAGES: Record<string, ImageSourcePropType> = {
 };
 
 export const DEFAULT_MENU_IMAGE: ImageSourcePropType = require("@/assets/images/featured-croissant.jpg.jpg");
+export const DEFAULT_DRINK_IMAGE: ImageSourcePropType = require("@/assets/images/featured-iced-matcha.jpg.jpg");
+export const DEFAULT_FOOD_IMAGE: ImageSourcePropType = require("@/assets/images/featured-croissant.jpg.jpg");
 
-export function getMenuItemImage(name: string): ImageSourcePropType {
-  return MENU_ITEM_IMAGES[name] ?? DEFAULT_MENU_IMAGE;
+function inferDrinkByName(name: string) {
+  const lower = name.toLowerCase();
+
+  return (
+    lower.includes('latte') ||
+    lower.includes('coffee') ||
+    lower.includes('tea') ||
+    lower.includes('frappe') ||
+    lower.includes('brew') ||
+    lower.includes('lemonade') ||
+    lower.includes('limeade') ||
+    lower.includes('shake')
+  );
+}
+
+export function getMenuItemImage(name: string, categoryName?: string): ImageSourcePropType {
+  const exact = MENU_ITEM_IMAGES[name];
+  if (exact) {
+    return exact;
+  }
+
+  const normalizedCategory = categoryName?.toLowerCase() ?? '';
+  if (normalizedCategory.includes('drink') || inferDrinkByName(name)) {
+    return DEFAULT_DRINK_IMAGE;
+  }
+
+  if (normalizedCategory.includes('breakfast') || normalizedCategory.includes('food') || normalizedCategory.includes('crepe')) {
+    return DEFAULT_FOOD_IMAGE;
+  }
+
+  return DEFAULT_MENU_IMAGE;
 }
