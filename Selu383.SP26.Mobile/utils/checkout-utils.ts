@@ -1,5 +1,11 @@
 export const SALES_TAX_RATE = 0.0875;
 export const RESERVATION_MIN_ADVANCE_HOURS = 2;
+export const CART_MAX_ITEM_QUANTITY = 50;
+// Mirrors ReservationsController.ReservationCoverChargeAmount on the API side.
+// A reservation that isn't backed by an attached or qualifying order incurs this fee.
+export const RESERVATION_COVER_CHARGE_AMOUNT = 5.0;
+// Order subtotal at or above this waives the cover charge automatically.
+export const RESERVATION_COVER_WAIVE_SUBTOTAL = 10.0;
 const MS_PER_HOUR = 60 * 60 * 1000;
 
 export interface PricedCartItem {
@@ -24,6 +30,17 @@ export function buildReservationDateTime(date: Date, hour: number) {
     0,
     0,
   );
+}
+
+export function formatLocalDateTime(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const seconds = String(date.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
 }
 
 export function isReservationTooSoon(reservedFor: Date, minimumAdvanceHours = RESERVATION_MIN_ADVANCE_HOURS) {
@@ -75,7 +92,9 @@ export interface ReservationCreatePayloadInput {
   reservedForIso: string;
   partySize: number;
   coverChargeOrderId?: number;
+  attachedOrderId?: number;
   specialRequests?: string;
+  customerName?: string;
 }
 
 export function buildReservationCreatePayload(input: ReservationCreatePayloadInput) {
@@ -85,7 +104,9 @@ export function buildReservationCreatePayload(input: ReservationCreatePayloadInp
     reservedForIso,
     partySize,
     coverChargeOrderId,
+    attachedOrderId,
     specialRequests,
+    customerName,
   } = input;
 
   return {
@@ -94,14 +115,17 @@ export function buildReservationCreatePayload(input: ReservationCreatePayloadInp
     reservedFor: reservedForIso,
     partySize,
     coverChargeOrderId,
+    attachedOrderId,
     specialRequests: specialRequests?.trim() || undefined,
+    customerName: customerName?.trim() || undefined,
   };
 }
 
 export async function resolveCoverChargeCheckoutUrl(
   coverChargeOrderId: number | undefined,
   checkoutUrl: string | null | undefined,
-  createCheckoutSession: (orderId: number) => Promise<string>,
+  createCheckoutSession: (orderId: number, returnUrl?: string) => Promise<string>,
+  returnUrl?: string,
 ) {
   if (checkoutUrl) {
     return checkoutUrl;
@@ -112,7 +136,7 @@ export async function resolveCoverChargeCheckoutUrl(
   }
 
   try {
-    return await createCheckoutSession(coverChargeOrderId);
+    return await createCheckoutSession(coverChargeOrderId, returnUrl);
   } catch {
     return null;
   }

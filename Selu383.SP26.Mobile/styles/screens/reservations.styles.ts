@@ -28,6 +28,7 @@ export const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 26,
     fontFamily: 'Inter_700Bold',
+    lineHeight: 32,
     color: '#ffffff',
     marginBottom: 6,
     textShadowColor: 'rgba(0,0,0,0.4)',
@@ -88,7 +89,8 @@ export const styles = StyleSheet.create({
   resHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   resHeaderInfo: { flex: 1, minWidth: 0, paddingRight: 10 },
   resDate: { fontFamily: 'Inter_700Bold', fontSize: 15, marginBottom: 4, flexShrink: 1, paddingRight: 8 },
-  resMeta: { fontFamily: 'Lato_400Regular', fontSize: 13, opacity: 0.75 },
+  resMeta: { fontFamily: 'Lato_400Regular', fontSize: 13, lineHeight: 18, opacity: 0.75 },
+
   statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, flexShrink: 0 },
   statusText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 0.3 },
   specialReq: {

@@ -24,8 +24,10 @@ export type {
   ReservationCoverChargeRequiredDto,
   ReservationDto,
   RewardDto,
+  StaffUserDto,
   StripePaymentSyncResultDto,
   TableDto,
+  UpdateStaffDto,
 } from '@/services/api-types';
 import type {
   CreateOrderDto,
@@ -48,8 +50,10 @@ import type {
   ReservationAvailabilityDto,
   ReservationDto,
   RewardDto,
+  StaffUserDto,
   StripePaymentSyncResultDto,
   TableDto,
+  UpdateStaffDto,
 } from '@/services/api-types';
 
 let hasWarnedPaymentMethods500 = false;
@@ -87,6 +91,39 @@ export const createUserAccount = async (dto: CreateUserAccountDto) => {
   });
 };
 
+// ---------- Staff management (Admin / Manager) ----------
+
+export const listStaff = async (): Promise<StaffUserDto[]> => {
+  const result = await apiCall("/api/users/staff", "GET");
+  return Array.isArray(result) ? result : [];
+};
+
+export const updateStaff = async (
+  id: number,
+  dto: UpdateStaffDto,
+): Promise<StaffUserDto> => {
+  return apiCall(`/api/users/${id}`, "PUT", dto);
+};
+
+export const disableStaff = async (id: number): Promise<StaffUserDto> => {
+  return apiCall(`/api/users/${id}/disable`, "POST");
+};
+
+export const enableStaff = async (id: number): Promise<StaffUserDto> => {
+  return apiCall(`/api/users/${id}/enable`, "POST");
+};
+
+export const resetStaffPassword = async (
+  id: number,
+  newPassword: string,
+): Promise<void> => {
+  await apiCall(`/api/users/${id}/reset-password`, "POST", { newPassword });
+};
+
+export const deleteStaff = async (id: number): Promise<void> => {
+  await apiCall(`/api/users/${id}`, "DELETE");
+};
+
 export const getCurrentUser = async () => {
   return apiCall("/api/authentication/me", "GET");
 };
@@ -116,6 +153,7 @@ export const createMenuItem = async (data: {
   locationId?: number;
   name: string;
   description?: string;
+  imagePath?: string;
   basePrice: number;
 }): Promise<MenuItemDto> => {
   return apiCall("/api/menu/items", "POST", data);
@@ -203,9 +241,10 @@ export const createOrder = async (orderData: CreateOrderDto): Promise<OrderDto> 
   return apiCall("/api/orders", "POST", orderData);
 };
 
-export const createStripeCheckoutSession = async (orderId: number): Promise<string> => {
+export const createStripeCheckoutSession = async (orderId: number, returnUrl?: string): Promise<string> => {
   const response = await apiCall("/api/payments/create-checkout-session", "POST", {
     orderId,
+    returnUrl,
   });
   return response.checkoutUrl;
 };
@@ -373,4 +412,10 @@ export default {
   getMyLoyalty,
   getRewards,
   redeemReward,
+  listStaff,
+  updateStaff,
+  disableStaff,
+  enableStaff,
+  resetStaffPassword,
+  deleteStaff,
 };
