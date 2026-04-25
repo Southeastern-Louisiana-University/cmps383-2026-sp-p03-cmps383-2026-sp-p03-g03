@@ -43,10 +43,14 @@ import { HOUR_SLOTS, formatHour } from '@/utils/date-utils';
 import {
   buildReservationDateTime,
   buildReservationCreatePayload,
+  CART_MAX_ITEM_QUANTITY,
   calculateCartTotals,
+  formatLocalDateTime,
   isReservationTooSoon,
   resolveCoverChargeCheckoutUrl,
   retryReservationCreateAfterPayment,
+  RESERVATION_COVER_CHARGE_AMOUNT,
+  RESERVATION_COVER_WAIVE_SUBTOTAL,
   SALES_TAX_RATE,
 } from '@/utils/checkout-utils';
 
@@ -83,6 +87,16 @@ export default function CheckoutScreen() {
   const [placing, setPlacing] = useState(false);
 
   const { subtotal, tax, total } = calculateCartTotals(cart);
+
+  // A reservation that rides along with this checkout will be attached to the just-paid
+  // order via attachedOrderId, so the $5 cover charge is automatically waived. We still
+  // surface the rule in the totals so the customer understands the value.
+  const reservationAttached = orderType === 'DineIn' && bookReservation;
+  const subtotalQualifies = subtotal >= RESERVATION_COVER_WAIVE_SUBTOTAL;
+  const coverChargeWaived = reservationAttached && (cart.length > 0 || subtotalQualifies);
+  const coverChargeApplies = reservationAttached && !coverChargeWaived;
+  const coverChargeAmount = coverChargeApplies ? RESERVATION_COVER_CHARGE_AMOUNT : 0;
+  const displayedTotal = total + coverChargeAmount;
 
   const eligibleTables = useMemo(
     () =>
@@ -169,7 +183,7 @@ export default function CheckoutScreen() {
       return;
     }
 
-    const reservedFor = buildReservationDateTime(selectedDate, selectedHour).toISOString();
+    const reservedFor = formatLocalDateTime(buildReservationDateTime(selectedDate, selectedHour));
 
     getReservationAvailability(selectedLocationId, reservedFor)
       .then((data) => {
@@ -186,7 +200,7 @@ export default function CheckoutScreen() {
     }
   }, [selectedTableId, takenTableIds]);
 
-  const tryCreateReservationForOrder = async () => {
+  const tryCreateReservationForOrder = async (attachedOrderId?: number) => {
     if (!bookReservation || orderType !== 'DineIn') {
       return { success: false, message: '' };
     }
@@ -199,8 +213,9 @@ export default function CheckoutScreen() {
     const reservationPayload = buildReservationCreatePayload({
       locationId: selectedLocationId,
       tableId: selectedTableId,
-      reservedForIso: reservedFor.toISOString(),
+      reservedForIso: formatLocalDateTime(reservedFor),
       partySize,
+      attachedOrderId,
       specialRequests: reservationRequests,
     });
 
@@ -229,6 +244,7 @@ export default function CheckoutScreen() {
                   coverChargeOrderId,
                   checkoutUrl,
                   createStripeCheckoutSession,
+                  Linking.createURL('/'),
                 );
 
                 if (!urlToOpen) {
@@ -252,7 +268,7 @@ export default function CheckoutScreen() {
                       buildReservationCreatePayload({
                         locationId: selectedLocationId,
                         tableId: selectedTableId,
-                        reservedForIso: reservedFor.toISOString(),
+                        reservedForIso: formatLocalDateTime(reservedFor),
                         partySize,
                         coverChargeOrderId,
                         specialRequests: reservationRequests,
@@ -367,7 +383,7 @@ export default function CheckoutScreen() {
         try {
           const savedResult = await payOrderWithSavedMethod(order.id, selectedPaymentMethodId);
           if (savedResult.succeeded) {
-            const reservationResult = await tryCreateReservationForOrder();
+            const reservationResult = await tryCreateReservationForOrder(order.id);
             clearCart();
             router.replace('/(tabs)/orders');
             setTimeout(() => {
@@ -387,7 +403,9 @@ export default function CheckoutScreen() {
 
       let stripeUrl: string | null = null;
       try {
-        stripeUrl = await createStripeCheckoutSession(order.id);
+        // Pass our deep-link base so the success page can redirect back to whichever
+        // scheme this build uses (exp:// in Expo Go, selu383sp26mobile:// in standalone).
+        stripeUrl = await createStripeCheckoutSession(order.id, Linking.createURL('/'));
       } catch (stripeErr: any) {
         clearCart();
         router.replace('/(tabs)/orders');
@@ -420,7 +438,7 @@ export default function CheckoutScreen() {
         }
       }
 
-      const reservationResult = paymentCompleted ? await tryCreateReservationForOrder() : { success: false, message: '' };
+      const reservationResult = paymentCompleted ? await tryCreateReservationForOrder(order.id) : { success: false, message: '' };
       clearCart();
       router.replace('/(tabs)/orders');
 
@@ -499,7 +517,13 @@ export default function CheckoutScreen() {
                     <ThemedText style={[styles.qtyText, { color: colors.text }]}>{item.quantity}</ThemedText>
                     <TouchableOpacity
                       style={[styles.qtyButton, { borderColor: colors.border }]}
-                      onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                      onPress={() => {
+                        if (item.quantity >= CART_MAX_ITEM_QUANTITY) {
+                          Alert.alert('Quantity Limit', `Maximum quantity per item is ${CART_MAX_ITEM_QUANTITY}.`);
+                          return;
+                        }
+                        updateQuantity(item.id, item.quantity + 1);
+                      }}
                     >
                       <MaterialIcons name="add" size={14} color={colors.text} />
                     </TouchableOpacity>
@@ -526,9 +550,19 @@ export default function CheckoutScreen() {
                   <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax ({(SALES_TAX_RATE * 100).toFixed(2)}%)</ThemedText>
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${tax.toFixed(2)}</ThemedText>
                 </View>
+                {reservationAttached ? (
+                  <View style={styles.totalRow}>
+                    <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Reservation cover fee</ThemedText>
+                    {coverChargeWaived ? (
+                      <ThemedText style={[styles.totalValue, { color: colors.primary }]}>Waived</ThemedText>
+                    ) : (
+                      <ThemedText style={[styles.totalValue, { color: colors.text }]}>${RESERVATION_COVER_CHARGE_AMOUNT.toFixed(2)}</ThemedText>
+                    )}
+                  </View>
+                ) : null}
                 <View style={styles.totalRow}>
                   <ThemedText style={[styles.totalLabelBold, { color: colors.text }]}>Total</ThemedText>
-                  <ThemedText style={[styles.totalValueBold, { color: colors.primary }]}>${total.toFixed(2)}</ThemedText>
+                  <ThemedText style={[styles.totalValueBold, { color: colors.primary }]}>${displayedTotal.toFixed(2)}</ThemedText>
                 </View>
               </View>
             ) : null}
@@ -867,7 +901,7 @@ export default function CheckoutScreen() {
               <ActivityIndicator color="#fff" />
             ) : (
               <ThemedText style={styles.placeButtonText}>
-                {selectedPaymentChoice === 'saved' ? 'Pay with Saved Card' : 'Continue to Stripe'} · ${total.toFixed(2)}
+                {selectedPaymentChoice === 'saved' ? 'Pay with Saved Card' : 'Continue to Stripe'} · ${displayedTotal.toFixed(2)}
               </ThemedText>
             )}
           </AnimatedButton>

@@ -72,11 +72,12 @@ export default function LoginScreen() {
     }
 
     try {
-      if (isRegisterMode) {
-        await register(username, password, displayName.trim() || undefined);
-      } else {
-        await login(username, password);
-      }
+      const userData = isRegisterMode
+        ? await register(username, password, displayName.trim() || undefined)
+        : await login(username, password);
+
+      const { isPrivileged } = getUserPermissions(userData?.roles);
+      router.replace((isPrivileged ? '/(tabs)/portal' : '/(tabs)') as any);
     } catch (err: any) {
       const errorMessage = err.message || (isRegisterMode ? 'Registration failed. Please try again.' : 'Login failed. Please try again.');
       setError(errorMessage);

@@ -20,7 +20,7 @@ interface PortalAction {
   title: string;
   subtitle: string;
   icon: keyof typeof MaterialIcons.glyphMap;
-  route: '/(tabs)/orders' | '/(tabs)/reservations' | '/(tabs)/menu' | '/(tabs)/account';
+  route: '/(tabs)/orders' | '/(tabs)/reservations' | '/(tabs)/menu' | '/(tabs)/account' | '/team';
   roles: Role[];
 }
 
@@ -50,10 +50,18 @@ const ACTIONS: PortalAction[] = [
     roles: ['admin', 'manager'],
   },
   {
+    id: 'team-manage',
+    title: 'My Team',
+    subtitle: 'Edit, disable, or reset passwords for your staff.',
+    icon: 'badge',
+    route: '/team',
+    roles: ['admin', 'manager'],
+  },
+  {
     id: 'team',
-    title: 'Team Accounts',
-    subtitle: 'Create staff and manager accounts from mobile.',
-    icon: 'groups',
+    title: 'Create Team Account',
+    subtitle: 'Add new staff and manager accounts.',
+    icon: 'group-add',
     route: '/(tabs)/account',
     roles: ['admin', 'manager'],
   },

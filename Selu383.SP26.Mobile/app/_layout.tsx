@@ -18,6 +18,7 @@ import {
   Lato_400Regular,
   Lato_700Bold,
 } from "@expo-google-fonts/lato";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -38,6 +39,7 @@ function RootNavigator() {
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="checkout" options={{ headerShown: false }} />
+        <Stack.Screen name="team" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}
@@ -64,12 +66,14 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeModeProvider>
-        <CartProvider>
-          <RootNavigator />
-        </CartProvider>
-      </ThemeModeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ThemeModeProvider>
+          <CartProvider>
+            <RootNavigator />
+          </CartProvider>
+        </ThemeModeProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
