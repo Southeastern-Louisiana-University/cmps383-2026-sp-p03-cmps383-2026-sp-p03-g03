@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -11,7 +11,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCart } from '@/hooks/useCart';
 import { CommonStyles, getColors } from '@/constants/styles';
 import { styles } from '@/styles/screens/cart.styles';
-import { calculateCartTotals, SALES_TAX_RATE } from '@/utils/checkout-utils';
+import { calculateCartTotals, CART_MAX_ITEM_QUANTITY, SALES_TAX_RATE } from '@/utils/checkout-utils';
 
 export default function CartScreen() {
   const colorScheme = useColorScheme();
@@ -79,7 +79,13 @@ export default function CartScreen() {
                     <ThemedText style={[styles.qtyText, { color: colors.text }]}>{item.quantity}</ThemedText>
                     <TouchableOpacity
                       style={[styles.qtyBtn, { borderColor: colors.border }]}
-                      onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                      onPress={() => {
+                        if (item.quantity >= CART_MAX_ITEM_QUANTITY) {
+                          Alert.alert('Quantity Limit', `Maximum quantity per item is ${CART_MAX_ITEM_QUANTITY}.`);
+                          return;
+                        }
+                        updateQuantity(item.id, item.quantity + 1);
+                      }}
                     >
                       <MaterialIcons name="add" size={14} color={colors.text} />
                     </TouchableOpacity>

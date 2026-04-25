@@ -58,6 +58,7 @@ export default function MenuScreen() {
   const [newItemName, setNewItemName] = useState("");
   const [newItemDescription, setNewItemDescription] = useState("");
   const [newItemPrice, setNewItemPrice] = useState("");
+  const [newItemImageUrl, setNewItemImageUrl] = useState("");
   const [newItemCategoryId, setNewItemCategoryId] = useState<number | null>(null);
   const [addingItem, setAddingItem] = useState(false);
   const [addItemError, setAddItemError] = useState<string | null>(null);
@@ -114,7 +115,9 @@ export default function MenuScreen() {
         if (isRefresh) {
           setRefreshing(true);
         } else {
-          setLoading(true);
+          // Only show the full-screen loader on the first load— keep prior items
+          // visible during silent refetches so the screen doesn't flash empty.
+          setLoading((prev) => (prev ? prev : false));
         }
 
         setError(null);
@@ -361,6 +364,7 @@ export default function MenuScreen() {
     setNewItemName("");
     setNewItemDescription("");
     setNewItemPrice("");
+    setNewItemImageUrl("");
     setNewItemCategoryId(selectedCategoryId ?? (categories.length ? categories[0].id : null));
     setAddItemError(null);
     setShowAddForm(true);
@@ -390,6 +394,7 @@ export default function MenuScreen() {
         locationId: selectedLocationId ?? undefined,
         name: newItemName.trim(),
         description: newItemDescription.trim() || undefined,
+        imagePath: newItemImageUrl.trim() || undefined,
         basePrice: Math.round(price * 100) / 100,
       });
       setItems((prev) => [...prev, created]);
@@ -426,6 +431,14 @@ export default function MenuScreen() {
 
     return list;
   }, [items, selectedCategoryId, searchQuery, highlightedItemId]);
+
+  const categoryNameById = useMemo(
+    () => categories.reduce<Record<number, string>>((acc, category) => {
+      acc[category.id] = category.name;
+      return acc;
+    }, {}),
+    [categories],
+  );
 
   if (loading) {
     return (
@@ -605,6 +618,7 @@ export default function MenuScreen() {
           <MenuItemList
             colors={colors}
             filteredItems={filteredItems}
+            categoryNameById={categoryNameById}
             highlightedItemId={highlightedItemId}
             searchQuery={searchQuery}
             hasMenuOpsAccess={hasMenuOpsAccess}
@@ -630,6 +644,8 @@ export default function MenuScreen() {
         setNewItemDescription={setNewItemDescription}
         newItemPrice={newItemPrice}
         setNewItemPrice={setNewItemPrice}
+        newItemImageUrl={newItemImageUrl}
+        setNewItemImageUrl={setNewItemImageUrl}
         addItemError={addItemError}
         addingItem={addingItem}
         onSubmit={handleAddItem}

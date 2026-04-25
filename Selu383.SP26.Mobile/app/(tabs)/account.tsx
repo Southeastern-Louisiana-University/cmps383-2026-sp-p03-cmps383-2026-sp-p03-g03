@@ -143,7 +143,9 @@ export default function AccountScreen() {
     if (isRefresh) {
       setRefreshing(true);
     } else {
-      setIsLoading(true);
+      // Only show the full-screen loader on the very first load— keep prior data
+      // visible during silent refetches so the screen doesn't flash empty.
+      setIsLoading((prev) => (prev ? prev : false));
     }
 
     setError(null);

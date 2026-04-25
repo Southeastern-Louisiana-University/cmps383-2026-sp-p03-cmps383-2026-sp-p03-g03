@@ -50,10 +50,27 @@ const NEXT_STATUS: Record<string, string | undefined> = {
 };
 
 const PAYMENT_COLORS: Record<string, string> = {
-  Unpaid: '#ef4444',
+  Pending: '#f59e0b',
   Paid: '#10b981',
   Refunded: '#6b7280',
 };
+
+function formatOrderStatus(status: string) {
+  if (status === 'Placed') {
+    return 'Pending';
+  }
+
+  return status;
+}
+
+function formatPaymentStatus(paymentStatus: string) {
+  // Backend now returns "Pending" for unpaid orders. Keep a safety net for any legacy rows.
+  if (paymentStatus === 'Unpaid') {
+    return 'Pending';
+  }
+
+  return paymentStatus;
+}
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -82,7 +99,9 @@ export default function OrdersScreen() {
 
   const load = useCallback(async (isRefresh = false) => {
     if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    // Only show the full-screen loading state when we have nothing yet \u2014 otherwise
+    // keep the previous list visible to avoid a slow-feeling re-render on every focus.
+    else setLoading((prev) => (prev ? prev : false));
     setError(null);
 
     try {
@@ -105,7 +124,7 @@ export default function OrdersScreen() {
 
       setOrders(data);
 
-      const unpaidOrders = data.filter((o) => o.paymentStatus === 'Unpaid').slice(0, 3);
+      const unpaidOrders = data.filter((o) => o.paymentStatus === 'Pending' || o.paymentStatus === 'Unpaid').slice(0, 3);
       if (unpaidOrders.length > 0) {
         void (async () => {
           let shouldRefresh = false;
@@ -271,6 +290,12 @@ export default function OrdersScreen() {
           ) : (
             orders.map((order) => (
               <View key={order.id} style={[styles.orderCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                {/** Keep backend statuses unchanged; only normalize labels for display. */}
+                {(() => {
+                  const orderStatusLabel = formatOrderStatus(order.status);
+                  const paymentStatusLabel = formatPaymentStatus(order.paymentStatus);
+
+                  return (
                 <View style={styles.orderHeader}>
                   <View style={styles.orderHeaderInfo}>
                     <ThemedText style={[styles.orderCode, { color: colors.text }]}>#{order.orderCode}</ThemedText>
@@ -280,18 +305,20 @@ export default function OrdersScreen() {
                     </ThemedText>
                   </View>
                   <View style={styles.badges}>
-                    <View style={[styles.statusBadge, { backgroundColor: (STATUS_COLORS[order.status] ?? '#6b7280') + '22', borderColor: STATUS_COLORS[order.status] ?? '#6b7280' }]}>
-                      <ThemedText style={[styles.statusText, { color: STATUS_COLORS[order.status] ?? '#6b7280' }]}>
-                        {order.status}
+                    <View style={[styles.statusBadge, { backgroundColor: (STATUS_COLORS[orderStatusLabel] ?? '#6b7280') + '22', borderColor: STATUS_COLORS[orderStatusLabel] ?? '#6b7280' }]}>
+                      <ThemedText style={[styles.statusText, { color: STATUS_COLORS[orderStatusLabel] ?? '#6b7280' }]}>
+                        {orderStatusLabel}
                       </ThemedText>
                     </View>
-                    <View style={[styles.statusBadge, { backgroundColor: (PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280') + '22', borderColor: PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280' }]}>
-                      <ThemedText style={[styles.statusText, { color: PAYMENT_COLORS[order.paymentStatus] ?? '#6b7280' }]}>
-                        {order.paymentStatus}
+                    <View style={[styles.statusBadge, { backgroundColor: (PAYMENT_COLORS[paymentStatusLabel] ?? '#6b7280') + '22', borderColor: PAYMENT_COLORS[paymentStatusLabel] ?? '#6b7280' }]}>
+                      <ThemedText style={[styles.statusText, { color: PAYMENT_COLORS[paymentStatusLabel] ?? '#6b7280' }]}>
+                        {paymentStatusLabel}
                       </ThemedText>
                     </View>
                   </View>
                 </View>
+                  );
+                })()}
 
                 <View style={[styles.metaRow, { borderTopColor: colors.border }]}>
                   <ThemedText style={[styles.metaText, { color: colors.textSecondary }]}> 
