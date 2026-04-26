@@ -3,6 +3,7 @@ export interface MenuItemDto {
   categoryId: number;
   name: string;
   description?: string;
+  imagePath?: string;
   basePrice: number;
   isAvailable: boolean;
   unavailableReason?: string;
@@ -121,6 +122,30 @@ export interface CreateUserAccountDto {
   locationId?: number;
 }
 
+export interface StaffUserDto {
+  id: number;
+  userName: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  email?: string;
+  phoneNumber?: string;
+  locationId: number;
+  locationName?: string;
+  roles: string[];
+  loyaltyPoints: number;
+  isDisabled: boolean;
+}
+
+export interface UpdateStaffDto {
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  email?: string;
+  phoneNumber?: string;
+  locationId?: number;
+}
+
 export interface PaymentMethodDto {
   id: number;
   cardholderName: string;
@@ -183,6 +208,7 @@ export interface ReservationDto {
   id: number;
   locationId: number;
   userId: number;
+  customerName?: string;
   tableId: number;
   reservedFor: string;
   createdAt?: string;
@@ -203,7 +229,9 @@ export interface CreateReservationDto {
   reservedFor: string;
   partySize: number;
   coverChargeOrderId?: number;
+  attachedOrderId?: number;
   specialRequests?: string;
+  customerName?: string;
 }
 
 export interface TableDto {

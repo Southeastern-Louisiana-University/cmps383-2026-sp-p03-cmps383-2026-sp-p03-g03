@@ -282,12 +282,13 @@ export default function SplashScreen() {
 
     setSubmitting(true);
     try {
-      if (isRegisterMode) {
-        await register(username, password, displayName.trim() || undefined);
-      } else {
-        await login(username, password);
-      }
+      const userData = isRegisterMode
+        ? await register(username, password, displayName.trim() || undefined)
+        : await login(username, password);
       handleCloseLogin();
+
+      const { isPrivileged: privileged } = getUserPermissions(userData?.roles);
+      router.replace((privileged ? '/(tabs)/portal' : '/(tabs)') as any);
     } catch (err: any) {
       const errorMessage =
         err.message ||
@@ -305,7 +306,11 @@ export default function SplashScreen() {
     }
   };
 
-  if (isLoading) {
+  // Suppress the marketing splash UI whenever we're about to redirect — this prevents
+  // the brief "flash" of the splash content right after login/signup.
+  const willRedirect = !isManualVisit && (user || isGuest);
+
+  if (isLoading || willRedirect) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>

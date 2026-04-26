@@ -37,6 +37,7 @@ export const styles = StyleSheet.create({
   headline: {
     fontFamily: 'Inter_700Bold',
     fontSize: 28,
+    lineHeight: 34,
     marginBottom: 8,
     textAlign: 'center',
   },
@@ -77,6 +78,7 @@ export const styles = StyleSheet.create({
   itemName: {
     fontFamily: 'Inter_700Bold',
     fontSize: 14,
+    lineHeight: 18,
     marginBottom: 2,
   },
   itemNote: {
@@ -104,6 +106,7 @@ export const styles = StyleSheet.create({
   qtyText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 14,
+    lineHeight: 18,
     minWidth: 22,
     textAlign: 'center',
   },

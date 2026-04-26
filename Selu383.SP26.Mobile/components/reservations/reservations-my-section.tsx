@@ -58,7 +58,7 @@ export function ReservationsMySection({
   if (myRes.length === 0) {
     return (
       <View style={[styles.emptyCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-        <MaterialIcons name="event-seat" size={40} color={colors.textSecondary} style={{ marginBottom: 10 }} />
+        <MaterialIcons name="calendar-today" size={40} color={colors.textSecondary} style={{ marginBottom: 10 }} />
         <ThemedText style={[styles.emptyTitle, { color: colors.text }]}>No Reservations Yet</ThemedText>
         <ThemedText style={[styles.emptyText, { color: colors.textSecondary }]}>
           {isGuest ? 'Sign in to view and manage your reservations.' : 'Your table is waiting — book your first visit below.'}
@@ -119,6 +119,11 @@ export function ReservationsMySection({
                 <ThemedText style={[styles.resMeta, { color: colors.textSecondary }]}>
                   Party of {reservation.partySize} - Table #{reservation.tableId}
                 </ThemedText>
+                {reservation.customerName ? (
+                  <ThemedText style={[styles.resMeta, { color: colors.textSecondary }]}>
+                    Reservation for {reservation.customerName}
+                  </ThemedText>
+                ) : null}
               </View>
 
               <View style={[styles.statusBadge, { backgroundColor: `${statusColor}22`, borderColor: statusColor }]}>

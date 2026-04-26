@@ -10,13 +10,17 @@ interface MenuItemCardProps {
   item: MenuItemDto;
   onPress: (item: MenuItemDto) => void;
   highlighted?: boolean;
+  categoryName?: string;
 }
 
-export function MenuItemCard({ item, onPress, highlighted }: MenuItemCardProps) {
+export function MenuItemCard({ item, onPress, highlighted, categoryName }: MenuItemCardProps) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const colors = getColors(isDark);
-  const itemImage = getMenuItemImage(item.name);
+  const remoteImageUri = item.imagePath?.trim();
+  const itemImage = remoteImageUri
+    ? { uri: remoteImageUri }
+    : getMenuItemImage(item.name, categoryName);
 
   return (
     <TouchableOpacity
@@ -82,6 +86,8 @@ export function MenuItemCard({ item, onPress, highlighted }: MenuItemCardProps) 
 const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
+    alignItems: "stretch",
+    height: 115,
     borderRadius: 16,
     borderWidth: 1,
     marginBottom: 14,

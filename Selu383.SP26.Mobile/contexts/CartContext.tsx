@@ -1,4 +1,5 @@
 import React, { createContext, useState, ReactNode } from 'react';
+import { CART_MAX_ITEM_QUANTITY } from '@/utils/checkout-utils';
 
 export interface CartItem {
   id: number;
@@ -39,10 +40,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const existingItem = prevCart.find((i) => i.id === item.id);
       if (existingItem) {
         return prevCart.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
+          i.id === item.id
+            ? { ...i, quantity: Math.min(i.quantity + quantity, CART_MAX_ITEM_QUANTITY) }
+            : i
         );
       }
-      return [...prevCart, { ...item, quantity, customizationNotes: notes }];
+      return [...prevCart, { ...item, quantity: Math.min(quantity, CART_MAX_ITEM_QUANTITY), customizationNotes: notes }];
     });
   };
 
@@ -56,7 +59,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prevCart.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.min(quantity, CART_MAX_ITEM_QUANTITY) }
+          : item,
+      )
     );
   };
 

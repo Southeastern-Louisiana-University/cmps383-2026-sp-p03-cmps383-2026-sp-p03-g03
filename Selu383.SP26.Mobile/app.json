@@ -4,7 +4,7 @@
     "slug": "Selu383-SP26-P03-Mobile-g03",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/ConceptLogo2.png",
     "scheme": "selu383sp26mobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -13,10 +13,9 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#3A2E1F",
+        "foregroundImage": "./assets/images/ConceptLogo2.png",
+        "monochromeImage": "./assets/images/ConceptLogo2.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -24,19 +23,19 @@
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/ConceptLogo2.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
+          "image": "./assets/images/ConceptLogo2.png",
+          "imageWidth": 220,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#3A2E1F",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#1A1410"
           }
         }
       ],

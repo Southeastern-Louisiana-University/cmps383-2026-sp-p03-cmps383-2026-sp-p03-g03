@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -30,6 +31,8 @@ type Props = {
   setNewItemDescription: (value: string) => void;
   newItemPrice: string;
   setNewItemPrice: (value: string) => void;
+  newItemImageUrl: string;
+  setNewItemImageUrl: (value: string) => void;
   addItemError: string | null;
   addingItem: boolean;
   onSubmit: () => void;
@@ -48,6 +51,8 @@ export function AddMenuItemModal({
   setNewItemDescription,
   newItemPrice,
   setNewItemPrice,
+  newItemImageUrl,
+  setNewItemImageUrl,
   addItemError,
   addingItem,
   onSubmit,
@@ -122,6 +127,27 @@ export function AddMenuItemModal({
             onChangeText={setNewItemPrice}
             keyboardType="decimal-pad"
           />
+
+          <Text style={[styles.fieldLabel, { color: colors.textSecondary }]}>Photo URL (optional)</Text>
+          <TextInput
+            style={[styles.formInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.background }]}
+            placeholder="https://example.com/photo.jpg"
+            placeholderTextColor={colors.textSecondary}
+            value={newItemImageUrl}
+            onChangeText={setNewItemImageUrl}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+          />
+          {newItemImageUrl.trim().length > 0 && (
+            <View style={{ marginTop: 8, marginBottom: 14, alignItems: 'center' }}>
+              <Image
+                source={{ uri: newItemImageUrl.trim() }}
+                style={{ width: 120, height: 120, borderRadius: 12, borderWidth: 1, borderColor: colors.border }}
+                resizeMode="cover"
+              />
+            </View>
+          )}
 
           {addItemError && (
             <Text style={styles.addItemError}>{addItemError}</Text>

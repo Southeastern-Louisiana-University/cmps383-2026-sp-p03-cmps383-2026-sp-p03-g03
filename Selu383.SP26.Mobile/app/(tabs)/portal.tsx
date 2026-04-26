@@ -37,7 +37,7 @@ const ACTIONS: PortalAction[] = [
     id: 'reservations',
     title: 'Reservation Desk',
     subtitle: 'Manage table bookings for your location.',
-    icon: 'event-seat',
+    icon: 'calendar-today',
     route: '/(tabs)/reservations',
     roles: ['admin', 'manager', 'staff'],
   },

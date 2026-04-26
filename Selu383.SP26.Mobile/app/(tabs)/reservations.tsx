@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
+import * as Linking from 'expo-linking';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { PageHeaderActions } from '@/components/page-header-actions';
@@ -40,12 +41,27 @@ import { getUserPermissions } from '@/utils/role-helpers';
 import {
   buildReservationDateTime,
   buildReservationCreatePayload,
+  formatLocalDateTime,
   isReservationTooSoon,
   resolveCoverChargeCheckoutUrl,
   retryReservationCreateAfterPayment,
 } from '@/utils/checkout-utils';
 
 type Tab = 'my' | 'book' | 'manage';
+
+function cleanReservationErrorMessage(rawMessage: string | undefined) {
+  const message = (rawMessage || '').replace(/^API Error:\s*\d+\s*-\s*/, '').trim();
+
+  if (!message) {
+    return 'Could not complete booking.';
+  }
+
+  if (message.toLowerCase().includes('between 6:00 am and 6:00 pm')) {
+    return 'Reservations must be scheduled between 6:00 AM and 6:00 PM local time.';
+  }
+
+  return message;
+}
 
 export default function ReservationsScreen() {
   const colorScheme = useColorScheme();
@@ -71,6 +87,7 @@ export default function ReservationsScreen() {
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
   const [partySize, setPartySize] = useState(2);
   const [specialRequests, setSpecialRequests] = useState('');
+  const [reservationName, setReservationName] = useState('');
   const [booking, setBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
   const [loadingMeta, setLoadingMeta] = useState(true);
@@ -199,7 +216,7 @@ export default function ReservationsScreen() {
       return;
     }
 
-    const reservedFor = buildReservationDateTime(selectedDate, selectedHour).toISOString();
+    const reservedFor = formatLocalDateTime(buildReservationDateTime(selectedDate, selectedHour));
 
     getReservationAvailability(selectedLocationId, reservedFor)
       .then((data) => {
@@ -304,9 +321,10 @@ export default function ReservationsScreen() {
     const reservationPayload = buildReservationCreatePayload({
       locationId: selectedLocationId,
       tableId: selectedTableId,
-      reservedForIso: reservedFor.toISOString(),
+      reservedForIso: formatLocalDateTime(reservedFor),
       partySize,
       specialRequests,
+      customerName: reservationName,
     });
 
     if (isReservationTooSoon(reservedFor)) {
@@ -317,17 +335,26 @@ export default function ReservationsScreen() {
     setBooking(true);
 
     try {
-      await createReservation(reservationPayload);
+      const created = await createReservation(reservationPayload);
 
       setSelectedDate(null);
       setSelectedHour(null);
       setSelectedTableId(null);
       setSpecialRequests('');
+      setReservationName('');
       setPartySize(2);
-      setTab('my');
-      await loadReservations(true);
 
+      // Optimistically prepend the new reservation so the user sees it instantly,
+      // then switch tabs and show feedback. Refresh from server in the background.
+      if (created) {
+        setMyRes((prev) => {
+          const without = prev.filter((r) => r.id !== created.id);
+          return [created, ...without];
+        });
+      }
+      setTab('my');
       Alert.alert('Reservation Placed', 'Your reservation request was created. Payment is received and staff will confirm it shortly.');
+      void loadReservations(true);
     } catch (e: any) {
       if (e instanceof ApiError && e.status === 402) {
         const paymentInfo = e.data as ReservationCoverChargeRequiredDto | undefined;
@@ -349,6 +376,7 @@ export default function ReservationsScreen() {
                   coverChargeOrderId,
                   checkoutUrl,
                   createStripeCheckoutSession,
+                  Linking.createURL('/'),
                 );
 
                 if (urlToOpen) {
@@ -360,10 +388,11 @@ export default function ReservationsScreen() {
                         buildReservationCreatePayload({
                           locationId: selectedLocationId!,
                           tableId: selectedTableId!,
-                          reservedForIso: reservedFor.toISOString(),
+                          reservedForIso: formatLocalDateTime(reservedFor),
                           partySize,
                           coverChargeOrderId,
                           specialRequests,
+                          customerName: reservationName,
                         }),
                       ),
                       isPendingError: (error) => error instanceof ApiError && error.status === 402,
@@ -410,7 +439,7 @@ export default function ReservationsScreen() {
           ],
         );
       } else {
-        setBookingError(e.message || 'Could not complete booking.');
+        setBookingError(cleanReservationErrorMessage(e?.message));
       }
     } finally {
       setBooking(false);
@@ -498,6 +527,8 @@ export default function ReservationsScreen() {
               setSelectedTableId={setSelectedTableId}
               specialRequests={specialRequests}
               setSpecialRequests={setSpecialRequests}
+              reservationName={reservationName}
+              setReservationName={setReservationName}
               bookingError={bookingError}
               booking={booking}
               onBook={bookReservation}
@@ -515,6 +546,7 @@ export default function ReservationsScreen() {
               loadingLocationReservations={loadingLocationReservations}
               locationReservations={locationReservations}
               managingReservationId={managingReservationId}
+              onConfirmReservation={(reservation) => updateStatus(reservation, 'Confirmed')}
               onCompleteReservation={(reservation) => updateStatus(reservation, 'Completed')}
               onCancelReservation={doCancel}
             />

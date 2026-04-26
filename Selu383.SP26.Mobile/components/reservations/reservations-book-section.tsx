@@ -27,6 +27,8 @@ type Props = {
   setSelectedTableId: (value: number) => void;
   specialRequests: string;
   setSpecialRequests: (value: string) => void;
+  reservationName: string;
+  setReservationName: (value: string) => void;
   bookingError: string | null;
   booking: boolean;
   onBook: () => void;
@@ -50,6 +52,8 @@ export function ReservationsBookSection({
   setSelectedTableId,
   specialRequests,
   setSpecialRequests,
+  reservationName,
+  setReservationName,
   bookingError,
   booking,
   onBook,
@@ -220,6 +224,21 @@ export function ReservationsBookSection({
           })}
         </View>
       )}
+
+      <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+        <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Reservation Name</ThemedText>
+        <View style={[styles.inputWrap, { borderColor: colors.border, backgroundColor: colors.inputBackground, minHeight: 52 }]}>
+          <TextInput
+            style={[styles.input, { color: colors.text }]}
+            placeholder="Name on the reservation (e.g. Joe Smith)"
+            placeholderTextColor={colors.textSecondary}
+            value={reservationName}
+            onChangeText={setReservationName}
+            autoCapitalize="words"
+            maxLength={100}
+          />
+        </View>
+      </View>
 
       <View style={[styles.section, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
         <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Special Requests</ThemedText>

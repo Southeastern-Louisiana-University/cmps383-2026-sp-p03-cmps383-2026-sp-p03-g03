@@ -17,6 +17,7 @@ type Props = {
   loadingLocationReservations: boolean;
   locationReservations: ReservationDto[];
   managingReservationId: number | null;
+  onConfirmReservation: (reservation: ReservationDto) => void;
   onCompleteReservation: (reservation: ReservationDto) => void;
   onCancelReservation: (id: number) => void;
 };
@@ -31,6 +32,7 @@ export function ReservationsManageSection({
   loadingLocationReservations,
   locationReservations,
   managingReservationId,
+  onConfirmReservation,
   onCompleteReservation,
   onCancelReservation,
 }: Props) {
@@ -83,14 +85,31 @@ export function ReservationsManageSection({
         </View>
       ) : (
         locationReservations.map((reservation) => (
+          (() => {
+            const normalizedStatus = reservation.status?.toLowerCase() ?? '';
+            const statusColorMap: Record<string, string> = {
+              pending: '#f59e0b',
+              confirmed: '#3b82f6',
+              completed: '#6b7280',
+              cancelled: '#ef4444',
+            };
+            const statusColor = statusColorMap[normalizedStatus] ?? '#6b7280';
+            const canConfirm = normalizedStatus === 'pending';
+            const canComplete = normalizedStatus === 'confirmed';
+            const canCancel = normalizedStatus !== 'cancelled' && normalizedStatus !== 'completed';
+
+            return (
           <View key={reservation.id} style={[styles.resCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
             <View style={styles.resHeader}>
               <View style={styles.resHeaderInfo}>
                 <ThemedText style={[styles.resDate, { color: colors.text }]}>{formatReservationDate(reservation.reservedFor)}</ThemedText>
                 <ThemedText style={[styles.resMeta, { color: colors.textSecondary }]}>Party of {reservation.partySize} - Table #{reservation.tableId}</ThemedText>
+                {reservation.customerName ? (
+                  <ThemedText style={[styles.resMeta, { color: colors.textSecondary }]}>Reservation for {reservation.customerName}</ThemedText>
+                ) : null}
               </View>
-              <View style={[styles.statusBadge, { backgroundColor: '#3b82f622', borderColor: '#3b82f6' }]}>
-                <ThemedText style={[styles.statusText, { color: '#3b82f6' }]}>{reservation.status}</ThemedText>
+              <View style={[styles.statusBadge, { backgroundColor: `${statusColor}22`, borderColor: statusColor }]}>
+                <ThemedText style={[styles.statusText, { color: statusColor }]}>{reservation.status}</ThemedText>
               </View>
             </View>
 
@@ -98,23 +117,42 @@ export function ReservationsManageSection({
               <ThemedText style={[styles.specialReq, { color: colors.textSecondary }]}>{reservation.specialRequests}</ThemedText>
             ) : null}
 
-            <View style={styles.manageRow}>
-              <TouchableOpacity
-                style={[styles.manageButton, { backgroundColor: colors.primary, opacity: managingReservationId === reservation.id ? 0.7 : 1 }]}
-                onPress={() => onCompleteReservation(reservation)}
-                disabled={managingReservationId === reservation.id}
-              >
-                <ThemedText style={styles.manageButtonText}>Mark Completed</ThemedText>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.manageButton, styles.manageDangerButton, { opacity: managingReservationId === reservation.id ? 0.7 : 1 }]}
-                onPress={() => onCancelReservation(reservation.id)}
-                disabled={managingReservationId === reservation.id}
-              >
-                <ThemedText style={styles.manageButtonText}>Cancel</ThemedText>
-              </TouchableOpacity>
-            </View>
+            {canConfirm || canComplete || canCancel ? (
+              <View style={styles.manageRow}>
+                {canConfirm ? (
+                  <TouchableOpacity
+                    style={[styles.manageButton, { backgroundColor: '#3b82f6', opacity: managingReservationId === reservation.id ? 0.7 : 1 }]}
+                    onPress={() => onConfirmReservation(reservation)}
+                    disabled={managingReservationId === reservation.id}
+                  >
+                    <ThemedText style={styles.manageButtonText}>Confirm</ThemedText>
+                  </TouchableOpacity>
+                ) : null}
+
+                {canComplete ? (
+                  <TouchableOpacity
+                    style={[styles.manageButton, { backgroundColor: '#10b981', opacity: managingReservationId === reservation.id ? 0.7 : 1 }]}
+                    onPress={() => onCompleteReservation(reservation)}
+                    disabled={managingReservationId === reservation.id}
+                  >
+                    <ThemedText style={styles.manageButtonText}>Mark Completed</ThemedText>
+                  </TouchableOpacity>
+                ) : null}
+
+                {canCancel ? (
+                  <TouchableOpacity
+                    style={[styles.manageButton, { backgroundColor: '#ef4444', opacity: managingReservationId === reservation.id ? 0.7 : 1 }]}
+                    onPress={() => onCancelReservation(reservation.id)}
+                    disabled={managingReservationId === reservation.id}
+                  >
+                    <ThemedText style={styles.manageButtonText}>Cancel</ThemedText>
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            ) : null}
           </View>
+            );
+          })()
         ))
       )}
     </>
