@@ -69,6 +69,10 @@ function formatPaymentStatus(paymentStatus: string) {
     return 'Pending';
   }
 
+  if (paymentStatus === 'Refunded') {
+    return 'Cancelled';
+  }
+
   return paymentStatus;
 }
 
@@ -206,10 +210,10 @@ export default function OrdersScreen() {
   };
 
   const refundOrder = (order: OrderDto) => {
-    Alert.alert('Issue Refund', `Refund payment for order #${order.orderCode}?`, [
-      { text: 'Cancel', style: 'cancel' },
+    Alert.alert('Cancel Order', `Cancel order #${order.orderCode}?`, [
+      { text: 'Back', style: 'cancel' },
       {
-        text: 'Refund',
+        text: 'Cancel Order',
         style: 'destructive',
         onPress: async () => {
           try {
@@ -222,10 +226,10 @@ export default function OrdersScreen() {
               return;
             }
 
-            await refundOrderPayment(order.id, paidPayment.id, 'Refund issued by management');
+            await refundOrderPayment(order.id, paidPayment.id, 'Order cancelled by management');
             await load(true);
           } catch (err: any) {
-            Alert.alert('Refund Failed', err.message || 'Could not issue refund.');
+            Alert.alert('Cancel Failed', err.message || 'Could not cancel order.');
           } finally {
             setRefundingOrderId(null);
           }
@@ -369,7 +373,7 @@ export default function OrdersScreen() {
                         onPress={() => refundOrder(order)}
                         disabled={refundingOrderId === order.id}
                       >
-                        <ThemedText style={styles.actionButtonText}>Issue Refund</ThemedText>
+                        <ThemedText style={styles.actionButtonText}>Cancel</ThemedText>
                       </TouchableOpacity>
                     ) : null}
                   </View>
