@@ -1,14 +1,21 @@
 import { Tabs } from "expo-router";
 import React from "react";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HapticTab } from "@/components/haptic-tab";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Colors } from "@/constants/theme";
+import { getColors } from "@/constants/styles";
 import { useColorScheme } from "@/hooks/use-color-scheme";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const colors = getColors(isDark);
+  const insets = useSafeAreaInsets();
+
+  const tabBarBottomPadding = Math.max(insets.bottom, 10);
+  const tabBarHeight = 58 + tabBarBottomPadding;
 
   return (
     <Tabs
@@ -18,20 +25,31 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          height: 74,
-          paddingBottom: 10,
+          height: tabBarHeight,
+          paddingBottom: tabBarBottomPadding,
           paddingTop: 8,
-          backgroundColor: isDark ? "#1d1715" : "#fbfbfb",
-          borderTopColor: isDark ? "#232327" : "#e6e7eb",
+          backgroundColor: colors.tabBarBackground,
+          borderTopColor: colors.border,
           borderTopWidth: 1,
+          shadowColor: 'rgba(58,46,31,0.8)',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 4,
         },
         tabBarLabelStyle: {
-          fontFamily: "Corben_700Bold",
-          fontSize: 8,
-          marginBottom: 2,
+          fontFamily: 'Inter_600SemiBold',
+          fontSize: 10,
+          lineHeight: 13,
+          marginTop: 2,
+          letterSpacing: 0.1,
+        },
+        tabBarIconStyle: {
+          marginBottom: 0,
         },
         tabBarItemStyle: {
-          paddingHorizontal: 1,
+          paddingHorizontal: 0,
+          minWidth: 0,
         },
       }}
     >
@@ -40,7 +58,7 @@ export default function TabLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={22} name="house.fill" color={color} />
+            <IconSymbol size={20} name="house.fill" color={color} />
           ),
         }}
       />
@@ -49,7 +67,7 @@ export default function TabLayout() {
         options={{
           title: "Menu",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={22} name="fork.knife" color={color} />
+            <IconSymbol size={20} name="fork.knife" color={color} />
           ),
         }}
       />
@@ -58,7 +76,7 @@ export default function TabLayout() {
         options={{
           title: "Cart",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={22} name="cart.fill" color={color} />
+            <IconSymbol size={20} name="cart.fill" color={color} />
           ),
         }}
       />
@@ -67,7 +85,7 @@ export default function TabLayout() {
         options={{
           title: "Orders",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={22} name="list.bullet" color={color} />
+            <IconSymbol size={20} name="list.bullet" color={color} />
           ),
         }}
       />
@@ -76,7 +94,7 @@ export default function TabLayout() {
         options={{
           title: "Book",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={22} name="paperplane.fill" color={color} />
+            <IconSymbol size={20} name="calendar" color={color} />
           ),
         }}
       />
@@ -85,8 +103,14 @@ export default function TabLayout() {
         options={{
           title: "Account",
           tabBarIcon: ({ color }) => (
-            <IconSymbol size={22} name="person.fill" color={color} />
+            <IconSymbol size={20} name="person.fill" color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="portal"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen

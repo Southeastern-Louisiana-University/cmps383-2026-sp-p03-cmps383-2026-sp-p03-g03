@@ -7,12 +7,17 @@ public class CreateMenuItemDto
     [Required]
     public int CategoryId { get; set; }
 
+    public int? LocationId { get; set; }
+
     [Required]
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;
 
     [MaxLength(500)]
     public string? Description { get; set; }
+
+    [MaxLength(500)]
+    public string? ImagePath { get; set; }
 
     [Required]
     [Range(0.01, 1000)]
@@ -29,6 +34,9 @@ public class UpdateMenuItemDto
 
     [MaxLength(500)]
     public string? Description { get; set; }
+
+    [MaxLength(500)]
+    public string? ImagePath { get; set; }
 
     [Required]
     [Range(0.01, 1000)]

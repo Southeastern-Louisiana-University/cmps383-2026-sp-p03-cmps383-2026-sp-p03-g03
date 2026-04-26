@@ -17,6 +17,7 @@ import {
   ItemDialog,
   CheckoutDialog,
   SuccessDialog,
+  LocationChangeDialog,
 } from "../components/dialogs";
 import { useAppContext } from "../api/context-providers/app-context";
 import { APP_ROUTES, normalizeRoute } from "./routes";
@@ -43,19 +44,27 @@ function AppLayout() {
       <ItemDialog />
       <CheckoutDialog />
       <SuccessDialog />
+      <LocationChangeDialog />
     </div>
   );
 }
 
 function ProtectedProfileRoute() {
   const { isLoggedIn, authReady } = useAppContext();
+  const location = useLocation();
 
   if (!authReady) {
     return null;
   }
 
   if (!isLoggedIn) {
-    return <Navigate to={APP_ROUTES.auth} replace />;
+    return (
+      <Navigate
+        to={APP_ROUTES.auth}
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   }
 
   return <ProfilePage />;
@@ -63,13 +72,20 @@ function ProtectedProfileRoute() {
 
 function ProtectedOrdersRoute() {
   const { isLoggedIn, authReady } = useAppContext();
+  const location = useLocation();
 
   if (!authReady) {
     return null;
   }
 
   if (!isLoggedIn) {
-    return <Navigate to={APP_ROUTES.auth} replace />;
+    return (
+      <Navigate
+        to={APP_ROUTES.auth}
+        replace
+        state={{ from: location.pathname + location.search }}
+      />
+    );
   }
 
   return <OrdersPage />;

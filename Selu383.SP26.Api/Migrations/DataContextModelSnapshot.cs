@@ -390,6 +390,9 @@ namespace Selu383.SP26.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("IconPath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -449,6 +452,9 @@ namespace Selu383.SP26.Api.Migrations
                     b.Property<int?>("DisabledByUserId")
                         .HasColumnType("int");
 
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsAvailable")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -472,6 +478,36 @@ namespace Selu383.SP26.Api.Migrations
                     b.ToTable("menu_items", (string)null);
                 });
 
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuItemLocationOverride", b =>
+                {
+                    b.Property<int>("MenuItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LocationId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DisabledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("DisabledByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAvailable")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("UnavailableReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.HasKey("MenuItemId", "LocationId");
+
+                    b.HasIndex("DisabledByUserId");
+
+                    b.HasIndex("LocationId");
+
+                    b.ToTable("menu_item_location_overrides", (string)null);
+                });
+
             modelBuilder.Entity("Selu383.SP26.Api.Features.Orders.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -486,7 +522,7 @@ namespace Selu383.SP26.Api.Migrations
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("CreatedByUserId")
+                    b.Property<int?>("CreatedByUserId")
                         .HasColumnType("int");
 
                     b.Property<int>("LocationId")
@@ -721,6 +757,10 @@ namespace Selu383.SP26.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 
@@ -914,13 +954,36 @@ namespace Selu383.SP26.Api.Migrations
                     b.Navigation("DisabledByUser");
                 });
 
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuItemLocationOverride", b =>
+                {
+                    b.HasOne("Selu383.SP26.Api.Features.Auth.User", "DisabledByUser")
+                        .WithMany()
+                        .HasForeignKey("DisabledByUserId");
+
+                    b.HasOne("Selu383.SP26.Api.Features.Locations.Location", "Location")
+                        .WithMany()
+                        .HasForeignKey("LocationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Selu383.SP26.Api.Features.Menu.MenuItem", "MenuItem")
+                        .WithMany("LocationOverrides")
+                        .HasForeignKey("MenuItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DisabledByUser");
+
+                    b.Navigation("Location");
+
+                    b.Navigation("MenuItem");
+                });
+
             modelBuilder.Entity("Selu383.SP26.Api.Features.Orders.Order", b =>
                 {
                     b.HasOne("Selu383.SP26.Api.Features.Auth.User", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedByUserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("CreatedByUserId");
 
                     b.HasOne("Selu383.SP26.Api.Features.Locations.Location", "Location")
                         .WithMany()
@@ -1034,6 +1097,11 @@ namespace Selu383.SP26.Api.Migrations
                     b.Navigation("MenuCategoryLocations");
 
                     b.Navigation("MenuItems");
+                });
+
+            modelBuilder.Entity("Selu383.SP26.Api.Features.Menu.MenuItem", b =>
+                {
+                    b.Navigation("LocationOverrides");
                 });
 
             modelBuilder.Entity("Selu383.SP26.Api.Features.Orders.Order", b =>

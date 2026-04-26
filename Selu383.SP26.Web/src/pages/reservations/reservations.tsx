@@ -162,8 +162,7 @@ export function ReservationPage() {
         <div className="res-hero-overlay" />
         <div className="noise-overlay" />
         <div className="res-hero-content">
-          <p className="res-hero-kicker">Reservations</p>
-          <h1 className="res-hero-title">Reserve your table</h1>
+          <h1 className="res-hero-title">Reserve your table</h1><br></br>
           <p className="res-hero-subtitle">
             Book a seat at least 2 hours in advance. Bar seats are walk-in only.
           </p>

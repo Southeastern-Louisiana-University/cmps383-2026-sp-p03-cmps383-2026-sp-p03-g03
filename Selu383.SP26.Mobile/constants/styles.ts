@@ -1,34 +1,59 @@
 import { StyleSheet, Platform } from 'react-native';
 import { Colors } from './theme';
 
-const FONT_SCALE = 1.5;
+const FONT_SCALE = 1;
+
+// Inter for headings/UI, Lato for body text
+export const FontFamily = {
+  body: 'Lato_400Regular',
+  bodyLight: 'Lato_300Light',
+  bodyBold: 'Lato_700Bold',
+  heading: 'Inter_700Bold',
+  headingSemiBold: 'Inter_600SemiBold',
+  headingMedium: 'Inter_500Medium',
+  headingRegular: 'Inter_400Regular',
+  // legacy aliases — keeps existing callers from breaking
+  bodyMedium: 'Inter_500Medium',
+  bodySemiBold: 'Inter_600SemiBold',
+  display: 'Inter_700Bold',
+  displayItalic: 'Inter_700Bold',
+} as const;
 
 export const getColors = (isDark: boolean) => ({
-  // Backgrounds
-  background: isDark ? Colors.dark.background : Colors.light.background,
-  cardBackground: isDark ? Colors.darkCard : '#f5f5f5',
-  inputBackground: isDark ? '#3a3a3a' : '#f9f9f9',
+  // backgrounds
+  background: isDark ? Colors.dark.background : Colors.cream,
+  cardBackground: isDark ? Colors.darkCard : '#ffffff',
+  inputBackground: isDark ? '#2a2018' : '#ffffff',
   
-  // Text
-  text: isDark ? Colors.dark.text : Colors.light.text,
-  textSecondary: isDark ? '#9BA1A6' : '#687076',
+  // text
+  text: isDark ? Colors.dark.text : Colors.darkBrew,
+  textSecondary: isDark ? '#9BA1A6' : Colors.mocha,
+  textMuted: isDark ? '#666' : Colors.caramel,
   
-  // Branding
+  // brand
   primary: Colors.brandGreen,
+  primaryDark: Colors.brandGreenDark,
   
-  // Status
+  // status
   error: Colors.error,
   success: Colors.success,
   warning: Colors.warning,
   
-  // Borders and dividers
-  border: isDark ? '#3a3a3a' : '#e5e7eb',
-  divider: isDark ? '#2a2a2a' : '#f0f0f0',
+  // borders
+  border: isDark ? '#3a2e22' : Colors.sand,
+  divider: isDark ? '#2a2018' : Colors.sand,
+
+  // surfaces
+  tabBarBackground: isDark ? '#1d1715' : Colors.cream,
+  errorBackground: isDark ? '#3a1a1a' : '#ffebee',
+  
+  // warm accents
+  cream: isDark ? '#2a2018' : Colors.cream,
+  sand: isDark ? '#3a2e22' : Colors.sand,
+  caramel: isDark ? '#9BA1A6' : Colors.caramel,
+  espresso: isDark ? '#ccc' : Colors.espresso,
 });
 
-/**
- * Common component styles
- */
 export const CommonStyles = {
   safeArea: {
     flex: 1,
@@ -39,7 +64,7 @@ export const CommonStyles = {
     width: '100%',
     maxWidth: 900,
     alignSelf: 'center',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 20,
     paddingBottom: 110,
   },
@@ -57,84 +82,94 @@ export const CommonStyles = {
   },
   
   card: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 16,
     width: '100%',
+    borderWidth: 1,
+    borderColor: '#f0e8dd',
+    shadowColor: 'rgba(58,46,31,0.8)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   
   cardTitle: {
-    fontSize: 18 * FONT_SCALE,
-    fontWeight: '600',
+    fontSize: 22,
+    fontWeight: '700',
     marginBottom: 16,
-    fontFamily: 'Oregano_400Regular',
+    fontFamily: FontFamily.display,
   },
   
   title: {
-    fontSize: 28 * FONT_SCALE,
-    fontWeight: 'bold',
+    fontSize: 32,
+    fontWeight: '700',
     marginBottom: 24,
-    fontFamily: 'Oregano_400Regular',
+    fontFamily: FontFamily.display,
   },
   
   subtitle: {
-    fontSize: 16 * FONT_SCALE,
+    fontSize: 15,
     opacity: 0.7,
     marginBottom: 16,
-    fontFamily: 'Corben_400Regular',
+    fontFamily: FontFamily.body,
   },
   
   label: {
-    fontSize: 14 * FONT_SCALE,
+    fontSize: 14,
     fontWeight: '600',
     marginBottom: 8,
-    fontFamily: 'Corben_700Bold',
+    fontFamily: FontFamily.bodySemiBold,
   },
 
   value: {
-    fontSize: 14 * FONT_SCALE,
+    fontSize: 14,
     flex: 1,
     textAlign: 'right',
-    fontFamily: 'Corben_400Regular',
+    fontFamily: FontFamily.body,
   },
 
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0,0,0,0.1)',
+    borderBottomColor: 'rgba(0,0,0,0.08)',
   },
   
   input: {
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16 * FONT_SCALE,
-    fontFamily: 'Corben_400Regular',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 15,
+    fontFamily: FontFamily.body,
   },
   
   primaryButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   
   dangerButton: {
-    paddingVertical: 12,
-    borderRadius: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
   
   buttonText: {
-    fontSize: 16 * FONT_SCALE,
+    fontSize: 15,
     fontWeight: '600',
     color: 'white',
-    fontFamily: 'Corben_700Bold',
+    letterSpacing: 0.2,
+    fontFamily: FontFamily.bodySemiBold,
   },
   
   separator: {
@@ -144,23 +179,23 @@ export const CommonStyles = {
   
   loadingText: {
     marginTop: 12,
-    fontSize: 16 * FONT_SCALE,
+    fontSize: 15,
     fontWeight: '600',
-    fontFamily: 'Corben_700Bold',
+    fontFamily: FontFamily.bodySemiBold,
   },
   
   errorText: {
-    fontSize: 16 * FONT_SCALE,
+    fontSize: 15,
     fontWeight: '600',
     marginBottom: 12,
-    fontFamily: 'Corben_700Bold',
+    fontFamily: FontFamily.bodySemiBold,
   },
   
   retryText: {
-    fontSize: 14 * FONT_SCALE,
+    fontSize: 14,
     fontWeight: '600',
     textDecorationLine: 'underline',
-    fontFamily: 'Corben_700Bold',
+    fontFamily: FontFamily.bodySemiBold,
   },
   
   badge: {
@@ -172,9 +207,9 @@ export const CommonStyles = {
   },
   
   badgeText: {
-    fontSize: 12 * FONT_SCALE,
+    fontSize: 12,
     fontWeight: '600',
-    fontFamily: 'Corben_700Bold',
+    fontFamily: FontFamily.bodySemiBold,
   },
   
   rounded: {
@@ -210,24 +245,30 @@ export const CommonStyles = {
   },
   
   modalHeader: {
-    fontSize: 20 * FONT_SCALE,
+    fontSize: 24,
     fontWeight: '700',
     marginBottom: 16,
-    fontFamily: 'Oregano_400Regular',
+    fontFamily: FontFamily.display,
   },
   
   sectionHeader: {
-    fontSize: 16 * FONT_SCALE,
+    fontSize: 18,
     fontWeight: '700',
     marginTop: 20,
     marginBottom: 12,
-    fontFamily: 'Oregano_400Regular',
+    fontFamily: FontFamily.display,
+  },
+
+  // Kicker text pattern (matches web)
+  kicker: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    fontFamily: FontFamily.bodySemiBold,
   },
 } as const;
 
-/**
- * Spacing constants
- */
 export const Spacing = {
   xs: 4,
   sm: 8,
@@ -237,9 +278,6 @@ export const Spacing = {
   xxl: 32,
 };
 
-/**
- * Border radius constants
- */
 export const BorderRadius = {
   sm: 4,
   md: 8,
@@ -248,23 +286,17 @@ export const BorderRadius = {
   full: 999,
 };
 
-/**
- * Font size constants
- */
 export const FontSizes = {
-  xs: 12 * FONT_SCALE,
-  sm: 14 * FONT_SCALE,
-  md: 16 * FONT_SCALE,
-  lg: 18 * FONT_SCALE,
-  xl: 20 * FONT_SCALE,
-  xxl: 24 * FONT_SCALE,
-  xxxl: 28 * FONT_SCALE,
-  huge: 32 * FONT_SCALE,
+  xs: 12,
+  sm: 13,
+  md: 15,
+  lg: 17,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+  huge: 40,
 };
 
-/**
- * Font weight constants
- */
 export const FontWeights = {
   thin: '100',
   extralight: '200',

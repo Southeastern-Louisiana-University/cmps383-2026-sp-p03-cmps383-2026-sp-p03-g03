@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Image, TouchableOpacity } from 'react-native';
+import { View, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -10,17 +10,16 @@ import { PageHeaderActions } from '@/components/page-header-actions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useCart } from '@/hooks/useCart';
 import { CommonStyles, getColors } from '@/constants/styles';
+import { styles } from '@/styles/screens/cart.styles';
+import { calculateCartTotals, CART_MAX_ITEM_QUANTITY, SALES_TAX_RATE } from '@/utils/checkout-utils';
 
 export default function CartScreen() {
   const colorScheme = useColorScheme();
-  const isDark = colorScheme === 'dark';
-  const colors = getColors(isDark);
+  const colors = getColors(colorScheme === 'dark');
   const { cart, removeItem, updateQuantity, clearCart } = useCart();
   const router = useRouter();
 
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.0875;
-  const total = subtotal + tax;
+  const { subtotal, tax, total } = calculateCartTotals(cart);
 
   return (
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
@@ -80,7 +79,13 @@ export default function CartScreen() {
                     <ThemedText style={[styles.qtyText, { color: colors.text }]}>{item.quantity}</ThemedText>
                     <TouchableOpacity
                       style={[styles.qtyBtn, { borderColor: colors.border }]}
-                      onPress={() => updateQuantity(item.id, item.quantity + 1)}
+                      onPress={() => {
+                        if (item.quantity >= CART_MAX_ITEM_QUANTITY) {
+                          Alert.alert('Quantity Limit', `Maximum quantity per item is ${CART_MAX_ITEM_QUANTITY}.`);
+                          return;
+                        }
+                        updateQuantity(item.id, item.quantity + 1);
+                      }}
                     >
                       <MaterialIcons name="add" size={14} color={colors.text} />
                     </TouchableOpacity>
@@ -91,13 +96,22 @@ export default function CartScreen() {
                 </View>
               ))}
 
+              <TouchableOpacity
+                style={[styles.addMoreButton, { borderColor: colors.primary, backgroundColor: colors.primary + '12' }]}
+                onPress={() => router.push('/(tabs)/menu')}
+                activeOpacity={0.85}
+              >
+                <MaterialIcons name="restaurant-menu" size={18} color={colors.primary} />
+                <ThemedText style={[styles.addMoreButtonText, { color: colors.primary }]}>Add More Items</ThemedText>
+              </TouchableOpacity>
+
               <View style={[styles.totalsCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 <View style={styles.totalRow}>
                   <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Subtotal</ThemedText>
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${subtotal.toFixed(2)}</ThemedText>
                 </View>
                 <View style={styles.totalRow}>
-                  <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax (8.75%)</ThemedText>
+                  <ThemedText style={[styles.totalLabel, { color: colors.textSecondary }]}>Tax ({(SALES_TAX_RATE * 100).toFixed(2)}%)</ThemedText>
                   <ThemedText style={[styles.totalValue, { color: colors.text }]}>${tax.toFixed(2)}</ThemedText>
                 </View>
                 <View style={[styles.totalRow, styles.totalRowFinal]}>
@@ -123,161 +137,3 @@ export default function CartScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  titleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-  },
-  titleLogo: {
-    width: 34,
-    height: 34,
-  },
-  badge: {
-    alignSelf: 'flex-start',
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    marginBottom: 14,
-  },
-  badgeText: {
-    fontFamily: 'Corben_700Bold',
-    fontSize: 12,
-  },
-  emptyCard: {
-    borderRadius: 16,
-    borderWidth: 1,
-    padding: 20,
-    alignItems: 'center',
-  },
-  headline: {
-    fontFamily: 'Oregano_400Regular',
-    fontSize: 28,
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  copy: {
-    fontFamily: 'Corben_400Regular',
-    fontSize: 15,
-    lineHeight: 22,
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  menuButton: {
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 28,
-  },
-  menuButtonText: {
-    color: '#fff',
-    fontFamily: 'Corben_700Bold',
-    fontSize: 15,
-  },
-  cartRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    gap: 10,
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemName: {
-    fontFamily: 'Corben_700Bold',
-    fontSize: 14,
-    marginBottom: 2,
-  },
-  itemNote: {
-    fontFamily: 'Corben_400Regular',
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  itemPrice: {
-    fontFamily: 'Corben_700Bold',
-    fontSize: 15,
-  },
-  controls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderWidth: 1,
-    borderRadius: 7,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qtyText: {
-    fontFamily: 'Corben_700Bold',
-    fontSize: 14,
-    minWidth: 22,
-    textAlign: 'center',
-  },
-  removeBtn: {
-    marginLeft: 4,
-    padding: 2,
-  },
-  totalsCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 4,
-    marginBottom: 14,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  totalRowFinal: {
-    borderTopWidth: 1,
-    paddingTop: 8,
-    marginTop: 4,
-    marginBottom: 0,
-  },
-  totalLabel: {
-    fontFamily: 'Corben_400Regular',
-    fontSize: 14,
-  },
-  totalValue: {
-    fontFamily: 'Corben_400Regular',
-    fontSize: 14,
-  },
-  totalLabelBold: {
-    fontFamily: 'Corben_700Bold',
-    fontSize: 16,
-  },
-  totalValueBold: {
-    fontFamily: 'Corben_700Bold',
-    fontSize: 18,
-  },
-  checkoutButton: {
-    borderRadius: 14,
-    minHeight: 54,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  checkoutButtonText: {
-    color: '#fff',
-    fontFamily: 'Corben_700Bold',
-    fontSize: 18,
-  },
-  clearButton: {
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  clearText: {
-    fontFamily: 'Corben_400Regular',
-    fontSize: 13,
-    textDecorationLine: 'underline',
-  },
-});

@@ -1,9 +1,14 @@
 import { Tokens, card, btnP, lbl, inp } from "../styles/tokens";
-import { Ic, ItemIcon } from "./icons";
+import { Ic } from "./icons";
 import { Dialog } from "./dialog";
 import { useAppContext } from "../api/context-providers/app-context";
 import { useNavigate } from "react-router-dom";
 import { APP_ROUTES } from "../navigation/routes";
+import {
+  getMenuItemFallbackPath,
+  getMenuItemImagePath,
+} from "../api/menu-item-images";
+import { ImageWithFallback } from "./image-with-fallback";
 
 function getInstructionsPlaceholder(category: string): string {
   const c = (category ?? "").toLowerCase();
@@ -21,58 +26,31 @@ function getInstructionsPlaceholder(category: string): string {
 }
 
 export function ItemDialog() {
-  const { sel, setSel, note, setNote, qty, setQty, addToCart } =
-    useAppContext();
+  const navigate = useNavigate();
+  const {
+    sel,
+    setSel,
+    note,
+    setNote,
+    qty,
+    setQty,
+    addToCart,
+    selectedLocation,
+  } = useAppContext();
 
   return (
-    <Dialog open={!!sel} onClose={() => setSel(null)} width={720}>
+    <Dialog open={!!sel} onClose={() => setSel(null)} width={1000}>
       {sel && (
-        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr" }}>
-          <div
-            style={{
-              background: Tokens.cream,
-              padding: "48px 32px",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              borderRadius: `${Tokens.rLg} 0 0 ${Tokens.rLg}`,
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <span
-              style={{
-                position: "absolute",
-                top: 20,
-                left: 20,
-                fontFamily: Tokens.font,
-                fontSize: 10,
-                fontWeight: 600,
-                letterSpacing: "1.5px",
-                textTransform: "uppercase",
-                color: Tokens.mocha,
-              }}
-            >
-              {sel.category}
-            </span>
-
-            <ItemIcon cat={sel.category} size={120} />
-
-            <div style={{ marginTop: 32, textAlign: "center" }}>
-              <span
-                style={{
-                  fontFamily: Tokens.fontDisplay,
-                  fontSize: 36,
-                  fontWeight: 700,
-                  color: Tokens.darkBrew,
-                }}
-              >
-                ${sel.price.toFixed(2)}
-              </span>
-            </div>
-          </div>
-
+        <div style={{ display: "grid", gridTemplateColumns: "320px 1fr" }}>
+          <ImageWithFallback
+            src={getMenuItemImagePath(sel.name, sel.imagePath)}
+            fallbackSrc={getMenuItemFallbackPath(
+              sel.category,
+              sel.categoryIconPath,
+            )}
+            alt={sel.name}
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
+          />
           <div style={{ padding: "40px 36px 36px" }}>
             <h2
               style={{
@@ -200,11 +178,17 @@ export function ItemDialog() {
               </div>
 
               <button
-                onClick={addToCart}
+                onClick={
+                  selectedLocation
+                    ? addToCart
+                    : () => navigate(APP_ROUTES.orders)
+                }
                 className="btn-primary focus-ring"
                 style={{ ...btnP, padding: "14px 32px", fontSize: 15, flex: 1 }}
               >
-                Add to Cart — ${(sel.price * qty).toFixed(2)}
+                {selectedLocation
+                  ? `Add to Cart — $${(sel.price * qty).toFixed(2)}`
+                  : "Pick Location to Check Availability"}
               </button>
             </div>
           </div>
@@ -536,6 +520,90 @@ export function SuccessDialog() {
         >
           Done
         </button>
+      </div>
+    </Dialog>
+  );
+}
+
+export function LocationChangeDialog() {
+  const {
+    showLocationChangeDialog,
+    setShowLocationChangeDialog,
+    confirmLocationChange,
+  } = useAppContext();
+
+  return (
+    <Dialog
+      open={showLocationChangeDialog}
+      onClose={() => setShowLocationChangeDialog(false)}
+      width={440}
+    >
+      <div style={{ textAlign: "center", padding: "48px 40px" }}>
+        <div
+          style={{
+            width: 72,
+            height: 72,
+            borderRadius: "50%",
+            margin: "0 auto 24px",
+            background: Tokens.cream,
+            border: `1px solid ${Tokens.sand}`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Ic name="alert" size={32} color={Tokens.espresso} />
+        </div>
+        <h2
+          style={{
+            fontFamily: Tokens.fontDisplay,
+            fontSize: 28,
+            fontWeight: 700,
+            margin: "0 0 12px",
+            color: Tokens.darkBrew,
+          }}
+        >
+          Clear Your Cart?
+        </h2>
+        <p
+          style={{
+            fontSize: 16,
+            color: Tokens.mocha,
+            margin: "0 0 32px",
+            fontFamily: Tokens.font,
+            lineHeight: 1.6,
+          }}
+        >
+          Changing locations will clear your current cart. Are you sure you want
+          to continue?
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          <button
+            onClick={() => setShowLocationChangeDialog(false)}
+            className="btn-outline focus-ring"
+            style={{
+              padding: "12px 32px",
+              fontSize: 15,
+              border: `1.5px solid ${Tokens.sand}`,
+              background: Tokens.white,
+              color: Tokens.darkBrew,
+              borderRadius: Tokens.rSm,
+              fontFamily: Tokens.font,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={confirmLocationChange}
+            className="btn-primary focus-ring"
+            style={{ ...btnP, padding: "12px 32px", fontSize: 15 }}
+          >
+            Clear Cart
+          </button>
+        </div>
       </div>
     </Dialog>
   );

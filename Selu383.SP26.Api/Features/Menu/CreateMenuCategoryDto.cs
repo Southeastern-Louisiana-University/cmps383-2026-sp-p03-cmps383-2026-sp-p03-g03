@@ -12,6 +12,9 @@ public class CreateMenuCategoryDto
     [MaxLength(120)]
     public string Name { get; set; } = string.Empty;
 
+    [MaxLength(500)]
+    public string? IconPath { get; set; }
+
     public bool IsSeasonal { get; set; } = false;
     public bool IsActive { get; set; } = true;
 }

@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import type { MenuItem } from "../api/dto-interfaces";
-import { Tokens } from "../styles/tokens.ts";
 import { ImageWithFallback } from "./image-with-fallback.tsx";
+import {
+  getMenuItemImagePath,
+  getMenuItemFallbackPath,
+} from "../api/menu-item-images.ts";
 import "./featured-carousel.css";
 
 const bgColors = ["#4A3B32", "#2A3C24", "#6B4423", "#382E29"];
@@ -9,9 +12,11 @@ const bgColors = ["#4A3B32", "#2A3C24", "#6B4423", "#382E29"];
 export default function FeaturedCarousel({
   data = [] as MenuItem[],
   activeSlide = 0,
+  onAddToCart,
 }: {
   data?: MenuItem[];
   activeSlide?: number;
+  onAddToCart?: (item: MenuItem) => void;
 }) {
   const [current, setCurrent] = useState(activeSlide);
   const [isPaused, setIsPaused] = useState(false);
@@ -109,15 +114,8 @@ export default function FeaturedCarousel({
                   ...getStyles(i),
                 }}
               >
-                <SliderContent item={item} />
+                <SliderContent item={item} onAddToCart={onAddToCart} />
               </div>
-              <div
-                className="reflection"
-                style={{
-                  background: `linear-gradient(to bottom, ${bgColor}40, transparent)`,
-                  ...getStyles(i),
-                }}
-              />
             </React.Fragment>
           );
         })}
@@ -135,27 +133,55 @@ export default function FeaturedCarousel({
   );
 }
 
-const SliderContent = ({ item }: { item: MenuItem }) => {
-  let imgSrc = Tokens.cafeImg;
-  const cat = item.category?.toLowerCase() || "";
-  if (cat.includes("drink")) imgSrc = Tokens.icedImg;
-  if (cat.includes("crepe")) imgSrc = Tokens.crepeImg;
-
+const SliderContent = ({
+  item,
+  onAddToCart,
+}: {
+  item: MenuItem;
+  onAddToCart?: (item: MenuItem) => void;
+}) => {
   return (
     <div className="sliderContent">
       <div className="slide-media">
         <ImageWithFallback
-          src={imgSrc}
+          src={getMenuItemImagePath(item.name, item.imagePath)}
+          fallbackSrc={getMenuItemFallbackPath(
+            item.category,
+            item.categoryIconPath,
+          )}
           alt={item.name}
           className="slide-image"
         />
       </div>
       <div className="slide-text">
-        <span className="slide-kicker">{item.category}</span>
-        <h2 className="slide-title">{item.name}</h2>
-        <p className="slide-desc">{item.desc}</p>
-        <div className="slide-footer">
-          <span className="slide-price">${item.price?.toFixed(2)}</span>
+        <div className="slide-header">
+          <h2 className="slide-title">{item.name}</h2>
+          {onAddToCart && (
+            <button
+              onClick={() => onAddToCart(item)}
+              style={{
+                background: "rgba(255, 255, 255, 0.9)",
+                color: "#1d1715",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 16px",
+                fontSize: "14px",
+                fontWeight: "600",
+                cursor: "pointer",
+                transition: "background 0.2s",
+                whiteSpace: "nowrap",
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(255, 255, 255, 1)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "rgba(255, 255, 255, 0.9)")
+              }
+            >
+              Add to Cart
+            </button>
+          )}
         </div>
       </div>
     </div>

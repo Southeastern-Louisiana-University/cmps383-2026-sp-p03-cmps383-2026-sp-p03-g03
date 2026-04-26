@@ -14,11 +14,14 @@ public class BlobStorageService
     public async Task<string> UploadReceiptAsync(byte[] pdfBytes, string fileName)
     {
         var connectionString = _configuration["AZURE_STORAGE_CONNECTION_STRING"]
-            ?? _configuration["AzureBlobStorage:ConnectionString"];
-        var containerName = _configuration["AzureBlobStorage:ContainerName"];
+            ?? _configuration["AzureBlobStorage:ConnectionString"]
+            ?? _configuration["AzureBlob:ConnectionString"];
+        var containerName = _configuration["AzureBlobStorage:ContainerName"]
+            ?? _configuration["AzureBlob:ContainerName"];
 
-        if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(containerName))
-            throw new InvalidOperationException("Azure Blob Storage settings are missing.");
+        if (string.IsNullOrWhiteSpace(connectionString) || string.IsNullOrWhiteSpace(containerName)
+            || !connectionString.Contains('='))
+            throw new InvalidOperationException("Azure Blob Storage settings are missing or not configured.");
 
         var blobServiceClient = new BlobServiceClient(connectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient(containerName);

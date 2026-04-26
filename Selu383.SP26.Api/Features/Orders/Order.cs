@@ -11,13 +11,13 @@ public class Order
     public int LocationId { get; set; }
     public virtual Location? Location { get; set; }
 
-    public int CreatedByUserId { get; set; }
+    public int? CreatedByUserId { get; set; }
     public virtual User? CreatedByUser { get; set; }
 
     public string OrderCode { get; set; } = string.Empty;
     public string OrderType { get; set; } = OrderTypes.Pickup;
     public string Status { get; set; } = OrderStatuses.Placed;
-    public string PaymentStatus { get; set; } = PaymentStatuses.Unpaid;
+    public string PaymentStatus { get; set; } = PaymentStatuses.Pending;
 
     public DateTime OrderTime { get; set; } = DateTime.UtcNow;
     public DateTime? ScheduledPickupTime { get; set; }

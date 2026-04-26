@@ -11,6 +11,7 @@ public class MenuItem
 
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    public string? ImagePath { get; set; }
 
     public decimal BasePrice { get; set; }
 
@@ -19,4 +20,6 @@ public class MenuItem
     public DateTime? DisabledAt { get; set; }
     public int? DisabledByUserId { get; set; }
     public virtual User? DisabledByUser { get; set; }
+
+    public virtual ICollection<MenuItemLocationOverride> LocationOverrides { get; set; } = new List<MenuItemLocationOverride>();
 }

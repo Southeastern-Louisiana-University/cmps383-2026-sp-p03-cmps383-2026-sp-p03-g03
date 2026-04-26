@@ -1,0 +1,107 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  carouselContainer: {
+    marginTop: 4,
+    marginBottom: 8,
+    paddingBottom: 4,
+  },
+  itemCard: {
+    borderRadius: 18,
+    backgroundColor: '#2a2018',
+    borderWidth: 0,
+    overflow: 'visible',
+    shadowColor: 'rgba(58,46,31,0.8)',
+    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 6,
+  },
+  cardInner: {
+    borderRadius: 18,
+    overflow: 'hidden',
+  },
+  imageWrap: {
+    width: '100%',
+    height: 160,
+    overflow: 'hidden',
+  },
+  itemImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  imageShade: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 160,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  itemContent: {
+    paddingHorizontal: 18,
+    paddingTop: 14,
+    paddingBottom: 18,
+  },
+  itemCategory: {
+    fontSize: 10,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+    letterSpacing: 1.2,
+    color: 'rgba(255,255,255,0.65)',
+    marginBottom: 6,
+  },
+  itemName: {
+    fontSize: 19,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+    marginBottom: 6,
+    lineHeight: 24,
+  },
+  itemDesc: {
+    fontSize: 12,
+    fontFamily: 'Lato_400Regular',
+    color: 'rgba(255,255,255,0.82)',
+    lineHeight: 17,
+    marginBottom: 10,
+  },
+  itemPrice: {
+    fontSize: 17,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+    color: '#fff',
+  },
+  navRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 12,
+    marginTop: 10,
+  },
+  navBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  navBtnText: {
+    color: '#fff',
+    fontSize: 19,
+    fontWeight: '700',
+    fontFamily: 'Inter_700Bold',
+  },
+  dotsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 8,
+    gap: 7,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+});

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Selu383.SP26.Api.Data;
 using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Locations;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Payments;
 using Selu383.SP26.Api.Features.Reservations;
@@ -20,11 +21,16 @@ public class ReservationsController : ControllerBase
 
     private readonly DataContext _context;
     private readonly StripePaymentService _stripePaymentService;
+    private readonly ILocationAccessService _locationAccessService;
 
-    public ReservationsController(DataContext context, StripePaymentService stripePaymentService)
+    public ReservationsController(
+        DataContext context,
+        StripePaymentService stripePaymentService,
+        ILocationAccessService locationAccessService)
     {
         _context = context;
         _stripePaymentService = stripePaymentService;
+        _locationAccessService = locationAccessService;
     }
 
     [HttpGet("my")]
@@ -49,6 +55,8 @@ public class ReservationsController : ControllerBase
     [Authorize]
     public async Task<ActionResult<ReservationAvailabilityDto>> GetAvailability([FromQuery] int locationId, [FromQuery] DateTime reservedFor)
     {
+        reservedFor = NormalizeReservationDateTime(reservedFor);
+
         var locationExists = await _context.Locations.AnyAsync(x => x.Id == locationId && x.IsActive);
         if (!locationExists)
             return NotFound("Invalid location.");
@@ -93,6 +101,9 @@ public class ReservationsController : ControllerBase
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
     public async Task<ActionResult<List<ReservationDto>>> GetByLocation(int locationId)
     {
+        if (!await _locationAccessService.CanAccessLocationAsync(User, locationId))
+            return Forbid();
+
         var reservations = await _context.Reservations
             .Where(x => x.LocationId == locationId)
             .OrderBy(x => x.ReservedFor)
@@ -110,6 +121,8 @@ public class ReservationsController : ControllerBase
         if (!userId.HasValue)
             return Unauthorized();
 
+        dto.ReservedFor = NormalizeReservationDateTime(dto.ReservedFor);
+
         var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize);
         if (validationMessage != null)
             return BadRequest(validationMessage);
@@ -125,6 +138,16 @@ public class ReservationsController : ControllerBase
             x.Subtotal >= 10.00m &&
             x.OrderTime >= reservationDayStartUtc &&
             x.OrderTime < reservationDayEndUtc);
+
+        if (!hasQualifyingPurchase && dto.AttachedOrderId.HasValue)
+        {
+            hasQualifyingPurchase = await _context.Orders.AnyAsync(x =>
+                x.Id == dto.AttachedOrderId.Value &&
+                x.CreatedByUserId == userId.Value &&
+                x.LocationId == dto.LocationId &&
+                x.OrderType != OrderTypes.CoverCharge &&
+                x.PaymentStatus == PaymentStatuses.Paid);
+        }
 
         var hasPaidCoverCharge = await _context.Orders.AnyAsync(x =>
             x.CreatedByUserId == userId.Value &&
@@ -158,7 +181,7 @@ public class ReservationsController : ControllerBase
                     OrderCode = $"COV{DateTime.UtcNow:yyyyMMddHHmmss}",
                     OrderType = OrderTypes.CoverCharge,
                     Status = OrderStatuses.Placed,
-                    PaymentStatus = PaymentStatuses.Unpaid,
+                    PaymentStatus = PaymentStatuses.Pending,
                     OrderTime = DateTime.UtcNow,
                     Subtotal = ReservationCoverChargeAmount,
                     Tax = 0m,
@@ -196,18 +219,27 @@ public class ReservationsController : ControllerBase
             TableId = dto.TableId,
             ReservedFor = dto.ReservedFor,
             PartySize = dto.PartySize,
-            Status = ReservationStatuses.Confirmed,
-            SpecialRequests = dto.SpecialRequests?.Trim()
+            Status = ReservationStatuses.Pending,//update to pending instead of auto confirmed 
+            SpecialRequests = dto.SpecialRequests?.Trim(),
+            CustomerName = string.IsNullOrWhiteSpace(dto.CustomerName) ? null : dto.CustomerName.Trim()
         };
 
         _context.Reservations.Add(reservation);
         await _context.SaveChangesAsync();
+
+        var fallbackName = await _context.Users
+            .Where(x => x.Id == reservation.UserId)
+            .Select(x => x.DisplayName ?? x.UserName)
+            .FirstOrDefaultAsync();
+
+        var customerName = reservation.CustomerName ?? fallbackName;
 
         return CreatedAtAction(nameof(GetById), new { id = reservation.Id }, new ReservationDto
         {
             Id = reservation.Id,
             LocationId = reservation.LocationId,
             UserId = reservation.UserId,
+            CustomerName = customerName,
             TableId = reservation.TableId,
             ReservedFor = reservation.ReservedFor,
             CreatedAt = reservation.CreatedAt,
@@ -221,13 +253,30 @@ public class ReservationsController : ControllerBase
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager},{RoleNames.Staff}")]
     public async Task<ActionResult<ReservationDto>> Update(int id, [FromBody] UpdateReservationDto dto)
     {
+        dto.ReservedFor = NormalizeReservationDateTime(dto.ReservedFor);
+
         var reservation = await _context.Reservations.FirstOrDefaultAsync(x => x.Id == id);
         if (reservation == null)
             return NotFound();
 
-        var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize, id);
-        if (validationMessage != null)
-            return BadRequest(validationMessage);
+        if (!await _locationAccessService.CanAccessLocationAsync(User, reservation.LocationId))
+            return Forbid();
+
+        if (!await _locationAccessService.CanAccessLocationAsync(User, dto.LocationId))
+            return Forbid();
+
+        // Only validate if details changed, not just status updates (staff marking completed/cancelled)
+        var isDetailsChange = dto.LocationId != reservation.LocationId 
+            || dto.TableId != reservation.TableId 
+            || dto.ReservedFor != reservation.ReservedFor 
+            || dto.PartySize != reservation.PartySize;
+
+        if (isDetailsChange)
+        {
+            var validationMessage = await ValidateReservationRequest(dto.LocationId, dto.TableId, dto.ReservedFor, dto.PartySize, id);
+            if (validationMessage != null)
+                return BadRequest(validationMessage);
+        }
 
         reservation.LocationId = dto.LocationId;
         reservation.TableId = dto.TableId;
@@ -235,14 +284,26 @@ public class ReservationsController : ControllerBase
         reservation.PartySize = dto.PartySize;
         reservation.Status = dto.Status.Trim();
         reservation.SpecialRequests = dto.SpecialRequests?.Trim();
+        if (dto.CustomerName != null)
+        {
+            reservation.CustomerName = string.IsNullOrWhiteSpace(dto.CustomerName) ? null : dto.CustomerName.Trim();
+        }
 
         await _context.SaveChangesAsync();
+
+        var fallbackName = await _context.Users
+            .Where(x => x.Id == reservation.UserId)
+            .Select(x => x.DisplayName ?? x.UserName)
+            .FirstOrDefaultAsync();
+
+        var customerName = reservation.CustomerName ?? fallbackName;
 
         return Ok(new ReservationDto
         {
             Id = reservation.Id,
             LocationId = reservation.LocationId,
             UserId = reservation.UserId,
+            CustomerName = customerName,
             TableId = reservation.TableId,
             ReservedFor = reservation.ReservedFor,
             CreatedAt = reservation.CreatedAt,
@@ -268,6 +329,18 @@ public class ReservationsController : ControllerBase
         if (!isPrivileged && reservation.UserId != userId.Value)
             return Forbid();
 
+        if (isPrivileged && !await _locationAccessService.CanAccessLocationAsync(User, reservation.LocationId))
+            return Forbid();
+
+        // Staff/managers can permanently delete reservations for system management
+        if (isPrivileged)
+        {
+            _context.Reservations.Remove(reservation);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Reservation deleted." });
+        }
+
+        // Customers can only mark as cancelled, and only for future reservations
         if (reservation.ReservedFor < DateTime.UtcNow)
             return BadRequest("Cannot cancel a reservation for a past date/time.");
 
@@ -282,6 +355,8 @@ public class ReservationsController : ControllerBase
 
     private async Task<string?> ValidateReservationRequest(int locationId, int tableId, DateTime reservedFor, int partySize, int? reservationIdToExclude = null)
     {
+        reservedFor = NormalizeReservationDateTime(reservedFor);
+
         if (partySize < 2 || partySize > 6)
             return "Party size must be between 2 and 6 guests.";
 
@@ -333,6 +408,16 @@ public class ReservationsController : ControllerBase
         return null;
     }
 
+    private static DateTime NormalizeReservationDateTime(DateTime reservedFor)
+    {
+        if (reservedFor.Kind == DateTimeKind.Utc)
+        {
+            return reservedFor.ToLocalTime();
+        }
+
+        return reservedFor;
+    }
+
     private static Expression<Func<Reservation, ReservationDto>> MapReservationDto()
     {
         return x => new ReservationDto
@@ -340,6 +425,9 @@ public class ReservationsController : ControllerBase
             Id = x.Id,
             LocationId = x.LocationId,
             UserId = x.UserId,
+            CustomerName = x.CustomerName != null
+                ? x.CustomerName
+                : (x.User != null ? (x.User.DisplayName ?? x.User.UserName) : null),
             TableId = x.TableId,
             ReservedFor = x.ReservedFor,
             CreatedAt = x.CreatedAt,

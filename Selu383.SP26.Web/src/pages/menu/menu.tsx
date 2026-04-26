@@ -1,22 +1,28 @@
 import { useEffect, useState } from "react";
 import { Tokens } from "../../styles/tokens.ts";
-import { ItemIcon } from "../../components/icons";
 import { useAppContext } from "../../api/context-providers/app-context.tsx";
 import { ImageWithFallback } from "../../components/image-with-fallback";
 import { useMenuCatalog } from "../../api/menu.ts";
+import {
+  getMenuItemImagePath,
+  getMenuItemFallbackPath,
+} from "../../api/menu-item-images.ts";
 import "./menu.css";
 
 const catImages: Record<string, string> = {
-  Drinks: Tokens.icedImg,
-  "Sweet Crepes": Tokens.crepeImg,
-  "Savory Crepes": Tokens.cafeImg,
-  Bagels: Tokens.latteImg,
+  Drinks: Tokens.latteImg,
+  "Crepes - Sweet": Tokens.sweetCrepeImg,
+  "Crepes - Savory": Tokens.savoryCrepeImg,
+  Bagels: Tokens.bagelImg,
 };
 
 export function MenuPage() {
   const { setSel, setQty, setNote } = useAppContext();
   const { categories, defaultCategory, loading, error } = useMenuCatalog();
   const [menuCat, setMenuCat] = useState("");
+  const activeCategory =
+    categories.find((category) => category.name === menuCat) ?? categories[0];
+  const items = activeCategory?.items ?? [];
 
   useEffect(() => {
     if (!categories.length) {
@@ -29,20 +35,12 @@ export function MenuPage() {
     if (!menuCat || !hasCurrentCategory) {
       setMenuCat(defaultCategory || categories[0].name);
     }
-  }, [categories, defaultCategory, menuCat]);
-
-  const activeCategory =
-    categories.find((category) => category.name === menuCat) ?? categories[0];
-  const items = activeCategory?.items ?? [];
+  }, [categories, defaultCategory, menuCat, activeCategory]);
 
   return (
     <div className="menu-page">
       <section className="menu-header">
-        <p className="menu-kicker">Our Menu</p>
         <h1 className="menu-title">Menu</h1>
-        {/* <p className="menu-subtitle">
-          From bold espresso to sweet crepes, every item is made fresh to order.
-        </p> */}
       </section>
 
       <div className="menu-tabs">
@@ -59,7 +57,11 @@ export function MenuPage() {
 
       <div className="menu-banner">
         <ImageWithFallback
-          src={catImages[activeCategory?.name ?? "Drinks"] ?? Tokens.icedImg}
+          src={
+            activeCategory?.iconPath ||
+            catImages[activeCategory?.name ?? "Drinks"] ||
+            Tokens.icedImg
+          }
           alt={activeCategory?.name ?? "Menu"}
           className="menu-banner-image"
         />
@@ -95,9 +97,22 @@ export function MenuPage() {
             }}
             className="card-base card-hover menu-featured-card"
           >
-            <div className="menu-featured-icon-wrap">
-              <ItemIcon cat={activeCategory?.name ?? "Drinks"} size={80} />
-            </div>
+            <ImageWithFallback
+              src={(() => {
+                const foo = getMenuItemImagePath( // for debugging purposes, to see the generated path in the console
+                  items[0].name,
+                  items[0].imagePath,
+                );
+                console.log("Generated image path for featured item:", foo);
+                return foo;
+              })()}
+              fallbackSrc={getMenuItemFallbackPath(
+                items[0].category,
+                activeCategory?.iconPath,
+              )}
+              alt={items[0].name}
+              className="menu-featured-image"
+            />
             <div className="menu-featured-content">
               <div className="menu-featured-head">
                 <div>
@@ -122,7 +137,15 @@ export function MenuPage() {
               }}
               className="card-base card-hover menu-item-card"
             >
-              <ItemIcon cat={item.category} size={56} />
+              <ImageWithFallback
+                src={getMenuItemImagePath(item.name, item.imagePath)}
+                fallbackSrc={getMenuItemFallbackPath(
+                  item.category,
+                  activeCategory?.iconPath,
+                )}
+                alt={item.name}
+                className="menu-item-image"
+              />
               <div className="menu-flex-1">
                 <div className="menu-item-head">
                   <h3 className="menu-item-title">{item.name}</h3>

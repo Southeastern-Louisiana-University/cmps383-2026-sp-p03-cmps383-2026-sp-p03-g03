@@ -1,0 +1,186 @@
+import { StyleSheet } from 'react-native';
+
+export const styles = StyleSheet.create({
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  titleLogo: {
+    width: 34,
+    height: 34,
+  },
+  badge: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 14,
+  },
+  badgeText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+  },
+  emptyCard: {
+    borderRadius: 18,
+    borderWidth: 1,
+    padding: 28,
+    alignItems: 'center',
+    shadowColor: 'rgba(58,46,31,0.8)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  emptyTitle: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 26,
+    marginBottom: 6,
+  },
+  emptyText: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  retryBtn: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  retryText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 14,
+  },
+  menuBtn: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+  },
+  menuBtnText: {
+    color: '#fff',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 15,
+  },
+  orderCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    marginBottom: 14,
+    overflow: 'hidden',
+    shadowColor: 'rgba(58,46,31,0.8)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  orderHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+  },
+  orderHeaderInfo: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 8,
+  },
+  orderCode: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
+    marginBottom: 2,
+  },
+  orderDate: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 12,
+  },
+  badges: {
+    flexDirection: 'column',
+    gap: 4,
+    alignItems: 'flex-end',
+  },
+  statusBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  statusText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderTopWidth: 1,
+  },
+  metaText: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 13,
+  },
+  total: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 16,
+  },
+  itemsBlock: {
+    borderTopWidth: 1,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 8,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  itemQty: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 13,
+    minWidth: 24,
+  },
+  itemName: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 13,
+    flex: 1,
+  },
+  itemPrice: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 13,
+  },
+  manageRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 14,
+    paddingTop: 10,
+    borderTopWidth: 1,
+  },
+  actionButton: {
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    backgroundColor: '#65a30d',
+  },
+  dangerButton: {
+    backgroundColor: '#dc2626',
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+  },
+  orderNote: {
+    fontFamily: 'Lato_400Regular',
+    fontSize: 12,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+});

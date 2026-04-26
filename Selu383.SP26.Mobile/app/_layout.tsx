@@ -7,8 +7,18 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import "react-native-reanimated";
-import { Corben_400Regular, Corben_700Bold } from "@expo-google-fonts/corben";
-import { Oregano_400Regular } from "@expo-google-fonts/oregano";
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from "@expo-google-fonts/inter";
+import {
+  Lato_300Light,
+  Lato_400Regular,
+  Lato_700Bold,
+} from "@expo-google-fonts/lato";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -28,6 +38,8 @@ function RootNavigator() {
         <Stack.Screen name="splash" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="checkout" options={{ headerShown: false }} />
+        <Stack.Screen name="team" options={{ headerShown: false }} />
         <Stack.Screen
           name="modal"
           options={{ presentation: "modal", title: "Modal" }}
@@ -40,9 +52,13 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Corben_400Regular,
-    Corben_700Bold,
-    Oregano_400Regular,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Lato_300Light,
+    Lato_400Regular,
+    Lato_700Bold,
   });
 
   if (!fontsLoaded) {
@@ -50,12 +66,14 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeModeProvider>
-        <CartProvider>
-          <RootNavigator />
-        </CartProvider>
-      </ThemeModeProvider>
-    </AuthProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <ThemeModeProvider>
+          <CartProvider>
+            <RootNavigator />
+          </CartProvider>
+        </ThemeModeProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }

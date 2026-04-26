@@ -7,6 +7,7 @@ using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Extensions;
 using Selu383.SP26.Api.Features.Auth;
+using Selu383.SP26.Api.Features.Locations;
 
 namespace Selu383.SP26.Api.Controllers;
 
@@ -17,15 +18,18 @@ public class OrdersController : ControllerBase
     private readonly DataContext _context;
     private readonly ReceiptPdfService _receiptPdfService;
     private readonly BlobStorageService _blobStorageService;
+    private readonly ILocationAccessService _locationAccessService;
 
     public OrdersController(
         DataContext context,
         ReceiptPdfService receiptPdfService,
-        BlobStorageService blobStorageService)
+        BlobStorageService blobStorageService,
+        ILocationAccessService locationAccessService)
     {
         _context = context;
         _receiptPdfService = receiptPdfService;
         _blobStorageService = blobStorageService;
+        _locationAccessService = locationAccessService;
     }
 
     [HttpGet("my-orders")]
@@ -52,7 +56,7 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<List<OrderDto>>> GetAllOrders()
     {
         var isAdmin = User.IsInRole(RoleNames.Admin);
-        var allowedLocationIds = isAdmin ? new List<int>() : await GetAccessibleLocationIdsAsync();
+        var allowedLocationIds = isAdmin ? new List<int>() : await _locationAccessService.GetAccessibleLocationIdsAsync(User);
 
         var query = _context.Orders
             .Include(o => o.OrderItems)
@@ -73,7 +77,7 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<OrderDto>> GetOrder(int id)
     {
         var order = await _context.Orders
@@ -84,27 +88,26 @@ public class OrdersController : ControllerBase
             .FirstOrDefaultAsync();
 
         if (order == null)
-            return NotFound();
+            return NotFound("Order not found.");
 
         var currentUserId = User.GetCurrentUserId();
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
 
-        if (!isPrivileged && currentUserId != order.CreatedByUserId)
+        // guest orders have a null UserId — they can still access their own
+        if (order.CreatedByUserId.HasValue && !isPrivileged && order.CreatedByUserId != currentUserId)
             return Forbid();
 
-        if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
+        if (isPrivileged && !await _locationAccessService.CanAccessLocationAsync(User, order.LocationId))
             return Forbid();
 
         return Ok(order);
     }
 
     [HttpPost]
-    [Authorize]
+    [AllowAnonymous]
     public async Task<ActionResult<OrderDto>> CreateOrder([FromBody] CreateOrderDto dto)
     {
         var currentUserId = User.GetCurrentUserId();
-        if (!currentUserId.HasValue)
-            return Unauthorized();
 
         var normalizedOrderType = (dto.OrderType ?? string.Empty).Trim();
         var canonicalOrderType = normalizedOrderType.Replace(" ", string.Empty).Replace("-", string.Empty).ToLowerInvariant() switch
@@ -146,11 +149,11 @@ public class OrdersController : ControllerBase
         var order = new Order
         {
             LocationId = dto.LocationId,
-            CreatedByUserId = currentUserId.Value,
+            CreatedByUserId = currentUserId,
             OrderCode = $"ORD{DateTime.UtcNow:yyyyMMddHHmmss}",
             OrderType = canonicalOrderType,
             Status = OrderStatuses.Placed,
-            PaymentStatus = PaymentStatuses.Unpaid,
+            PaymentStatus = PaymentStatuses.Pending,
             OrderTime = DateTime.UtcNow,
             ScheduledPickupTime = dto.ScheduledPickupTime,
             Note = dto.Note?.Trim(),
@@ -207,7 +210,7 @@ public class OrdersController : ControllerBase
         }
         catch
         {
-            // Intentionally swallow receipt generation failures so order creation succeeds.
+            // receipt failure shouldn't block the order
         }
 
         var result = await _context.Orders
@@ -232,13 +235,17 @@ public class OrdersController : ControllerBase
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
-            return NotFound();
+            return NotFound("Order not found.");
 
         if (!TryNormalizeOrderStatus(dto.Status, out var nextStatus))
             return BadRequest("Invalid order status.");
 
-        if (!await CanAccessLocationAsync(order.LocationId))
+        if (!await _locationAccessService.CanAccessLocationAsync(User, order.LocationId))
             return Forbid();
+
+        if (string.Equals(nextStatus, OrderStatuses.Completed, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(order.PaymentStatus, PaymentStatuses.Paid, StringComparison.OrdinalIgnoreCase))
+            return BadRequest("Order must be paid before it can be completed.");
 
         order.Status = nextStatus;
         await _context.SaveChangesAsync();
@@ -283,14 +290,14 @@ public class OrdersController : ControllerBase
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
-            return NotFound();
+            return NotFound("Order not found.");
 
         var currentUserId = User.GetCurrentUserId();
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
         if (!isPrivileged && currentUserId != order.CreatedByUserId)
             return Forbid();
 
-        if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
+        if (isPrivileged && !await _locationAccessService.CanAccessLocationAsync(User, order.LocationId))
             return Forbid();
 
         var pdfBytes = _receiptPdfService.GenerateReceipt(order);
@@ -308,14 +315,14 @@ public class OrdersController : ControllerBase
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (order == null)
-            return NotFound();
+            return NotFound("Order not found.");
 
         var currentUserId = User.GetCurrentUserId();
         var isPrivileged = User.IsInRole(RoleNames.Admin) || User.IsInRole(RoleNames.Manager) || User.IsInRole(RoleNames.Staff);
         if (!isPrivileged && currentUserId != order.CreatedByUserId)
             return Forbid();
 
-        if (isPrivileged && !await CanAccessLocationAsync(order.LocationId))
+        if (isPrivileged && !await _locationAccessService.CanAccessLocationAsync(User, order.LocationId))
             return Forbid();
 
         var pdfBytes = _receiptPdfService.GenerateThermalReceipt(order);
@@ -344,51 +351,6 @@ public class OrdersController : ControllerBase
             orderId = order.Id,
             receiptUrl = blobUrl
         });
-    }
-
-    private async Task<List<int>> GetAccessibleLocationIdsAsync()
-    {
-        if (User.IsInRole(RoleNames.Admin))
-        {
-            return await _context.Locations.Select(x => x.Id).ToListAsync();
-        }
-
-        var currentUserId = User.GetCurrentUserId();
-        if (!currentUserId.HasValue)
-        {
-            return new List<int>();
-        }
-
-        if (User.IsInRole(RoleNames.Manager))
-        {
-            return await _context.Locations
-                .Where(x => x.ManagerId == currentUserId.Value)
-                .Select(x => x.Id)
-                .ToListAsync();
-        }
-
-        if (User.IsInRole(RoleNames.Staff))
-        {
-            var staffLocationId = await _context.Users
-                .Where(x => x.Id == currentUserId.Value)
-                .Select(x => x.LocationId)
-                .FirstOrDefaultAsync();
-
-            return staffLocationId > 0 ? new List<int> { staffLocationId } : new List<int>();
-        }
-
-        return new List<int>();
-    }
-
-    private async Task<bool> CanAccessLocationAsync(int locationId)
-    {
-        if (User.IsInRole(RoleNames.Admin))
-        {
-            return true;
-        }
-
-        var allowedLocationIds = await GetAccessibleLocationIdsAsync();
-        return allowedLocationIds.Contains(locationId);
     }
 
     private static bool TryNormalizeOrderStatus(string? rawStatus, out string normalized)

@@ -32,6 +32,8 @@ export interface MenuItem {
   price: number;
   desc: string;
   category: string;
+  imagePath?: string;
+  categoryIconPath?: string;
 }
 export interface CartItem extends MenuItem {
   qty: number;
@@ -41,6 +43,7 @@ export interface ApiMenuCategoryDto {
   id: number;
   locationIds: number[];
   name: string;
+  iconPath?: string;
   isSeasonal: boolean;
   isActive: boolean;
 }
@@ -49,6 +52,7 @@ export interface ApiMenuItemDto {
   categoryId: number;
   name: string;
   description: string | null;
+  imagePath?: string;
   basePrice: number;
   isAvailable: boolean;
   unavailableReason: string | null;
@@ -57,6 +61,7 @@ export interface ApiMenuItemDto {
 export interface MenuCategory {
   id: number;
   name: string;
+  iconPath?: string;
   isSeasonal: boolean;
   isActive: boolean;
   items: MenuItem[];

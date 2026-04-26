@@ -7,6 +7,7 @@ public class ReservationDto
     public int Id { get; set; }
     public int LocationId { get; set; }
     public int UserId { get; set; }
+    public string? CustomerName { get; set; }
     public int TableId { get; set; }
     public DateTime ReservedFor { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -36,6 +37,11 @@ public class CreateReservationDto
     [Range(2, 6)]
     public int PartySize { get; set; }
 
+    [MaxLength(100)]
+    public string? CustomerName { get; set; }
+
+    public int? AttachedOrderId { get; set; }
+
     [MaxLength(500)]
     public string? SpecialRequests { get; set; }
 }
@@ -53,6 +59,9 @@ public class UpdateReservationDto
 
     [Range(2, 6)]
     public int PartySize { get; set; }
+
+    [MaxLength(100)]
+    public string? CustomerName { get; set; }
 
     [Required]
     [MaxLength(50)]
