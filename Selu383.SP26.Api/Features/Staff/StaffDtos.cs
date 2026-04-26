@@ -6,7 +6,7 @@ public class StaffOrderDto
 {
     public int Id { get; set; }
     public int LocationId { get; set; }
-    public int CreatedByUserId { get; set; }
+    public int? CreatedByUserId { get; set; }
     public string OrderCode { get; set; } = string.Empty;
     public string OrderType { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;

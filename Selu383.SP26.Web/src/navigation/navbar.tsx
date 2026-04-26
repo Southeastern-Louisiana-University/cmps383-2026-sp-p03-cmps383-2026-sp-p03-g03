@@ -28,6 +28,11 @@ export function Navbar({ cartCount }: { cartCount: number }) {
   const initials = user.name.charAt(0).toUpperCase();
   const [searchQuery, setSearchQuery] = useState("");
 
+  const isStaffSide =
+    pathname.startsWith(APP_ROUTES.staffHome) ||
+    pathname.startsWith(APP_ROUTES.managerHome) ||
+    pathname.startsWith(APP_ROUTES.adminHome);
+
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const selectedLocationName = selectedLocation
