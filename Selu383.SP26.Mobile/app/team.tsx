@@ -509,7 +509,7 @@ export default function TeamScreen() {
 
 const styles = {
   subtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     marginTop: 2,
     marginBottom: 14,
@@ -530,12 +530,12 @@ const styles = {
     justifyContent: 'space-between' as const,
   },
   name: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     marginBottom: 2,
   },
   meta: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     lineHeight: 17,
   },
@@ -546,7 +546,7 @@ const styles = {
     paddingVertical: 3,
   },
   badgeText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 11,
     textTransform: 'uppercase' as const,
     letterSpacing: 0.4,
@@ -567,7 +567,7 @@ const styles = {
     paddingVertical: 8,
   },
   smallBtnText: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 12,
   },
   primaryBtn: {
@@ -578,7 +578,7 @@ const styles = {
   },
   primaryBtnText: {
     color: '#fff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   modalBackdrop: {
@@ -592,12 +592,12 @@ const styles = {
     padding: 18,
   },
   modalTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 17,
     marginBottom: 8,
   },
   label: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 12,
     marginTop: 8,
     marginBottom: 4,
@@ -607,7 +607,7 @@ const styles = {
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   pillRow: {

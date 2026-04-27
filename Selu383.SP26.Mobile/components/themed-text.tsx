@@ -37,26 +37,26 @@ const styles = StyleSheet.create({
   default: {
     fontSize: 16,
     lineHeight: 24,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   defaultSemiBold: {
     fontSize: 16,
     lineHeight: 24,
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
   },
   title: {
     fontSize: 32,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     lineHeight: 32,
   },
   subtitle: {
     fontSize: 20,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   link: {
     lineHeight: 30,
     fontSize: 16,
     color: '#0a7ea4',
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
 });

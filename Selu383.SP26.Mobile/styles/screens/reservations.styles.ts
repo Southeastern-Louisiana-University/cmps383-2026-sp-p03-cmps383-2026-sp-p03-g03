@@ -1,4 +1,4 @@
-﻿import { StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   /* Hero banner */
@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
   heroContent: { position: 'absolute', left: 20, right: 20, bottom: 20 },
   heroKicker: {
     fontSize: 10,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     letterSpacing: 2.5,
     color: 'rgba(255,255,255,0.6)',
     textTransform: 'uppercase',
@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 26,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     lineHeight: 32,
     color: '#ffffff',
     marginBottom: 6,
@@ -37,7 +37,7 @@ export const styles = StyleSheet.create({
   },
   heroSubtitle: {
     fontSize: 13,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     color: 'rgba(255,255,255,0.85)',
     lineHeight: 19,
   },
@@ -57,22 +57,22 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   tabBtn: { flex: 1, borderRadius: 12, paddingVertical: 12, alignItems: 'center' },
-  tabLabel: { fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.2 },
+  tabLabel: { fontFamily: 'Alegreya_700Bold', fontSize: 13, letterSpacing: 0.2 },
 
   /* Empty / error states */
   emptyCard: { borderRadius: 18, borderWidth: 1, padding: 36, alignItems: 'center', marginTop: 8 },
-  emptyTitle: { fontFamily: 'Inter_700Bold', fontSize: 20, marginBottom: 8, textAlign: 'center' },
+  emptyTitle: { fontFamily: 'Alegreya_700Bold', fontSize: 20, marginBottom: 8, textAlign: 'center' },
   emptyText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 20,
   },
   retryBtn: { borderWidth: 1.5, borderRadius: 12, paddingHorizontal: 28, paddingVertical: 12 },
-  retryText: { fontFamily: 'Inter_700Bold', fontSize: 14 },
+  retryText: { fontFamily: 'Alegreya_700Bold', fontSize: 14 },
   bookBtn: { borderRadius: 14, paddingVertical: 14, paddingHorizontal: 36 },
-  bookBtnText: { color: '#fff', fontFamily: 'Inter_700Bold', fontSize: 15, letterSpacing: 0.3 },
+  bookBtnText: { color: '#fff', fontFamily: 'Alegreya_700Bold', fontSize: 15, letterSpacing: 0.3 },
 
   /* Reservation card */
   resCard: {
@@ -88,13 +88,13 @@ export const styles = StyleSheet.create({
   },
   resHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
   resHeaderInfo: { flex: 1, minWidth: 0, paddingRight: 10 },
-  resDate: { fontFamily: 'Inter_700Bold', fontSize: 15, marginBottom: 4, flexShrink: 1, paddingRight: 8 },
-  resMeta: { fontFamily: 'Lato_400Regular', fontSize: 13, lineHeight: 18, opacity: 0.75 },
+  resDate: { fontFamily: 'Alegreya_700Bold', fontSize: 15, marginBottom: 4, flexShrink: 1, paddingRight: 8 },
+  resMeta: { fontFamily: 'Alegreya_400Regular', fontSize: 13, lineHeight: 18, opacity: 0.75 },
 
   statusBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 12, paddingVertical: 5, flexShrink: 0 },
-  statusText: { fontFamily: 'Inter_700Bold', fontSize: 11, letterSpacing: 0.3 },
+  statusText: { fontFamily: 'Alegreya_700Bold', fontSize: 11, letterSpacing: 0.3 },
   specialReq: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     fontStyle: 'italic',
     marginBottom: 14,
@@ -104,13 +104,13 @@ export const styles = StyleSheet.create({
 
   /* Cancel / confirm */
   cancelBtn: { borderWidth: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center', marginTop: 6 },
-  cancelBtnText: { color: '#ef4444', fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.2 },
+  cancelBtnText: { color: '#ef4444', fontFamily: 'Alegreya_700Bold', fontSize: 13, letterSpacing: 0.2 },
   confirmRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
-  confirmText: { fontFamily: 'Inter_700Bold', fontSize: 13, marginRight: 2 },
+  confirmText: { fontFamily: 'Alegreya_700Bold', fontSize: 13, marginRight: 2 },
   confirmYes: { flex: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-  confirmYesText: { color: '#fff', fontFamily: 'Inter_700Bold', fontSize: 13 },
+  confirmYesText: { color: '#fff', fontFamily: 'Alegreya_700Bold', fontSize: 13 },
   confirmNo: { flex: 1, borderWidth: 1, borderRadius: 10, paddingVertical: 10, alignItems: 'center' },
-  confirmNoText: { fontFamily: 'Inter_700Bold', fontSize: 13 },
+  confirmNoText: { fontFamily: 'Alegreya_700Bold', fontSize: 13 },
 
   /* Form sections */
   section: {
@@ -124,7 +124,7 @@ export const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 1,
   },
-  sectionTitle: { fontFamily: 'Inter_700Bold', fontSize: 15, marginBottom: 14, letterSpacing: 0.2 },
+  sectionTitle: { fontFamily: 'Alegreya_700Bold', fontSize: 15, marginBottom: 14, letterSpacing: 0.2 },
 
   /* Location picker */
   locationOption: {
@@ -136,18 +136,18 @@ export const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
   },
-  locationName: { fontFamily: 'Inter_700Bold', fontSize: 14 },
-  locationAddr: { fontFamily: 'Lato_400Regular', fontSize: 12, marginTop: 2, opacity: 0.7 },
+  locationName: { fontFamily: 'Alegreya_700Bold', fontSize: 14 },
+  locationAddr: { fontFamily: 'Alegreya_400Regular', fontSize: 12, marginTop: 2, opacity: 0.7 },
 
   /* Party size */
   partySizeRow: { flexDirection: 'row', gap: 10, flexWrap: 'wrap' },
   sizeBtn: { width: 52, height: 52, borderWidth: 1.5, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
-  sizeBtnText: { fontFamily: 'Inter_700Bold', fontSize: 17 },
+  sizeBtnText: { fontFamily: 'Alegreya_700Bold', fontSize: 17 },
 
   /* Time grid */
   timeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   timeBtn: { borderWidth: 1.5, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 14 },
-  timeBtnText: { fontFamily: 'Inter_700Bold', fontSize: 13, letterSpacing: 0.1 },
+  timeBtnText: { fontFamily: 'Alegreya_700Bold', fontSize: 13, letterSpacing: 0.1 },
 
   /* Table picker */
   tableOption: {
@@ -159,22 +159,22 @@ export const styles = StyleSheet.create({
     padding: 14,
     marginBottom: 10,
   },
-  tableText: { fontFamily: 'Inter_700Bold', fontSize: 14 },
+  tableText: { fontFamily: 'Alegreya_700Bold', fontSize: 14 },
 
   /* Manage tab */
   manageRow: { flexDirection: 'row', gap: 10, marginTop: 14 },
   manageButton: { flex: 1, borderRadius: 12, paddingVertical: 11, alignItems: 'center' },
   manageDangerButton: { backgroundColor: '#ef4444' },
-  manageButtonText: { color: '#fff', fontFamily: 'Inter_700Bold', fontSize: 13 },
+  manageButtonText: { color: '#fff', fontFamily: 'Alegreya_700Bold', fontSize: 13 },
 
   /* Special requests input */
   inputWrap: { borderWidth: 1, borderRadius: 14, paddingHorizontal: 16, paddingVertical: 14, minHeight: 88 },
-  input: { fontFamily: 'Lato_400Regular', fontSize: 14, lineHeight: 22 },
+  input: { fontFamily: 'Alegreya_400Regular', fontSize: 14, lineHeight: 22 },
 
   /* Error text */
-  errorText: { color: '#ef4444', fontFamily: 'Lato_400Regular', fontSize: 13, marginBottom: 14, textAlign: 'center', lineHeight: 20 },
+  errorText: { color: '#ef4444', fontFamily: 'Alegreya_400Regular', fontSize: 13, marginBottom: 14, textAlign: 'center', lineHeight: 20 },
   inlineError: { flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 14 },
-  inlineErrorText: { flex: 1, color: '#ef4444', fontFamily: 'Lato_400Regular', fontSize: 13, lineHeight: 19 },
+  inlineErrorText: { flex: 1, color: '#ef4444', fontFamily: 'Alegreya_400Regular', fontSize: 13, lineHeight: 19 },
 
   /* Submit button */
   bookSubmitBtn: {
@@ -189,5 +189,5 @@ export const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
-  bookSubmitText: { color: '#fff', fontFamily: 'Inter_700Bold', fontSize: 17, letterSpacing: 0.4 },
+  bookSubmitText: { color: '#fff', fontFamily: 'Alegreya_700Bold', fontSize: 17, letterSpacing: 0.4 },
 });

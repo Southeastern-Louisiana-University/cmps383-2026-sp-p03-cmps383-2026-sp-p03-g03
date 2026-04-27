@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
   heroTitle: {
     fontSize: 27,
     lineHeight: 31,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     color: '#ffffff',
     marginBottom: 6,
     textAlign: 'left',
@@ -70,7 +70,7 @@ export const styles = StyleSheet.create({
   heroSlogan: {
     fontSize: 12,
     lineHeight: 17,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     textAlign: 'left',
     color: 'rgba(255,255,255,0.9)',
     maxWidth: 270,
@@ -94,7 +94,7 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: 'bold',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     textAlign: 'center',
   },
   carouselSection: {
@@ -111,12 +111,12 @@ export const styles = StyleSheet.create({
   featuredLabel: {
     fontSize: 18,
     fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     alignSelf: 'flex-start',
     marginLeft: 8,
   },
   sectionLink: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
     marginRight: 8,
   },
@@ -163,7 +163,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   staffPickBadgeText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 11,
     color: '#ffffff',
   },
@@ -172,19 +172,19 @@ export const styles = StyleSheet.create({
     paddingTop: 12,
   },
   pickCategory: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
   },
   pickName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     marginBottom: 5,
   },
   pickDescription: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 19,
     marginBottom: 14,
@@ -195,11 +195,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   pickPrice: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 17,
   },
   pickCta: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   carouselNavRow: {
@@ -218,7 +218,7 @@ export const styles = StyleSheet.create({
   },
   carouselNavText: {
     fontSize: 19,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   carouselDotsRow: {
     flexDirection: 'row',
@@ -244,7 +244,7 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     textAlign: 'center',
     marginBottom: 12,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     paddingHorizontal: 18,
     lineHeight: 18,
   },
@@ -268,7 +268,7 @@ export const styles = StyleSheet.create({
   createAccountText: {
     color: Colors.brandGreen,
     fontSize: 14,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   guestBtn: {
     paddingVertical: 7,
@@ -278,7 +278,7 @@ export const styles = StyleSheet.create({
   guestText: {
     color: Colors.brandGreen,
     fontSize: 13,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     textDecorationLine: 'underline',
   },
   /* -- Modal -- */
@@ -315,7 +315,7 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 18,
     color: Colors.brandGreen,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     textAlign: 'center',
   },
   errorContainer: {
@@ -331,7 +331,7 @@ export const styles = StyleSheet.create({
     color: '#c62828',
     fontWeight: '600',
     fontSize: 14,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   modalInput: {
     borderWidth: 1.5,
@@ -340,7 +340,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     fontSize: 16,
     marginBottom: 14,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   passwordRow: {
     borderWidth: 1.5,
@@ -355,12 +355,12 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   passwordToggle: {
     color: Colors.brandGreen,
     fontSize: 13,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   modalSubmitBtn: {
     backgroundColor: Colors.brandGreen,
@@ -379,13 +379,13 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   toggleText: {
     marginTop: 4,
     fontSize: 14,
     color: Colors.brandGreen,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     textAlign: 'center',
   },
 });

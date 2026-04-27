@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
     height: 30,
   },
   brandName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
     letterSpacing: 0.2,
   },
@@ -60,7 +60,7 @@ export const styles = StyleSheet.create({
     paddingBottom: 26,
   },
   heroTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 26,
     color: '#ffffff',
     marginBottom: 6,
@@ -69,7 +69,7 @@ export const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   heroSubtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 15,
     color: 'rgba(255,255,255,0.92)',
     marginBottom: 18,
@@ -90,7 +90,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroPrimaryText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
     color: '#ffffff',
     letterSpacing: 0.2,
@@ -104,12 +104,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   heroOutlineText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
     color: '#ffffff',
   },
   greeting: {
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 14,
     color: 'rgba(255,255,255,0.85)',
     marginBottom: 4,
@@ -142,7 +142,7 @@ export const styles = StyleSheet.create({
     elevation: 1,
   },
   quickActionLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 11,
     textAlign: 'center',
   },
@@ -158,7 +158,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   quickActionBadgeText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 10,
     color: '#ffffff',
   },
@@ -190,13 +190,13 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   featureBenefitTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
     textAlign: 'center',
     marginBottom: 4,
   },
   featureBenefitDesc: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 11,
     textAlign: 'center',
     lineHeight: 16,
@@ -210,11 +210,11 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
   sectionTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 20,
   },
   sectionLink: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
 
@@ -259,7 +259,7 @@ export const styles = StyleSheet.create({
     borderRadius: 8,
   },
   popularStaffPickText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 11,
     color: '#ffffff',
   },
@@ -268,19 +268,19 @@ export const styles = StyleSheet.create({
     paddingTop: 12,
   },
   popularCategory: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 4,
   },
   popularName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     marginBottom: 5,
   },
   popularDesc: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 19,
     marginBottom: 14,
@@ -291,11 +291,11 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   popularPrice: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 17,
   },
   popularCta: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
 
@@ -325,12 +325,12 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   rewardsTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     marginBottom: 3,
   },
   rewardsSubtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 19,
   },
@@ -338,12 +338,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   rewardsPointsValue: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 28,
     lineHeight: 32,
   },
   rewardsPointsLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 11,
     marginTop: 1,
   },
@@ -379,12 +379,12 @@ export const styles = StyleSheet.create({
     paddingTop: 18,
   },
   reservationTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 20,
     marginBottom: 6,
   },
   reservationSubtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
     marginBottom: 16,
     lineHeight: 20,
@@ -396,7 +396,7 @@ export const styles = StyleSheet.create({
     borderRadius: 14,
   },
   reservationBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     color: '#ffffff',
   },
@@ -415,7 +415,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   footerCopy: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 18,
   },

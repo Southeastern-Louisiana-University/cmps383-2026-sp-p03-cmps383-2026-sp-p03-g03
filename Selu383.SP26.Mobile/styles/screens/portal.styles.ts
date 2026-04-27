@@ -16,14 +16,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   headerSubtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     marginTop: 1,
     lineHeight: 18,
     flexShrink: 1,
   },
   portalTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 40,
     lineHeight: 48,
     marginBottom: 2,
@@ -37,12 +37,12 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
   infoTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     marginBottom: 4,
   },
   infoText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     lineHeight: 18,
     flexShrink: 1,
@@ -64,14 +64,14 @@ export const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     marginBottom: 2,
     lineHeight: 20,
     flexShrink: 1,
   },
   actionSubtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     lineHeight: 18,
     flexShrink: 1,

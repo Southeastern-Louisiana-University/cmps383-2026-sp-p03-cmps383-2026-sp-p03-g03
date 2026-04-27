@@ -33,20 +33,20 @@ export const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
     textAlign: 'center',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   subtitle: {
     fontSize: 20,
     marginBottom: 30,
     textAlign: 'center',
     opacity: 0.7,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   modeTitle: {
     fontSize: 22,
     lineHeight: 30,
     marginBottom: 14,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   errorContainer: {
     width: '100%',
@@ -59,7 +59,7 @@ export const styles = StyleSheet.create({
   errorText: {
     color: '#c62828',
     fontWeight: '600',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   inputContainer: {
     width: '100%',
@@ -69,7 +69,7 @@ export const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     marginBottom: 8,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   input: {
     borderWidth: 1.5,
@@ -78,7 +78,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 20,
     minHeight: 48,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   loginButton: {
     width: '100%',
@@ -94,7 +94,7 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     lineHeight: 28,
     fontWeight: 'bold',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     textAlign: 'center',
   },
   infoText: {
@@ -102,13 +102,13 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     opacity: 0.6,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   toggleText: {
     marginTop: 14,
     fontSize: 14,
     lineHeight: 20,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     textAlign: 'center',
   },
 });

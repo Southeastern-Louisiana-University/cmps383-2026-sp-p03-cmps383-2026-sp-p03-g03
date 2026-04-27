@@ -38,7 +38,7 @@ export default function TabLayout() {
           elevation: 4,
         },
         tabBarLabelStyle: {
-          fontFamily: 'Inter_600SemiBold',
+          fontFamily: 'Alegreya_500Medium',
           fontSize: 10,
           lineHeight: 13,
           marginTop: 2,
