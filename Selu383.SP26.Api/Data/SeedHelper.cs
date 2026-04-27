@@ -25,9 +25,16 @@ public static class SeedHelper
 
             await dataContext.Database.MigrateAsync();
 
-            // One-time normalization: legacy rows used "Unpaid"; we now use "Pending".
-            await dataContext.Database.ExecuteSqlRawAsync(
-                "UPDATE Orders SET PaymentStatus = 'Pending' WHERE PaymentStatus = 'Unpaid'");
+            // Reset identity seeds so IDs start at 1 after test ClearData() deletes all rows.
+            await dataContext.Database.ExecuteSqlRawAsync(@"
+                DECLARE @sql NVARCHAR(MAX) = N'';
+                SELECT @sql += N'DBCC CHECKIDENT(''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', RESEED, 0);' + CHAR(13)
+                FROM sys.tables t
+                JOIN sys.schemas s ON t.schema_id = s.schema_id
+                WHERE t.name <> '__EFMigrationsHistory'
+                AND EXISTS (SELECT 1 FROM sys.identity_columns ic WHERE ic.object_id = t.object_id)
+                AND NOT EXISTS (SELECT 1 FROM sys.dm_db_partition_stats ps WHERE ps.object_id = t.object_id AND ps.row_count > 0 AND ps.index_id IN (0,1));
+                IF LEN(@sql) > 0 EXEC sp_executesql @sql;");
 
             await AddRoles(serviceProvider);
             await dataContext.SaveChangesAsync();
@@ -64,7 +71,7 @@ public static class SeedHelper
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
         var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
-        await EnsureSeedUserAsync(userManager, roleManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
+        await EnsureSeedUserAsync(userManager, roleManager, "Elora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
         dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
         dataContext.ChangeTracker.Clear();
