@@ -483,7 +483,7 @@ export default function AccountScreen() {
                 style={[{ backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 8 }]}
                 onPress={() => router.push('/login')}
               >
-                <ThemedText style={{ color: '#fff', fontWeight: '600', fontFamily: 'Inter_700Bold' }}>Sign In / Register</ThemedText>
+                <ThemedText style={{ color: '#fff', fontWeight: '600', fontFamily: 'Alegreya_700Bold' }}>Sign In / Register</ThemedText>
               </TouchableOpacity>
             </View>
           )}

@@ -28,7 +28,7 @@ export function AccountProfileSection({ user, colors }: Props) {
 
       <View style={CommonStyles.infoRow}>
         <ThemedText style={CommonStyles.label}>Rewards Points:</ThemedText>
-        <ThemedText style={[CommonStyles.value, { color: colors.primary, fontWeight: 'bold', fontFamily: 'Inter_700Bold' }]}>
+        <ThemedText style={[CommonStyles.value, { color: colors.primary, fontWeight: 'bold', fontFamily: 'Alegreya_700Bold' }]}>
           {user.loyaltyPoints} 🦁
         </ThemedText>
       </View>

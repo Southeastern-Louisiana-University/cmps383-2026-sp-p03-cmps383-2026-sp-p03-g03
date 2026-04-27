@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
   backText: {
     fontSize: 16,
     color: Colors.brandGreen,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   logo: {
     width: 22,
@@ -45,7 +45,7 @@ export const styles = StyleSheet.create({
   logoText: {
     fontSize: 16,
     lineHeight: 20,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     color: Colors.brandGreen,
     opacity: 0.92,
     flexShrink: 1,
@@ -64,7 +64,7 @@ export const styles = StyleSheet.create({
     color: Colors.brandGreen,
     fontWeight: '700',
     fontSize: 13,
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   headerSpacer: {
     width: 70,

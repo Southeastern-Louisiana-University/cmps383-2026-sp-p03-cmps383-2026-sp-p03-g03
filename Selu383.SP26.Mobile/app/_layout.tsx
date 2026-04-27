@@ -8,16 +8,10 @@ import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import "react-native-reanimated";
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from "@expo-google-fonts/inter";
-import {
-  Lato_300Light,
-  Lato_400Regular,
-  Lato_700Bold,
-} from "@expo-google-fonts/lato";
+  Alegreya_400Regular,
+  Alegreya_500Medium,
+  Alegreya_700Bold,
+} from "@expo-google-fonts/alegreya";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -52,13 +46,9 @@ function RootNavigator() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
-    Lato_300Light,
-    Lato_400Regular,
-    Lato_700Bold,
+    Alegreya_400Regular,
+    Alegreya_500Medium,
+    Alegreya_700Bold,
   });
 
   if (!fontsLoaded) {
