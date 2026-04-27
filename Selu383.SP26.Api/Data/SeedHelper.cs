@@ -5,6 +5,7 @@ using Selu383.SP26.Api.Features.Locations;
 using Selu383.SP26.Api.Features.Menu;
 using Selu383.SP26.Api.Features.Tables;
 using Selu383.SP26.Api.Features.Loyalty;
+using Microsoft.Data.SqlClient;
 
 namespace Selu383.SP26.Api.Data;
 
@@ -25,16 +26,23 @@ public static class SeedHelper
 
             await dataContext.Database.MigrateAsync();
 
-            // Reset identity seeds so IDs start at 1 after test ClearData() deletes all rows.
-            await dataContext.Database.ExecuteSqlRawAsync(@"
-                DECLARE @sql NVARCHAR(MAX) = N'';
-                SELECT @sql += N'DBCC CHECKIDENT(''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', RESEED, 0);' + CHAR(13)
-                FROM sys.tables t
-                JOIN sys.schemas s ON t.schema_id = s.schema_id
-                WHERE t.name <> '__EFMigrationsHistory'
-                AND EXISTS (SELECT 1 FROM sys.identity_columns ic WHERE ic.object_id = t.object_id)
-                AND NOT EXISTS (SELECT 1 FROM sys.dm_db_partition_stats ps WHERE ps.object_id = t.object_id AND ps.row_count > 0 AND ps.index_id IN (0,1));
-                IF LEN(@sql) > 0 EXEC sp_executesql @sql;");
+            var connectionString = dataContext.Database.GetConnectionString();
+            if (!string.IsNullOrEmpty(connectionString))
+            {
+                using var identityConn = new SqlConnection(connectionString);
+                await identityConn.OpenAsync();
+                using var identityCmd = identityConn.CreateCommand();
+                identityCmd.CommandText = @"
+                    DECLARE @sql NVARCHAR(MAX) = N'';
+                    SELECT @sql += N'IF IDENT_CURRENT(''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''') > 1 DBCC CHECKIDENT(''' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name) + N''', RESEED, 0);' + CHAR(13)
+                    FROM sys.tables t
+                    JOIN sys.schemas s ON t.schema_id = s.schema_id
+                    WHERE t.name <> '__EFMigrationsHistory'
+                    AND EXISTS (SELECT 1 FROM sys.identity_columns ic WHERE ic.object_id = t.object_id)
+                    AND NOT EXISTS (SELECT 1 FROM sys.dm_db_partition_stats ps WHERE ps.object_id = t.object_id AND ps.row_count > 0 AND ps.index_id IN (0,1));
+                    IF LEN(@sql) > 0 EXEC sp_executesql @sql;";
+                await identityCmd.ExecuteNonQueryAsync();
+            }
 
             await AddRoles(serviceProvider);
             await dataContext.SaveChangesAsync();
@@ -66,25 +74,17 @@ public static class SeedHelper
 
     private static async Task AddUsers(IServiceProvider serviceProvider)
     {
-         const string defaultPassword = "Password123!";
+        const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
-        var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
         await EnsureSeedUserAsync(userManager, roleManager, "Elora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
-        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
-        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "rylie", 0, RoleNames.Manager, defaultPassword);
-        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "robert", 0, RoleNames.Manager, defaultPassword);
-        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "staff1", 0, RoleNames.Staff, defaultPassword);
-        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "sue", 300, RoleNames.User, defaultPassword);
-        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
-        dataContext.ChangeTracker.Clear();
     }
 
     private static async Task EnsureSeedUserAsync(
@@ -159,7 +159,6 @@ public static class SeedHelper
             }
             catch (InvalidOperationException ex) when (ex.Message.Contains("does not exist"))
             {
-                // Concurrent test ClearData() deleted the role — recreate it and retry
                 if (roleAttempt == 2) throw;
                 try { await roleManager.CreateAsync(new Role { Name = role }); } catch { }
             }
@@ -172,7 +171,6 @@ public static class SeedHelper
             await userManager.UpdateAsync(user);
         }
 
-        // Keep seeded dev credentials consistent across existing databases.
         if (!await userManager.CheckPasswordAsync(user, defaultPassword))
         {
             if (await userManager.HasPasswordAsync(user))
@@ -769,7 +767,7 @@ public static class SeedHelper
                 CategoryId = bagelsCategoryId,
                 IsAvailable = true
             }
-               );
+        );
 
         await dataContext.SaveChangesAsync();
     }

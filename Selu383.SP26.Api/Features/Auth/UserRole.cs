@@ -4,6 +4,6 @@ namespace Selu383.SP26.Api.Features.Auth;
 
 public class UserRole : IdentityUserRole<int>
 {
-    public virtual required Role Role { get; set; }
-    public virtual required User User { get; set; }
+    public virtual Role Role { get; set; } = null!;
+    public virtual User User { get; set; } = null!;
 }
