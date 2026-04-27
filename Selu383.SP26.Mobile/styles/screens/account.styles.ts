@@ -35,7 +35,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     opacity: 0.8,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
   },
   workSummaryBox: {
     borderWidth: 1,
@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   workSummaryText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 20,
   },
@@ -61,21 +61,21 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   pillText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 12,
   },
   helperText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     lineHeight: 18,
   },
   loadingText: {
     marginTop: 10,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   inlineError: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
   pointsBanner: {
@@ -91,32 +91,32 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   pointsLabel: {
-    fontFamily: 'Inter_600SemiBold',
+    fontFamily: 'Alegreya_500Medium',
     fontSize: 12,
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     marginBottom: 4,
   },
   pointsValue: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 40,
     lineHeight: 44,
   },
   pointsSubcopy: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     marginTop: 4,
     textAlign: 'center',
     lineHeight: 16,
   },
   sectionLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     marginBottom: 8,
     marginTop: 8,
   },
   emptyText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
     marginBottom: 10,
   },
@@ -157,22 +157,22 @@ export const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   rewardName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
     marginBottom: 2,
   },
   rewardItemName: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     marginBottom: 2,
   },
   rewardDescription: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 18,
   },
   rewardCost: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
   actionButton: {
@@ -184,7 +184,7 @@ export const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#ffffff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 11,
   },
   historyRow: {
@@ -202,20 +202,20 @@ export const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   historyDate: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
   },
   historyMeta: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   tapHint: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 11,
     marginTop: 6,
   },
   historyPoints: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
   modalBackdrop: {
@@ -234,17 +234,17 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 20,
   },
   modalSubtitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     marginTop: 4,
     textAlign: 'center',
   },
   modalMeta: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     marginTop: 4,
     marginBottom: 10,
@@ -264,7 +264,7 @@ export const styles = StyleSheet.create({
   },
   closeButtonText: {
     color: '#fff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   methodCard: {
@@ -285,12 +285,12 @@ export const styles = StyleSheet.create({
     gap: 8,
   },
   methodTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     flex: 1,
   },
   methodSub: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     marginBottom: 2,
   },
@@ -301,7 +301,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   defaultBadgeText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 11,
   },
   methodActions: {
@@ -316,7 +316,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   secondaryButtonText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 12,
   },
   formStack: {
@@ -350,7 +350,7 @@ export const styles = StyleSheet.create({
     borderRadius: 4,
   },
   checkboxLabel: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
   },
   addButton: {
@@ -361,7 +361,7 @@ export const styles = StyleSheet.create({
   },
   addButtonText: {
     color: '#ffffff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
 });

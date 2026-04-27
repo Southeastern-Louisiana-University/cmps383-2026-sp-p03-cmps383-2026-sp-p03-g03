@@ -5,18 +5,18 @@ const FONT_SCALE = 1;
 
 // Inter for headings/UI, Lato for body text
 export const FontFamily = {
-  body: 'Lato_400Regular',
-  bodyLight: 'Lato_300Light',
-  bodyBold: 'Lato_700Bold',
-  heading: 'Inter_700Bold',
-  headingSemiBold: 'Inter_600SemiBold',
-  headingMedium: 'Inter_500Medium',
-  headingRegular: 'Inter_400Regular',
+  body: 'Alegreya_400Regular',
+  bodyLight: 'Alegreya_400Regular',
+  bodyBold: 'Alegreya_700Bold',
+  heading: 'Alegreya_700Bold',
+  headingSemiBold: 'Alegreya_500Medium',
+  headingMedium: 'Alegreya_500Medium',
+  headingRegular: 'Alegreya_400Regular',
   // legacy aliases — keeps existing callers from breaking
-  bodyMedium: 'Inter_500Medium',
-  bodySemiBold: 'Inter_600SemiBold',
-  display: 'Inter_700Bold',
-  displayItalic: 'Inter_700Bold',
+  bodyMedium: 'Alegreya_500Medium',
+  bodySemiBold: 'Alegreya_500Medium',
+  display: 'Alegreya_700Bold',
+  displayItalic: 'Alegreya_700Bold',
 } as const;
 
 export const getColors = (isDark: boolean) => ({

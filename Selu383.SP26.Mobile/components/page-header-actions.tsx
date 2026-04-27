@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     marginRight: 6,
   },
   actionText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   spacer: {

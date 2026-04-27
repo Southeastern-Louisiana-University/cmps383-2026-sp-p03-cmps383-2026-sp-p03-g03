@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
     marginBottom: 14,
   },
   badgeText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 12,
   },
   emptyCard: {
@@ -35,14 +35,14 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   headline: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 28,
     lineHeight: 34,
     marginBottom: 8,
     textAlign: 'center',
   },
   copy: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 15,
     lineHeight: 22,
     textAlign: 'center',
@@ -55,7 +55,7 @@ export const styles = StyleSheet.create({
   },
   menuButtonText: {
     color: '#fff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
   },
   cartRow: {
@@ -76,18 +76,18 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   itemName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     lineHeight: 18,
     marginBottom: 2,
   },
   itemNote: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     marginBottom: 4,
   },
   itemPrice: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
   },
   controls: {
@@ -104,7 +104,7 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qtyText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     lineHeight: 18,
     minWidth: 22,
@@ -126,7 +126,7 @@ export const styles = StyleSheet.create({
     marginBottom: 12,
   },
   addMoreButtonText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
   totalsCard: {
@@ -153,19 +153,19 @@ export const styles = StyleSheet.create({
     marginBottom: 0,
   },
   totalLabel: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   totalValue: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   totalLabelBold: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
   },
   totalValueBold: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 18,
   },
   checkoutButton: {
@@ -182,7 +182,7 @@ export const styles = StyleSheet.create({
   },
   checkoutButtonText: {
     color: '#fff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 18,
   },
   clearButton: {
@@ -190,7 +190,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   clearText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     textDecorationLine: 'underline',
   },

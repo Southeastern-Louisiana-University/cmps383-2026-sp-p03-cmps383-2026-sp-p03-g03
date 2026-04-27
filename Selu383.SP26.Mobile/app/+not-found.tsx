@@ -35,12 +35,12 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   title: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 22,
     marginBottom: 8,
   },
   subtitle: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
     marginBottom: 24,
     textAlign: 'center',
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
 });

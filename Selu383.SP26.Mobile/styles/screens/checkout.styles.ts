@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
     gap: 4,
   },
   backText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   titleRow: {
@@ -40,12 +40,12 @@ export const styles = StyleSheet.create({
     elevation: 2,
   },
   sectionTitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 15,
     marginBottom: 10,
   },
   emptyText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
     textAlign: 'center',
     paddingVertical: 10,
@@ -61,11 +61,11 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   cartItemName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   cartItemNote: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 11,
     marginTop: 2,
   },
@@ -83,13 +83,13 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qtyText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     minWidth: 22,
     textAlign: 'center',
   },
   cartItemPrice: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
     minWidth: 52,
     textAlign: 'right',
@@ -108,20 +108,20 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
   },
   totalLabel: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   totalValue: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   totalLabelBold: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     marginTop: 4,
   },
   totalValueBold: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 18,
     marginTop: 4,
   },
@@ -143,7 +143,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   typeLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 12,
     textAlign: 'center',
     lineHeight: 16,
@@ -155,7 +155,7 @@ export const styles = StyleSheet.create({
     marginBottom: 10,
   },
   reservationHint: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     lineHeight: 18,
   },
@@ -169,11 +169,11 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   inlineToggleText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 12,
   },
   miniLabel: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
     marginTop: 8,
     marginBottom: 8,
@@ -194,7 +194,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   sizeBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 13,
   },
   timeGrid: {
@@ -210,7 +210,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   timeBtnText: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 12,
   },
   tableOption: {
@@ -223,7 +223,7 @@ export const styles = StyleSheet.create({
     gap: 10,
   },
   tableText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     flex: 1,
   },
@@ -236,7 +236,7 @@ export const styles = StyleSheet.create({
     marginBottom: 8,
   },
   reservationPreviewText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
     lineHeight: 18,
   },
@@ -253,11 +253,11 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   locationName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
   locationAddr: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
   },
   inputWrap: {
@@ -270,7 +270,7 @@ export const styles = StyleSheet.create({
     minHeight: 84,
   },
   input: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 14,
   },
   paymentOption: {
@@ -286,18 +286,18 @@ export const styles = StyleSheet.create({
     flex: 1,
   },
   paymentName: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 14,
   },
   paymentHint: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 12,
   },
   paymentLoading: {
     marginTop: 6,
   },
   noPaymentMethodsText: {
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     fontSize: 13,
     lineHeight: 18,
   },
@@ -314,7 +314,7 @@ export const styles = StyleSheet.create({
   },
   placeButtonText: {
     color: '#fff',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     fontSize: 16,
     letterSpacing: 0.3,
   },

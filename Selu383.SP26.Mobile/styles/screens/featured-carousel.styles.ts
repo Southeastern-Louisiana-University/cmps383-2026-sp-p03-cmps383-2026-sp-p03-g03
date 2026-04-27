@@ -47,7 +47,7 @@ export const styles = StyleSheet.create({
   itemCategory: {
     fontSize: 10,
     fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     letterSpacing: 1.2,
     color: 'rgba(255,255,255,0.65)',
     marginBottom: 6,
@@ -55,14 +55,14 @@ export const styles = StyleSheet.create({
   itemName: {
     fontSize: 19,
     fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     color: '#fff',
     marginBottom: 6,
     lineHeight: 24,
   },
   itemDesc: {
     fontSize: 12,
-    fontFamily: 'Lato_400Regular',
+    fontFamily: 'Alegreya_400Regular',
     color: 'rgba(255,255,255,0.82)',
     lineHeight: 17,
     marginBottom: 10,
@@ -70,7 +70,7 @@ export const styles = StyleSheet.create({
   itemPrice: {
     fontSize: 17,
     fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
     color: '#fff',
   },
   navRow: {
@@ -91,7 +91,7 @@ export const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 19,
     fontWeight: '700',
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Alegreya_700Bold',
   },
   dotsContainer: {
     flexDirection: 'row',
