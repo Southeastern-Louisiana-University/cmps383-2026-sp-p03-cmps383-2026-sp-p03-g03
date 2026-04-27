@@ -61,18 +61,20 @@ public static class SeedHelper
     {
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
 
-        await EnsureSeedUserAsync(userManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
-        await EnsureSeedUserAsync(userManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
-        await EnsureSeedUserAsync(userManager, "rylie", 0, RoleNames.Manager, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "robert", 0, RoleNames.Manager, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "staff1", 0, RoleNames.Staff, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "sue", 300, RoleNames.User, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
+        await EnsureSeedUserAsync(userManager, roleManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
+        await EnsureSeedUserAsync(userManager, roleManager, "rylie", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "robert", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "staff1", 0, RoleNames.Staff, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "sue", 300, RoleNames.User, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
     }
 
     private static async Task EnsureSeedUserAsync(
         UserManager<User> userManager,
+        RoleManager<Role> roleManager,
         string userName,
         int loyaltyPoints,
         string role,
@@ -130,12 +132,21 @@ public static class SeedHelper
             }
         }
 
-        if (!await userManager.IsInRoleAsync(user, role))
+        for (var roleAttempt = 0; roleAttempt < 3; roleAttempt++)
         {
-            var addRoleResult = await userManager.AddToRoleAsync(user, role);
-            if (!addRoleResult.Succeeded && !await userManager.IsInRoleAsync(user, role))
+            try
             {
-                throw new InvalidOperationException(string.Format("Failed to add user '{0}' to role '{1}'.", userName, role));
+                if (!await userManager.IsInRoleAsync(user, role))
+                {
+                    await userManager.AddToRoleAsync(user, role);
+                }
+                break;
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("does not exist"))
+            {
+                // Concurrent test ClearData() deleted the role — recreate it and retry
+                if (roleAttempt == 2) throw;
+                try { await roleManager.CreateAsync(new Role { Name = role }); } catch { }
             }
         }
 
