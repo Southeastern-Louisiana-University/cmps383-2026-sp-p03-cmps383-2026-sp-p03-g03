@@ -59,17 +59,25 @@ public static class SeedHelper
 
     private static async Task AddUsers(IServiceProvider serviceProvider)
     {
-        const string defaultPassword = "Password123!";
+         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
         var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
+        var dataContext = serviceProvider.GetRequiredService<DataContext>();
 
         await EnsureSeedUserAsync(userManager, roleManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
+        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
+        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "rylie", 0, RoleNames.Manager, defaultPassword);
+        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "robert", 0, RoleNames.Manager, defaultPassword);
+        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "staff1", 0, RoleNames.Staff, defaultPassword);
+        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "sue", 300, RoleNames.User, defaultPassword);
+        dataContext.ChangeTracker.Clear();
         await EnsureSeedUserAsync(userManager, roleManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
+        dataContext.ChangeTracker.Clear();
     }
 
     private static async Task EnsureSeedUserAsync(
