@@ -71,6 +71,11 @@ public static class SeedHelper
         string defaultPassword,
         params string[] legacyUserNames)
     {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new Role { Name = role });
+        }
+
         var candidateUserNames = new[] { userName }
             .Concat(legacyUserNames)
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -90,7 +95,7 @@ public static class SeedHelper
             if (!createResult.Succeeded)
             {
                 user = await userManager.Users.FirstOrDefaultAsync(x => x.UserName == userName)
-                    ?? throw new InvalidOperationException($"Failed to seed user '{userName}'.");
+                    ?? throw new InvalidOperationException(string.Format("Failed to seed user '{0}'.", userName));
             }
         }
         else
@@ -122,18 +127,20 @@ public static class SeedHelper
             }
         }
 
-        if (!await roleManager.RoleExistsAsync(role))
+        try
         {
-            await roleManager.CreateAsync(new Role { Name = role });
-        }
-
-        if (!await userManager.IsInRoleAsync(user, role))
-        {
-            var addRoleResult = await userManager.AddToRoleAsync(user, role);
-            if (!addRoleResult.Succeeded && !await userManager.IsInRoleAsync(user, role))
+            if (!await userManager.IsInRoleAsync(user, role))
             {
-                throw new InvalidOperationException($"Failed to add user '{userName}' to role '{role}'.");
+                var addRoleResult = await userManager.AddToRoleAsync(user, role);
+                if (!addRoleResult.Succeeded && !await userManager.IsInRoleAsync(user, role))
+                {
+                    throw new InvalidOperationException(string.Format("Failed to add user '{0}' to role '{1}'.", userName, role));
+                }
             }
+        }
+        catch (DbUpdateException)
+        {
+           
         }
 
         if (user.AccessFailedCount > 0 || user.LockoutEnd.HasValue)
