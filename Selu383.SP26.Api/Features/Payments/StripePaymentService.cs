@@ -18,7 +18,7 @@ public class StripePaymentService
         _context = context;
     }
 
-    public async Task<string> CreateCheckoutSessionAsync(int orderId, string? requestBaseUrl = null)
+    public async Task<string> CreateCheckoutSessionAsync(int orderId, string? requestBaseUrl = null, string? returnUrl = null)
     {
         var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
         var configuredSuccessUrl = _configuration["Stripe:SuccessUrl"]?.Trim();
@@ -26,6 +26,8 @@ public class StripePaymentService
 
         if (string.IsNullOrWhiteSpace(secretKey))
             throw new Exception("Stripe secret key is missing.");
+
+        var sanitizedReturnUrl = SanitizeReturnUrl(returnUrl);
 
         var successUrl = ResolveCheckoutUrl(
             configuredSuccessUrl,
@@ -39,6 +41,12 @@ public class StripePaymentService
 
         if (string.IsNullOrWhiteSpace(successUrl) || string.IsNullOrWhiteSpace(cancelUrl))
             throw new Exception("Stripe success/cancel URLs are missing or invalid.");
+
+        if (!string.IsNullOrEmpty(sanitizedReturnUrl))
+        {
+            successUrl = AppendQueryParam(successUrl, "return", sanitizedReturnUrl);
+            cancelUrl = AppendQueryParam(cancelUrl, "return", sanitizedReturnUrl);
+        }
 
         StripeConfiguration.ApiKey = secretKey;
 
@@ -147,6 +155,29 @@ public class StripePaymentService
                || string.Equals(host, "::1", StringComparison.OrdinalIgnoreCase);
     }
 
+    private static readonly string[] AllowedReturnSchemes =
+    {
+        "selu383sp26mobile",
+        "exp",
+        "exps",
+        "http",
+        "https",
+    };
+
+    private static string? SanitizeReturnUrl(string? returnUrl)
+    {
+        if (string.IsNullOrWhiteSpace(returnUrl)) return null;
+        if (!Uri.TryCreate(returnUrl.Trim(), UriKind.Absolute, out var uri)) return null;
+        if (!AllowedReturnSchemes.Contains(uri.Scheme, StringComparer.OrdinalIgnoreCase)) return null;
+        return uri.ToString();
+    }
+
+    private static string AppendQueryParam(string url, string key, string value)
+    {
+        var separator = url.Contains('?') ? "&" : "?";
+        return $"{url}{separator}{key}={Uri.EscapeDataString(value)}";
+    }
+
     public async Task<PaymentMethodCreateResult> CreatePaymentMethodAsync(string cardholderName, string cardNumber, int expMonth, int expYear, string cvc)
     {
         var secretKey = _configuration["Stripe:SecretKey"]?.Trim();
@@ -247,7 +278,6 @@ public class StripePaymentService
         }
 
         order.PaymentStatus = PaymentStatuses.Paid;
-        order.Status = OrderStatuses.Confirmed;
 
         await _context.SaveChangesAsync();
 
@@ -322,7 +352,6 @@ public class StripePaymentService
         }
 
         order.PaymentStatus = PaymentStatuses.Paid;
-        order.Status = OrderStatuses.Confirmed;
 
         await _context.SaveChangesAsync();
 

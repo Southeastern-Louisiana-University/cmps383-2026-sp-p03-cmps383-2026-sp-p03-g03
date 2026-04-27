@@ -1,45 +1,45 @@
-import { PropsWithChildren, useState } from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import React, { PropsWithChildren, useState } from 'react';
+import { TouchableOpacity, View } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { getColors } from '@/constants/styles';
 
-export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  const theme = useColorScheme() ?? 'light';
+type CollapsibleProps = PropsWithChildren<{
+  title: string;
+}>;
+
+export function Collapsible({ children, title }: CollapsibleProps) {
+  const [open, setOpen] = useState(false);
+  const colorScheme = useColorScheme();
+  const colors = getColors(colorScheme === 'dark');
 
   return (
-    <ThemedView>
+    <View
+      style={{
+        borderWidth: 1,
+        borderColor: colors.border,
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 12,
+        backgroundColor: colors.cardBackground,
+      }}
+    >
       <TouchableOpacity
-        style={styles.heading}
-        onPress={() => setIsOpen((value) => !value)}
-        activeOpacity={0.8}>
-        <IconSymbol
-          name="chevron.right"
-          size={18}
-          weight="medium"
-          color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
-          style={{ transform: [{ rotate: isOpen ? '90deg' : '0deg' }] }}
-        />
-
+        onPress={() => setOpen((prev) => !prev)}
+        activeOpacity={0.8}
+        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
+      >
         <ThemedText type="defaultSemiBold">{title}</ThemedText>
+        <MaterialIcons
+          name={open ? 'keyboard-arrow-down' : 'keyboard-arrow-right'}
+          size={20}
+          color={colors.icon}
+        />
       </TouchableOpacity>
-      {isOpen && <ThemedView style={styles.content}>{children}</ThemedView>}
-    </ThemedView>
+
+      {open ? <View style={{ marginTop: 10 }}>{children}</View> : null}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  heading: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  content: {
-    marginTop: 6,
-    marginLeft: 24,
-  },
-});

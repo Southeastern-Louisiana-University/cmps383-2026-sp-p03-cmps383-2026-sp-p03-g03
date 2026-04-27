@@ -757,6 +757,10 @@ namespace Selu383.SP26.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("CustomerName")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<int>("LocationId")
                         .HasColumnType("int");
 

@@ -17,12 +17,14 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { getColors } from '@/constants/styles';
+import { getUserPermissions } from '@/utils/role-helpers';
 import { styles } from '@/styles/screens/login.styles';
 
 export default function LoginScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
-  const { login, register, isLoading, user } = useAuth();
+  const { login, register, isLoading, user, continueAsGuest } = useAuth();
 
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [username, setUsername] = useState('');
@@ -32,13 +34,16 @@ export default function LoginScreen() {
   const [error, setError] = useState('');
   const [formError, setFormError] = useState('');
 
-  const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+  const isDark = colorScheme === 'dark';
+  const colors = getColors(isDark);
+
+  const { isPrivileged: hasWorkPortal } = getUserPermissions(user?.roles);
 
   useEffect(() => {
     if (user && !isLoading) {
-      router.replace('/(tabs)' as any);
+      router.replace(hasWorkPortal ? '/(tabs)/portal' as any : '/(tabs)' as any);
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, hasWorkPortal, router]);
 
   const handleSubmit = async () => {
     
@@ -67,11 +72,12 @@ export default function LoginScreen() {
     }
 
     try {
-      if (isRegisterMode) {
-        await register(username, password, displayName.trim() || undefined);
-      } else {
-        await login(username, password);
-      }
+      const userData = isRegisterMode
+        ? await register(username, password, displayName.trim() || undefined)
+        : await login(username, password);
+
+      const { isPrivileged } = getUserPermissions(userData?.roles);
+      router.replace((isPrivileged ? '/(tabs)/portal' : '/(tabs)') as any);
     } catch (err: any) {
       const errorMessage = err.message || (isRegisterMode ? 'Registration failed. Please try again.' : 'Login failed. Please try again.');
       setError(errorMessage);
@@ -114,7 +120,7 @@ export default function LoginScreen() {
 
             {/* Error Messages */}
             {formError ? (
-              <View style={[styles.errorContainer, { backgroundColor: '#ffebee' }]}>
+              <View style={[styles.errorContainer, { backgroundColor: colors.errorBackground }]}>
                 <ThemedText style={styles.errorText}>
                   {formError}
                 </ThemedText>
@@ -122,7 +128,7 @@ export default function LoginScreen() {
             ) : null}
 
             {error ? (
-              <View style={[styles.errorContainer, { backgroundColor: '#ffebee' }]}>
+              <View style={[styles.errorContainer, { backgroundColor: colors.errorBackground }]}>
                 <ThemedText style={styles.errorText}>
                   {error}
                 </ThemedText>
@@ -140,13 +146,13 @@ export default function LoginScreen() {
                 style={[
                   styles.input,
                   {
-                    borderColor: colors.text,
+                    borderColor: colors.border,
                     color: colors.text,
-                    backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+                    backgroundColor: colors.inputBackground,
                   },
                 ]}
                 placeholder="Enter your username"
-                placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                placeholderTextColor={colors.textSecondary}
                 value={username}
                 onChangeText={setUsername}
                 editable={!isLoading}
@@ -162,13 +168,13 @@ export default function LoginScreen() {
                   style={[
                     styles.input,
                     {
-                      borderColor: colors.text,
+                      borderColor: colors.border,
                       color: colors.text,
-                      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+                      backgroundColor: colors.inputBackground,
                     },
                   ]}
                   placeholder="How your name appears"
-                  placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                  placeholderTextColor={colors.textSecondary}
                   value={displayName}
                   onChangeText={setDisplayName}
                   editable={!isLoading}
@@ -183,13 +189,13 @@ export default function LoginScreen() {
                 style={[
                   styles.input,
                   {
-                    borderColor: colors.text,
+                    borderColor: colors.border,
                     color: colors.text,
-                    backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+                    backgroundColor: colors.inputBackground,
                   },
                 ]}
                 placeholder="Enter your password"
-                placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                placeholderTextColor={colors.textSecondary}
                 value={password}
                 onChangeText={setPassword}
                 editable={!isLoading}
@@ -206,13 +212,13 @@ export default function LoginScreen() {
                   style={[
                     styles.input,
                     {
-                      borderColor: colors.text,
+                      borderColor: colors.border,
                       color: colors.text,
-                      backgroundColor: colorScheme === 'dark' ? '#1a1a1a' : '#f5f5f5',
+                      backgroundColor: colors.inputBackground,
                     },
                   ]}
                   placeholder="Re-enter password"
-                  placeholderTextColor={colorScheme === 'dark' ? '#666' : '#999'}
+                  placeholderTextColor={colors.textSecondary}
                   value={confirmPassword}
                   onChangeText={setConfirmPassword}
                   editable={!isLoading}
@@ -256,6 +262,19 @@ export default function LoginScreen() {
             >
               <ThemedText style={[styles.toggleText, { color: Colors.brandGreen }]}> 
                 {isRegisterMode ? 'Already have an account? Sign In' : 'New here? Create an account'}
+              </ThemedText>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                continueAsGuest();
+                router.replace('/(tabs)' as any);
+              }}
+              activeOpacity={0.8}
+              style={{ marginTop: 12 }}
+            >
+              <ThemedText style={[styles.toggleText, { color: colors.text, opacity: 0.6 }]}> 
+                Continue as Guest
               </ThemedText>
             </TouchableOpacity>
 

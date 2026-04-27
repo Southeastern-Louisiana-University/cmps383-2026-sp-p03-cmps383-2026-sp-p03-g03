@@ -1,106 +1,58 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, ScrollView, Image, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { AnimatedButton } from '@/components/animated-button';
 import { PageHeaderActions } from '@/components/page-header-actions';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useAuth } from '@/hooks/useAuth';
+import { useCart } from '@/hooks/useCart';
 import { CommonStyles, getColors } from '@/constants/styles';
-import { getMenuItemImage } from '@/constants/menu-item-images';
-import { getMenuItems, type MenuItemDto } from '@/services/api';
+import { getUserPermissions } from '@/utils/role-helpers';
 import { styles } from '@/styles/screens/index.styles';
 
-type FeaturedItem = {
-  id: string;
-  image: any;
-  name: string;
-  price: string;
-};
-
-const FALLBACK_FEATURED_ITEMS: FeaturedItem[] = [
-  {
-    id: '1',
-    name: 'Iced Latte',
-    image: getMenuItemImage('Iced Latte'),
-    price: '$4.95',
-  },
-  {
-    id: '2',
-    name: 'Supernova',
-    image: getMenuItemImage('Supernova'),
-    price: '$6.50',
-  },
-  {
-    id: '3',
-    name: 'The Classic',
-    image: getMenuItemImage('The Classic'),
-    price: '$8.95',
-  },
+const BENEFITS = [
+  { icon: 'cafe-outline' as const, title: 'Made Fresh', desc: 'Made fresh by our baristas.' },
+  { icon: 'timer-outline' as const, title: 'Quick Pickup', desc: 'Order ahead, skip the line.' },
+  { icon: 'gift-outline' as const, title: 'Rewards', desc: 'Earn points on every sip.' },
 ];
 
-function getDaySeed() {
-  const now = new Date();
-  return now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
-}
-
-function buildDailyFeatured(menuItems: MenuItemDto[]): FeaturedItem[] {
-  const available = menuItems.filter((item) => item.isAvailable);
-  if (available.length === 0) {
-    return FALLBACK_FEATURED_ITEMS;
-  }
-
-  const picksCount = Math.min(3, available.length);
-  const seed = getDaySeed();
-  const startIndex = seed % available.length;
-
-  return Array.from({ length: picksCount }, (_, index) => {
-    const item = available[(startIndex + index) % available.length];
-    return {
-      id: String(item.id),
-      image: getMenuItemImage(item.name),
-      name: item.name,
-      price: `$${item.basePrice.toFixed(2)}`,
-    };
-  });
-}
+type QuickAction = {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  route: string;
+  badge?: number;
+  accent?: boolean;
+};
 
 export default function HomeScreen() {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === 'dark';
   const colors = getColors(isDark);
-  const { user } = useAuth();
+  const { user, isGuest } = useAuth();
+  const { cart } = useCart();
   const router = useRouter();
-  const hasWorkPortal = !!user?.roles?.some((role) =>
-    ['admin', 'manager', 'staff'].includes(role.toLowerCase()),
-  );
-  const [featuredItems, setFeaturedItems] = useState<FeaturedItem[]>(FALLBACK_FEATURED_ITEMS);
 
-  useEffect(() => {
-    let isMounted = true;
+  const { isPrivileged: hasWorkPortal } = getUserPermissions(user?.roles);
 
-    const loadFeaturedItems = async () => {
-      try {
-        const menuItems = await getMenuItems();
-        const dailyItems = buildDailyFeatured(menuItems);
-        if (isMounted) {
-          setFeaturedItems(dailyItems);
-        }
-      } catch {
-        if (isMounted) {
-          setFeaturedItems(FALLBACK_FEATURED_ITEMS);
-        }
-      }
-    };
+  const quickActions: QuickAction[] = hasWorkPortal
+    ? [
+        { icon: 'briefcase-outline' as const, label: 'Portal', route: '/(tabs)/portal', accent: true },
+      ]
+    : [
+        { icon: 'cart-outline', label: 'Cart', route: '/(tabs)/cart', badge: cart.reduce((s, c) => s + c.quantity, 0) },
+        { icon: 'receipt-outline', label: 'Orders', route: '/(tabs)/orders' },
+        { icon: 'star-outline', label: 'Rewards', route: '/(tabs)/account' },
+        { icon: 'calendar-outline' as const, label: 'Book', route: '/(tabs)/reservations' },
+      ];
 
-    loadFeaturedItems();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  const greetingText = user
+    ? `Welcome back, ${user.displayName || user.userName}`
+    : isGuest
+      ? 'Browsing as Guest'
+      : '';
 
   return (
     <SafeAreaView style={[CommonStyles.safeArea, { backgroundColor: colors.background }]}>
@@ -108,134 +60,161 @@ export default function HomeScreen() {
         <ThemedView style={CommonStyles.container}>
           <View style={styles.topBarRow}>
             <TouchableOpacity
-              style={[styles.topMenuButton, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-              onPress={() => router.push('/(tabs)/menu')}
-              activeOpacity={0.85}
+              style={styles.brandTouchable}
+              onPress={() => router.push('/splash?manual=1' as any)}
+              activeOpacity={0.7}
             >
-              <ThemedText style={[styles.topMenuButtonText, { color: colors.text }]}>Menu</ThemedText>
+              <Image
+                source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
+                style={styles.brandLogo}
+                resizeMode="contain"
+              />
+              <ThemedText style={[styles.brandName, { color: colors.text }]}>Caffeinated Lions</ThemedText>
             </TouchableOpacity>
-
-            <View style={styles.topBarActions}>
-              <PageHeaderActions showHome={false} showLogout />
-            </View>
+            <PageHeaderActions showHome={false} showLogout inline />
           </View>
 
           <View style={styles.heroWrap}>
             <Image
-              source={require('@/assets/images/ConceptLogo2-FpjOWRtT.png')}
-              style={styles.logo}
-              resizeMode="contain"
+              source={require('@/assets/images/featured-caramel-latte.jpg')}
+              style={styles.heroImage}
+              resizeMode="cover"
             />
+            <View style={[styles.heroOverlay, { backgroundColor: 'rgba(44,36,25,0.55)' }]} />
 
-            <ThemedText style={[styles.welcome, { color: colors.primary }]}>Caffeinated Lions</ThemedText>
-            <ThemedText style={[styles.tagline, { color: colors.textSecondary }]}>Pouring pride into every cup.</ThemedText>
-
-            {user && (
-              <ThemedText style={[styles.greeting, { color: colors.textSecondary }]}>Welcome back, {user.displayName || user.userName}</ThemedText>
-            )}
-          </View>
-
-          <AnimatedButton
-            style={[styles.primaryAction, { backgroundColor: colors.primary }]}
-            onPress={() => router.push('/(tabs)/menu')}
-          >
-            <ThemedText style={[styles.primaryActionText, { color: '#ffffff' }]}>Start Order</ThemedText>
-          </AnimatedButton>
-
-          <AnimatedButton
-            style={[styles.secondaryAction, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-            onPress={() => router.push('/(tabs)/reservations')}
-          >
-            <ThemedText style={[styles.secondaryActionText, { color: colors.text }]}>Book a Table</ThemedText>
-          </AnimatedButton>
-
-          <View style={styles.quickRow}>
-            <TouchableOpacity
-              style={[styles.quickPill, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-              onPress={() => router.push('/(tabs)/cart')}
-              activeOpacity={0.85}
-            >
-              <ThemedText style={[styles.quickPillText, { color: colors.text }]}>Cart</ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.quickPill, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-              onPress={() => router.push('/(tabs)/orders')}
-              activeOpacity={0.85}
-            >
-              <ThemedText style={[styles.quickPillText, { color: colors.text }]}>Orders</ThemedText>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.quickPill, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-              onPress={() => router.push('/(tabs)/account')}
-              activeOpacity={0.85}
-            >
-              <ThemedText style={[styles.quickPillText, { color: colors.text }]}>Account</ThemedText>
-            </TouchableOpacity>
-
-            {hasWorkPortal && (
-              <TouchableOpacity
-                style={[styles.quickPill, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                onPress={() => router.push('/portal')}
-                activeOpacity={0.85}
-              >
-                <ThemedText style={[styles.quickPillText, { color: colors.primary }]}>Portal</ThemedText>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <View style={[styles.summaryCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}> 
-            <View style={styles.summaryRow}>
-              <View style={styles.summaryBlock}>
-                <ThemedText style={styles.summaryLabel}>Points</ThemedText>
-                <ThemedText style={[styles.summaryValue, { color: colors.primary }]}>{user?.loyaltyPoints ?? 0} pts</ThemedText>
-              </View>
-
-              <View style={[styles.summaryDivider, { backgroundColor: colors.border }]} />
-
-              <View style={styles.summaryBlock}>
-                <ThemedText style={styles.summaryLabel}>Status</ThemedText>
-                <ThemedText style={[styles.summaryValue, { color: colors.text }]}>Ready</ThemedText>
+            <View style={styles.heroContent}>
+              {greetingText !== '' && (
+                <ThemedText style={styles.greeting}>{greetingText}</ThemedText>
+              )}
+              <ThemedText style={styles.heroTitle}>Bold brews to fuel the pride.</ThemedText>
+              <ThemedText style={styles.heroSubtitle}>Fresh coffee, crepes & bagels — made with love.</ThemedText>
+              <View style={styles.heroCtas}>
+                <TouchableOpacity
+                  style={[styles.heroPrimaryBtn, { backgroundColor: colors.primary }]}
+                  onPress={() => router.push('/(tabs)/menu')}
+                  activeOpacity={0.85}
+                >
+                  <ThemedText style={styles.heroPrimaryText}>View Menu</ThemedText>
+                </TouchableOpacity>
+                {!hasWorkPortal && (
+                  <TouchableOpacity
+                    style={styles.heroOutlineBtn}
+                    onPress={() => router.push('/(tabs)/account')}
+                    activeOpacity={0.85}
+                  >
+                    <ThemedText style={styles.heroOutlineText}>Account</ThemedText>
+                  </TouchableOpacity>
+                )}
               </View>
             </View>
           </View>
 
-          <View style={styles.sectionHeaderRow}>
-            <ThemedText style={[styles.sectionTitle, { color: colors.text }]}>Featured Today</ThemedText>
-            <TouchableOpacity onPress={() => router.push('/(tabs)/menu')} activeOpacity={0.8}>
-              <ThemedText style={[styles.sectionLink, { color: colors.primary }]}>See all</ThemedText>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.featuredList}>
-            {featuredItems.map((item) => (
+          <View style={styles.quickActionsRow}>
+            {quickActions.map((qa) => (
               <TouchableOpacity
-                key={item.id}
-                style={[styles.featuredCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
-                onPress={() =>
-                  router.push({
-                    pathname: '/(tabs)/menu',
-                    params: { itemId: item.id },
-                  })
-                }
-                activeOpacity={0.85}
+                key={qa.label}
+                style={styles.quickActionItem}
+                onPress={() => router.push(qa.route as any)}
+                activeOpacity={0.8}
               >
-                <Image source={item.image} style={styles.featuredImage} resizeMode="cover" />
-                <View style={styles.featuredInfo}>
-                  <ThemedText style={[styles.featuredName, { color: colors.text }]}>{item.name}</ThemedText>
-                  <ThemedText style={[styles.featuredPrice, { color: colors.primary }]}>{item.price}</ThemedText>
+                <View style={[styles.quickActionCircle, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                  <Ionicons name={qa.icon} size={24} color={qa.accent ? colors.primary : colors.text} />
+                  {(qa.badge ?? 0) > 0 && (
+                    <View style={[styles.quickActionBadge, { backgroundColor: colors.primary }]}>
+                      <ThemedText style={styles.quickActionBadgeText}>{qa.badge}</ThemedText>
+                    </View>
+                  )}
                 </View>
+                <ThemedText style={[styles.quickActionLabel, { color: qa.accent ? colors.primary : colors.textSecondary }]}>
+                  {qa.label}
+                </ThemedText>
               </TouchableOpacity>
             ))}
           </View>
 
-          <View style={[styles.footerCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}> 
-            <ThemedText style={[styles.footerTitle, { color: colors.text }]}>Today</ThemedText>
-            <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Open 6:00 AM - 6:00 PM</ThemedText>
-            <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Featured picks refresh daily</ThemedText>
-            <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Mobile pickup available</ThemedText>
+          {!hasWorkPortal && (
+          <View style={styles.featureBenefitsRow}>
+            {BENEFITS.map((b) => (
+              <View key={b.title} style={[styles.featureBenefitCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                <View style={[styles.featureBenefitIconWrap, { backgroundColor: isDark ? 'rgba(101,163,13,0.15)' : 'rgba(101,163,13,0.1)' }]}>
+                  <Ionicons name={b.icon} size={20} color={colors.primary} />
+                </View>
+                <ThemedText style={[styles.featureBenefitTitle, { color: colors.text }]}>{b.title}</ThemedText>
+                <ThemedText style={[styles.featureBenefitDesc, { color: colors.textSecondary }]}>{b.desc}</ThemedText>
+              </View>
+            ))}
           </View>
+          )}
+
+          {!hasWorkPortal && (
+          <TouchableOpacity
+            style={[styles.rewardsCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}
+            onPress={() => router.push('/(tabs)/account')}
+            activeOpacity={0.85}
+          >
+            <View style={[styles.rewardsIconWrap, { backgroundColor: isDark ? 'rgba(101,163,13,0.15)' : 'rgba(101,163,13,0.1)' }]}>
+              <Ionicons name="trophy" size={26} color={colors.primary} />
+            </View>
+            <View style={styles.rewardsTextWrap}>
+              <ThemedText style={[styles.rewardsTitle, { color: colors.text }]}>
+                {user && !isGuest ? 'Rewards' : 'Join Rewards'}
+              </ThemedText>
+              <ThemedText style={[styles.rewardsSubtitle, { color: colors.textSecondary }]}>
+                {user && !isGuest
+                  ? 'Earn points on every order. Redeem for free drinks & crepes.'
+                  : 'Sign in to earn points on every purchase and unlock free items.'}
+              </ThemedText>
+            </View>
+            {user && !isGuest && (
+              <View style={styles.rewardsPoints}>
+                <ThemedText style={[styles.rewardsPointsValue, { color: colors.primary }]}>{user.loyaltyPoints ?? 0}</ThemedText>
+                <ThemedText style={[styles.rewardsPointsLabel, { color: colors.textSecondary }]}>Points</ThemedText>
+              </View>
+            )}
+          </TouchableOpacity>
+          )}
+
+          {!hasWorkPortal && (
+            <View style={[styles.reservationCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <View style={styles.reservationImageWrap}>
+                <Image
+                  source={require('@/assets/images/table.jpg')}
+                  style={styles.reservationImage}
+                  resizeMode="cover"
+                />
+                <View style={[styles.reservationOverlay, { backgroundColor: 'rgba(44,36,25,0.45)' }]} />
+              </View>
+              <View style={[styles.reservationContent, { backgroundColor: colors.cardBackground }]}>
+                <ThemedText style={[styles.reservationTitle, { color: colors.text }]}>Dine with the Pride</ThemedText>
+                <ThemedText style={[styles.reservationSubtitle, { color: colors.textSecondary }]}>
+                  Reserve a table at any Caffeinated Lions location.
+                </ThemedText>
+                <TouchableOpacity
+                  style={[styles.reservationBtn, { backgroundColor: colors.primary }]}
+                  onPress={() => router.push('/(tabs)/reservations')}
+                  activeOpacity={0.85}
+                >
+                  <ThemedText style={styles.reservationBtnText}>Reserve a Table</ThemedText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          <View style={[styles.footerCard, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+            <View style={styles.footerRow}>
+              <Ionicons name="time-outline" size={16} color={colors.textSecondary} />
+              <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Open 6:00 AM – 6:00 PM</ThemedText>
+            </View>
+            <View style={styles.footerRow}>
+              <Ionicons name="refresh-outline" size={16} color={colors.textSecondary} />
+              <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Fresh brews and bites served daily</ThemedText>
+            </View>
+            <View style={styles.footerRow}>
+              <Ionicons name="phone-portrait-outline" size={16} color={colors.textSecondary} />
+              <ThemedText style={[styles.footerCopy, { color: colors.textSecondary }]}>Mobile pickup available</ThemedText>
+            </View>
+          </View>
+
         </ThemedView>
       </ScrollView>
     </SafeAreaView>

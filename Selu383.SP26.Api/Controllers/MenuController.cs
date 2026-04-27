@@ -53,6 +53,7 @@ public class MenuController : ControllerBase
                 CategoryId = i.CategoryId,
                 Name = i.Name,
                 Description = i.Description,
+                ImagePath = i.ImagePath,
                 BasePrice = i.BasePrice,
                 IsAvailable = i.IsAvailable,
                 UnavailableReason = i.UnavailableReason
@@ -97,6 +98,7 @@ public class MenuController : ControllerBase
                         CategoryId = i.CategoryId,
                         Name = i.Name,
                         Description = i.Description,
+                        ImagePath = i.ImagePath,
                         BasePrice = i.BasePrice,
                         IsAvailable = i.IsAvailable,
                         UnavailableReason = i.UnavailableReason
@@ -112,12 +114,7 @@ public class MenuController : ControllerBase
             c.Name,
             c.IsSeasonal,
             c.IsActive,
-            Items = c.Items.Where(i =>
-            {
-                if (overrides.TryGetValue(i.Id, out var ov))
-                    return ov.IsAvailable;
-                return i.IsAvailable;
-            }).Select(i =>
+            Items = c.Items.Select(i =>
             {
                 if (overrides.TryGetValue(i.Id, out var ov))
                 {
@@ -127,6 +124,7 @@ public class MenuController : ControllerBase
                         CategoryId = i.CategoryId,
                         Name = i.Name,
                         Description = i.Description,
+                        ImagePath = i.ImagePath,
                         BasePrice = i.BasePrice,
                         IsAvailable = ov.IsAvailable,
                         UnavailableReason = ov.UnavailableReason
@@ -190,21 +188,68 @@ public class MenuController : ControllerBase
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
     public async Task<ActionResult<MenuItemDto>> CreateItem([FromBody] CreateMenuItemDto dto)
     {
-        var categoryExists = await _context.MenuCategories.AnyAsync(c => c.Id == dto.CategoryId);
-        if (!categoryExists)
+        var category = await _context.MenuCategories
+            .Include(c => c.MenuCategoryLocations)
+            .FirstOrDefaultAsync(c => c.Id == dto.CategoryId);
+
+        if (category == null)
             return BadRequest("Invalid category.");
+
+        if (dto.LocationId.HasValue)
+        {
+            var locationId = dto.LocationId.Value;
+
+            if (!await _locationAccessService.CanAccessLocationAsync(User, locationId))
+                return StatusCode(403, "You do not have access to this location.");
+
+            if (!category.MenuCategoryLocations.Any(link => link.LocationId == locationId))
+                return BadRequest("Selected category is not available at this location.");
+        }
+        else if (User.IsInRole(RoleNames.Manager) && !User.IsInRole(RoleNames.Admin))
+        {
+            return BadRequest("Managers must select a location when creating menu items.");
+        }
 
         var item = new MenuItem
         {
             CategoryId = dto.CategoryId,
             Name = dto.Name.Trim(),
             Description = dto.Description?.Trim(),
+            ImagePath = string.IsNullOrWhiteSpace(dto.ImagePath) ? null : dto.ImagePath.Trim(),
             BasePrice = dto.BasePrice,
             IsAvailable = dto.IsAvailable
         };
 
         _context.MenuItems.Add(item);
         await _context.SaveChangesAsync();
+
+        if (dto.LocationId.HasValue)
+        {
+            var scopedLocationId = dto.LocationId.Value;
+            var otherLocationIds = category.MenuCategoryLocations
+                .Select(link => link.LocationId)
+                .Where(locationId => locationId != scopedLocationId)
+                .Distinct()
+                .ToList();
+
+            foreach (var otherLocationId in otherLocationIds)
+            {
+                _context.MenuItemLocationOverrides.Add(new MenuItemLocationOverride
+                {
+                    MenuItemId = item.Id,
+                    LocationId = otherLocationId,
+                    IsAvailable = false,
+                    UnavailableReason = "Not offered at this location.",
+                    DisabledAt = DateTime.UtcNow,
+                    DisabledByUserId = User.GetCurrentUserId()
+                });
+            }
+
+            if (otherLocationIds.Count > 0)
+            {
+                await _context.SaveChangesAsync();
+            }
+        }
 
         return Ok(MapItem(item));
     }
@@ -219,6 +264,7 @@ public class MenuController : ControllerBase
 
         item.Name = dto.Name.Trim();
         item.Description = dto.Description?.Trim();
+        item.ImagePath = string.IsNullOrWhiteSpace(dto.ImagePath) ? null : dto.ImagePath.Trim();
         item.BasePrice = dto.BasePrice;
         item.IsAvailable = dto.IsAvailable;
 
@@ -232,6 +278,20 @@ public class MenuController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(MapItem(item));
+    }
+
+    [HttpDelete("items/{id:int}")]
+    [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
+    public async Task<ActionResult> DeleteItem(int id)
+    {
+        var item = await _context.MenuItems.FirstOrDefaultAsync(x => x.Id == id);
+        if (item == null)
+            return NotFound("Menu item not found.");
+
+        _context.MenuItems.Remove(item);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { message = "Menu item deleted successfully." });
     }
 
     [HttpPost("items/{id:int}/disable")]
@@ -318,7 +378,7 @@ public class MenuController : ControllerBase
 
     [HttpPost("items/{id:int}/location/{locationId:int}/disable")]
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
-    public async Task<ActionResult> DisableItemAtLocation(int id, int locationId, [FromBody] DisableMenuItemDto dto)
+    public async Task<ActionResult<MenuItemAvailabilityDto>> DisableItemAtLocation(int id, int locationId, [FromBody] DisableMenuItemDto dto)
     {
         if (!await _locationAccessService.CanAccessLocationAsync(User, locationId))
             return StatusCode(403, "You do not have access to this location.");
@@ -355,26 +415,71 @@ public class MenuController : ControllerBase
         }
 
         await _context.SaveChangesAsync();
-        return Ok(new { message = $"Item disabled at location {locationId}." });
+
+        return Ok(new MenuItemAvailabilityDto
+        {
+            MenuItemId = item.Id,
+            CategoryId = item.CategoryId,
+            Name = item.Name,
+            BasePrice = item.BasePrice,
+            LocationId = locationId,
+            IsAvailable = false,
+            UnavailableReason = dto.Reason.Trim(),
+            IsOverridden = true
+        });
     }
 
     [HttpPost("items/{id:int}/location/{locationId:int}/enable")]
     [Authorize(Roles = $"{RoleNames.Admin},{RoleNames.Manager}")]
-    public async Task<ActionResult> EnableItemAtLocation(int id, int locationId)
+    public async Task<ActionResult<MenuItemAvailabilityDto>> EnableItemAtLocation(int id, int locationId)
     {
         if (!await _locationAccessService.CanAccessLocationAsync(User, locationId))
             return StatusCode(403, "You do not have access to this location.");
+
+        var item = await _context.MenuItems.FirstOrDefaultAsync(x => x.Id == id);
+        if (item == null)
+            return NotFound("Menu item not found.");
+
+        var locationExists = await _context.Locations.AnyAsync(l => l.Id == locationId);
+        if (!locationExists)
+            return NotFound("Location not found.");
 
         var existing = await _context.MenuItemLocationOverrides
             .FirstOrDefaultAsync(o => o.MenuItemId == id && o.LocationId == locationId);
 
         if (existing != null)
         {
-            _context.MenuItemLocationOverrides.Remove(existing);
-            await _context.SaveChangesAsync();
+            existing.IsAvailable = true;
+            existing.UnavailableReason = null;
+            existing.DisabledAt = null;
+            existing.DisabledByUserId = null;
+        }
+        else
+        {
+            _context.MenuItemLocationOverrides.Add(new MenuItemLocationOverride
+            {
+                MenuItemId = id,
+                LocationId = locationId,
+                IsAvailable = true,
+                UnavailableReason = null,
+                DisabledAt = null,
+                DisabledByUserId = null
+            });
         }
 
-        return Ok(new { message = $"Item enabled at location {locationId}." });
+        await _context.SaveChangesAsync();
+
+        return Ok(new MenuItemAvailabilityDto
+        {
+            MenuItemId = item.Id,
+            CategoryId = item.CategoryId,
+            Name = item.Name,
+            BasePrice = item.BasePrice,
+            LocationId = locationId,
+            IsAvailable = true,
+            UnavailableReason = null,
+            IsOverridden = true
+        });
     }
 
     private static MenuItemDto MapItem(MenuItem item)
@@ -385,6 +490,7 @@ public class MenuController : ControllerBase
             CategoryId = item.CategoryId,
             Name = item.Name,
             Description = item.Description,
+            ImagePath = item.ImagePath,
             BasePrice = item.BasePrice,
             IsAvailable = item.IsAvailable,
             UnavailableReason = item.UnavailableReason

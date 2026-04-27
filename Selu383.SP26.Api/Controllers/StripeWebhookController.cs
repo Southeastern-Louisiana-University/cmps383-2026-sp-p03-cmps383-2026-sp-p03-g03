@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
 using Stripe.Checkout;
 using Selu383.SP26.Api.Data;
+using Selu383.SP26.Api.Features.Auth;
 using Selu383.SP26.Api.Features.Orders;
 using Selu383.SP26.Api.Features.Receipts;
 using Selu383.SP26.Api.Features.Loyalty;
@@ -18,6 +20,7 @@ public class StripeWebhookController : ControllerBase
     private readonly DataContext _context;
     private readonly ReceiptPdfService _receiptPdfService;
     private readonly BlobStorageService _blobStorageService;
+    private readonly UserManager<User> _userManager;
     private readonly ILogger<StripeWebhookController> _logger;
 
     public StripeWebhookController(
@@ -25,12 +28,14 @@ public class StripeWebhookController : ControllerBase
         DataContext context,
         ReceiptPdfService receiptPdfService,
         BlobStorageService blobStorageService,
+        UserManager<User> userManager,
         ILogger<StripeWebhookController> logger)
     {
         _configuration = configuration;
         _context = context;
         _receiptPdfService = receiptPdfService;
         _blobStorageService = blobStorageService;
+        _userManager = userManager;
         _logger = logger;
     }
 
@@ -110,25 +115,34 @@ public class StripeWebhookController : ControllerBase
 
                 if (!wasAlreadyPaid && order.CreatedByUser != null && !string.Equals(order.OrderType, OrderTypes.CoverCharge, StringComparison.OrdinalIgnoreCase))
                 {
-                    var isFirstWeekCustomer = order.CreatedByUser.CreatedAt >= DateTime.UtcNow.AddDays(-7);
-                    var pointsRate = isFirstWeekCustomer ? 20 : 10;
-                    var pointsEarned = (int)Math.Round(order.Total * pointsRate);
+                    var userRoles = await _userManager.GetRolesAsync(order.CreatedByUser);
+                    var isStaffAccount = userRoles.Any(r =>
+                        string.Equals(r, RoleNames.Admin, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(r, RoleNames.Manager, StringComparison.OrdinalIgnoreCase) ||
+                        string.Equals(r, RoleNames.Staff, StringComparison.OrdinalIgnoreCase));
 
-                    var loyaltyExists = await _context.Set<LoyaltyLedger>()
-                        .AnyAsync(x => x.OrderId == order.Id);
-
-                    if (!loyaltyExists)
+                    if (!isStaffAccount)
                     {
-                        _context.Set<LoyaltyLedger>().Add(new LoyaltyLedger
-                        {
-                            UserId = order.CreatedByUser.Id,
-                            OrderId = order.Id,
-                            PointsEarned = pointsEarned,
-                            PointsRedeemed = 0,
-                            CreatedAt = DateTime.UtcNow
-                        });
+                        var isFirstWeekCustomer = order.CreatedByUser.CreatedAt >= DateTime.UtcNow.AddDays(-7);
+                        var pointsRate = isFirstWeekCustomer ? 20 : 10;
+                        var pointsEarned = (int)Math.Round(order.Total * pointsRate);
 
-                        order.CreatedByUser.LoyaltyPoints += pointsEarned;
+                        var loyaltyExists = await _context.Set<LoyaltyLedger>()
+                            .AnyAsync(x => x.OrderId == order.Id);
+
+                        if (!loyaltyExists)
+                        {
+                            _context.Set<LoyaltyLedger>().Add(new LoyaltyLedger
+                            {
+                                UserId = order.CreatedByUser.Id,
+                                OrderId = order.Id,
+                                PointsEarned = pointsEarned,
+                                PointsRedeemed = 0,
+                                CreatedAt = DateTime.UtcNow
+                            });
+
+                            order.CreatedByUser.LoyaltyPoints += pointsEarned;
+                        }
                     }
                 }
 

@@ -1,4 +1,5 @@
 import React, { createContext, useState, ReactNode } from 'react';
+import { CART_MAX_ITEM_QUANTITY } from '@/utils/checkout-utils';
 
 export interface CartItem {
   id: number;
@@ -10,26 +11,41 @@ export interface CartItem {
 
 export interface CartContextType {
   cart: CartItem[];
+  locationId: number | null;
   addItem: (item: CartItem, quantity: number, notes?: string) => void;
   removeItem: (id: number) => void;
   updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
+  setCartLocation: (locationId: number) => void;
+  guestOrderIds: number[];
+  addGuestOrderId: (orderId: number) => void;
 }
 
 export const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [locationId, setLocationId] = useState<number | null>(null);
+  const [guestOrderIds, setGuestOrderIds] = useState<number[]>([]);
+
+  const setCartLocation = (newLocationId: number) => {
+    if (locationId !== null && locationId !== newLocationId && cart.length > 0) {
+      setCart([]);
+    }
+    setLocationId(newLocationId);
+  };
 
   const addItem = (item: CartItem, quantity: number, notes?: string) => {
     setCart((prevCart) => {
       const existingItem = prevCart.find((i) => i.id === item.id);
       if (existingItem) {
         return prevCart.map((i) =>
-          i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
+          i.id === item.id
+            ? { ...i, quantity: Math.min(i.quantity + quantity, CART_MAX_ITEM_QUANTITY) }
+            : i
         );
       }
-      return [...prevCart, { ...item, quantity, customizationNotes: notes }];
+      return [...prevCart, { ...item, quantity: Math.min(quantity, CART_MAX_ITEM_QUANTITY), customizationNotes: notes }];
     });
   };
 
@@ -43,16 +59,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
     setCart((prevCart) =>
-      prevCart.map((item) => (item.id === id ? { ...item, quantity } : item))
+      prevCart.map((item) =>
+        item.id === id
+          ? { ...item, quantity: Math.min(quantity, CART_MAX_ITEM_QUANTITY) }
+          : item,
+      )
     );
   };
 
   const clearCart = () => {
     setCart([]);
+    setLocationId(null);
+  };
+
+  const addGuestOrderId = (orderId: number) => {
+    setGuestOrderIds((prev) => (prev.includes(orderId) ? prev : [...prev, orderId]));
   };
 
   return (
-    <CartContext.Provider value={{ cart, addItem, removeItem, updateQuantity, clearCart }}>
+    <CartContext.Provider value={{ cart, locationId, addItem, removeItem, updateQuantity, clearCart, setCartLocation, guestOrderIds, addGuestOrderId }}>
       {children}
     </CartContext.Provider>
   );

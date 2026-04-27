@@ -11,8 +11,14 @@
     (function () {
       const params = new URLSearchParams(window.location.search);
       const sessionId = params.get("session_id");
+      const returnUrl = params.get("return");
       if (sessionId) {
         window.__stripeSessionId = sessionId;
+      }
+      if (returnUrl) {
+        window.__returnUrl = returnUrl;
+      }
+      if (sessionId || returnUrl) {
         const cleanUrl = `${window.location.origin}${window.location.pathname}`;
         window.history.replaceState({}, document.title, cleanUrl);
       }
@@ -39,21 +45,26 @@
       <p>Your payment was successful and your order is being prepared.</p>
       <div class="actions">
         <a id="openApp" class="btn" href="selu383sp26mobile://">Return to App</a>
-        <a class="btn secondary" href="https://selu383-sp26-p03-g03.azurewebsites.net/checkout/success.html">Stay on this page</a>
+        <a id="stayLink" class="btn secondary" href="#">Stay on this page</a>
       </div>
-      <p class="hint">If the app does not open, switch back to the app manually.</p>
+      <p class="hint">If the app does not open, switch back to the app manually — or tap "Return to App" again.</p>
     </div>
   </div>
   <script>
     const sessionId = window.__stripeSessionId;
+    const returnUrl = window.__returnUrl;
     const appLink = document.getElementById("openApp");
-    if (sessionId) {
-      appLink.setAttribute("href", `selu383sp26mobile://?session_id=${encodeURIComponent(sessionId)}`);
-    }
 
-    // Attempt auto-return after a short delay.
+    const baseScheme = returnUrl || "selu383sp26mobile://";
+    const sep = baseScheme.includes("?") ? "&" : "?";
+    const deepLink = sessionId
+      ? `${baseScheme}${sep}session_id=${encodeURIComponent(sessionId)}`
+      : baseScheme;
+
+    appLink.setAttribute("href", deepLink);
+
     setTimeout(() => {
-      window.location.href = appLink.getAttribute("href");
+      window.location.href = deepLink;
     }, 1200);
   </script>
 </body>
