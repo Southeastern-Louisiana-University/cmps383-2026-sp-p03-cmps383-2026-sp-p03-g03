@@ -9,7 +9,12 @@ using Stripe;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DataContext")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DataContext"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
 
 builder.Services.AddIdentity<User, Role>()
     .AddEntityFrameworkStores<DataContext>();

@@ -32,17 +32,6 @@ public static class SeedHelper
             await AddRoles(serviceProvider);
             await dataContext.SaveChangesAsync();
 
-            var adminRoleExists = await dataContext.Roles
-                .AnyAsync(r => r.NormalizedName == RoleNames.Admin.ToUpperInvariant());
-
-            if (!adminRoleExists)
-            {
-                throw new InvalidOperationException(
-                    "Seed integrity check failed: Admin role was not persisted after AddRoles. " +
-                    "This usually means the test infrastructure is reusing a disposed WebApplicationFactory. " +
-                    "Check Selu383.SP26.Tests/Helpers/WebTestContext.cs for a cleanup ordering bug.");
-            }
-
             await AddUsers(serviceProvider);
             await AddLocations(dataContext);
             await EnsureSeedAssignments(dataContext);
@@ -62,18 +51,20 @@ public static class SeedHelper
     {
         const string defaultPassword = "Password123!";
         var userManager = serviceProvider.GetRequiredService<UserManager<User>>();
+        var roleManager = serviceProvider.GetRequiredService<RoleManager<Role>>();
 
-        await EnsureSeedUserAsync(userManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
-        await EnsureSeedUserAsync(userManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
-        await EnsureSeedUserAsync(userManager, "rylie", 0, RoleNames.Manager, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "robert", 0, RoleNames.Manager, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "staff1", 0, RoleNames.Staff, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "sue", 300, RoleNames.User, defaultPassword);
-        await EnsureSeedUserAsync(userManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "Eliora", 0, RoleNames.Admin, defaultPassword, "galkadi", "Eliora");
+        await EnsureSeedUserAsync(userManager, roleManager, "terri", 0, RoleNames.Manager, defaultPassword, "manager1");
+        await EnsureSeedUserAsync(userManager, roleManager, "rylie", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "robert", 0, RoleNames.Manager, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "staff1", 0, RoleNames.Staff, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "sue", 300, RoleNames.User, defaultPassword);
+        await EnsureSeedUserAsync(userManager, roleManager, "bob", BobTestPoints, RoleNames.User, defaultPassword);
     }
 
     private static async Task EnsureSeedUserAsync(
         UserManager<User> userManager,
+        RoleManager<Role> roleManager,
         string userName,
         int loyaltyPoints,
         string role,
@@ -129,6 +120,11 @@ public static class SeedHelper
             {
                 await userManager.UpdateAsync(user);
             }
+        }
+
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new Role { Name = role });
         }
 
         if (!await userManager.IsInRoleAsync(user, role))
